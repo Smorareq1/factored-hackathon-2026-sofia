@@ -1,0 +1,15 @@
+# Una carpeta, un dueño (§11 del brief). Reemplazar los @usuario por los handles reales de GitHub
+# y descomentar: GitHub marca error con usuarios inexistentes.
+#
+# /contracts/    @ops-user @ds-user @sim-user @ag-user
+# /data/         @ops-user
+# /infra/        @ops-user
+# /containers/   @ops-user
+# /.github/      @ops-user
+# /analysis/     @ds-user
+# /ml/           @ds-user
+# /docs/         @ds-user
+# /services/     @sim-user
+# /eval/         @sim-user @ds-user
+# /agent/        @ag-user
+# /frontend/     @ag-user

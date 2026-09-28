@@ -1,0 +1,44 @@
+# Aplica solo a python.Dockerfile (BuildKit busca <Dockerfile>.dockerignore junto al Dockerfile).
+# Secretos: jamás dentro de una imagen (CON-03)
+.env
+.env.*
+!.env.example
+**/*.pem
+**/*.key
+**/*credentials*.json
+
+# Repo y docs
+.git
+.github
+docs
+containers/local
+
+# Frontend (tiene su propia imagen)
+frontend
+
+# Entornos y cachés
+**/.venv
+**/__pycache__
+**/*.py[cod]
+**/.pytest_cache
+**/.ruff_cache
+**/.mypy_cache
+**/.cache
+**/.ipynb_checkpoints
+**/node_modules
+
+# Datos y artefactos pesados: se montan como volumen en local
+data/raw
+data/bronze
+data/silver
+data/gold
+data/cache
+**/*.parquet
+**/*.duckdb
+**/*.csv
+**/*.jsonl
+# Si el router se hornea en la imagen para Cloud Run, DS quita esta línea
+ml/artifacts
+ml/models
+eval/outputs
+eval/runs
