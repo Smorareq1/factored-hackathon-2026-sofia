@@ -1,0 +1,20 @@
+# Workspace de uv: un paquete Python por carpeta de §10 del brief, un solo uv.lock.
+# Raíz virtual (sin [project]): no se instala nada desde aquí.
+[tool.uv.workspace]
+members = ["contracts", "data", "ml", "services", "agent", "eval", "analysis"]
+
+# Aplica a todos los miembros: las dependencias internas se resuelven dentro del repo.
+[tool.uv.sources]
+sofia-contracts = { workspace = true }
+sofia-agent = { workspace = true }
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "S"]
+ignore = ["S101"] # assert es válido en tests
+
+[tool.ruff.lint.isort]
+known-first-party = ["sofia_contracts", "sofia_data", "sofia_ml", "sofia_services", "sofia_agent", "sofia_eval"]
