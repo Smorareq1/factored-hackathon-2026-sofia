@@ -5,6 +5,9 @@
 # --- Brief interno ---
 docs/requirements/*
 
+# --- Planes personales por integrante (no se versionan) ---
+docs/plans/sebas/*
+
 # --- Secretos (CON-03). .env.example sí se versiona, sin valores reales ---
 .env
 .env.*
