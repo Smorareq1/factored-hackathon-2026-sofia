@@ -1,1 +1,138 @@
+# S.O.F.I.A. — stack: Python, FastAPI, LangGraph, Gemini, DuckDB/Parquet/Polars,
+# Next.js, Langfuse, Cloud Run.
+# CON-03: ni secretos ni registros de clientes en el repo. Los datos se regeneran con `make data`.
+
+# --- Brief interno ---
 docs/requirements/*
+
+# --- Secretos (CON-03). .env.example sí se versiona, sin valores reales ---
+.env
+.env.*
+!.env.example
+!**/.env.example
+*.pem
+*.key
+*credentials*.json
+*service-account*.json
+*serviceAccount*.json
+application_default_credentials.json
+.aws/
+secrets/
+
+# --- Python: services/, agent/, ml/, data/, eval/, analysis/, contracts/ ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+*.egg
+.venv/
+venv/
+env/
+ENV/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pyright/
+.dmypy.json
+dmypy.json
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+.tox/
+.nox/
+.hypothesis/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# --- Notebooks (analysis/) ---
+.ipynb_checkpoints/
+
+# --- Lakehouse local. El código del pipeline sí se versiona ---
+data/raw/**
+data/bronze/**
+data/silver/**
+data/gold/**
+data/cache/**
+!data/raw/.gitkeep
+!data/bronze/.gitkeep
+!data/silver/.gitkeep
+!data/gold/.gitkeep
+data/**/*.parquet
+data/**/*.csv
+data/**/*.tsv
+data/**/*.jsonl
+*.parquet
+*.duckdb
+*.duckdb.wal
+*.duckdb.tmp
+
+# --- Modelos y artefactos de entrenamiento (ml/) ---
+ml/artifacts/
+ml/models/
+ml/outputs/
+ml/cache/
+*.joblib
+*.pkl
+*.pickle
+*.pt
+*.onnx
+**/.cache/
+
+# --- Corridas del harness (eval/). Los casos JSON de §9.5 sí se versionan ---
+eval/outputs/
+eval/runs/
+eval/cache/
+
+# --- Checkpoints locales de LangGraph (agent/) ---
+agent/**/*.sqlite
+agent/**/*.sqlite3
+**/.langgraph_api/
+
+# --- Frontend Next.js (frontend/) ---
+node_modules/
+.next/
+out/
+.turbo/
+.vercel/
+*.tsbuildinfo
+next-env.d.ts
+.eslintcache
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-debug.log*
+
+# --- Volúmenes locales si Langfuse corre self-hosted ---
+docker-data/
+infra/**/pgdata/
+infra/**/clickhouse-data/
+infra/**/minio-data/
+
+# --- Google Cloud (deploy Cloud Run) ---
+.gcloud/
+
+# --- Logs ---
+*.log
+logs/
+
+# --- Video del pitch (DEL-04 se entrega por email) ---
+*.mp4
+*.mov
+*.webm
+
+# --- OS y editores ---
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.idea/
+.vscode/
+*.swp
+*~
