@@ -53,7 +53,8 @@ export function Shape({
   style,
 }: {
   kind: ShapeKind;
-  color?: FigureColor;
+  /** `current` hereda el color de texto del contenedor (para figuras que cambian con el estado). */
+  color?: FigureColor | "current";
   /** Tamaño en px; sin `size`, ocupa su contenedor (w-full h-full). */
   size?: number;
   rotate?: number;
@@ -67,7 +68,7 @@ export function Shape({
       height={size}
       aria-hidden
       focusable="false"
-      className={cn("shrink-0 overflow-visible", size === undefined && "size-full", FIGURE_TEXT[color], className)}
+      className={cn("shrink-0 overflow-visible", size === undefined && "size-full", color !== "current" && FIGURE_TEXT[color], className)}
       style={rotate ? { transform: `rotate(${rotate}deg)`, ...style } : style}
     >
       <path d={PATH[kind]} fill="currentColor" fillRule="evenodd" />

@@ -7,8 +7,10 @@ import { Icon } from "@/components/atoms/icon";
 import { Mono } from "@/components/atoms/primitives";
 import { cn } from "@/lib/cn";
 import { ROUTE_LABEL, t } from "@/lib/i18n";
-import { LAYER_ICON, LAYERS, ROUTE_ICON, ROUTE_TONE } from "@/lib/layers";
+import { LAYERS, ROUTE_ICON, ROUTE_TONE } from "@/lib/layers";
 import type { Handoff, Language, Layer, Route } from "@/lib/types";
+
+import { LayerTile } from "./layer-tile";
 
 export function CustomerBubble({ children }: { children: ReactNode }) {
   return (
@@ -85,28 +87,18 @@ export function HandoffNotice({ handoff, lang }: { handoff: Handoff; lang: Langu
   );
 }
 
-/** Las capas en línea: la activa respira, las que ya pasaron quedan encendidas. */
+/** Las capas en línea, con la misma figura que en la caja de cristal: la activa se mueve, las que pasaron quedan en cobalto. */
 export function LayerTrack({ active, seen, size = 24 }: { active: Layer | null; seen: Layer[]; size?: number }) {
   const layers = LAYERS.filter((layer) => layer !== "LEARN");
   return (
     <ol className="flex items-center" aria-label={active ?? undefined}>
       {layers.map((layer, i) => {
-        const isActive = layer === active;
         const isSeen = seen.includes(layer);
         return (
           <li key={layer} className="flex items-center">
-            <span
-              title={layer}
-              className={cn(
-                "grid place-items-center rounded-full transition-all duration-300 ease-out-soft",
-                isActive ? "scale-110 animate-breathe bg-ink text-on-ink" : isSeen ? "bg-brand text-white" : "bg-surface-3 text-ink-4",
-              )}
-              style={{ width: size, height: size }}
-            >
-              <Icon name={LAYER_ICON[layer]} size={Math.round(size * 0.56)} />
-            </span>
+            <LayerTile layer={layer} state={layer === active ? "running" : isSeen ? "ok" : "idle"} size={size} className="rounded-[4px]" />
             {i < layers.length - 1 && (
-              <span className={cn("h-[3px] w-2.5 transition-colors duration-300", isSeen ? "bg-brand" : "bg-surface-3")} />
+              <span className={cn("h-[3px] w-2 transition-colors duration-300", isSeen ? "bg-brand" : "bg-surface-3")} />
             )}
           </li>
         );

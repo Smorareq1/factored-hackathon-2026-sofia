@@ -11,15 +11,15 @@ export const TONE_SOFT: Record<Tone, string> = {
   info: "bg-info-soft text-info-ink",
 };
 
+// El texto sobre cada relleno sale de un token `on-*`: blanco en el tema claro, tinta en el tema noche.
 export const TONE_SOLID: Record<Tone, string> = {
   neutral: "bg-ink text-on-ink",
-  brand: "bg-brand text-white",
-  // El acento es amarillo sol: siempre con tinta encima.
+  brand: "bg-brand text-on-brand",
   accent: "bg-accent text-on-accent",
-  ok: "bg-ok text-white",
-  warn: "bg-warn text-white",
-  danger: "bg-danger text-white",
-  info: "bg-info text-white",
+  ok: "bg-ok text-on-ok",
+  warn: "bg-warn text-on-warn",
+  danger: "bg-danger text-on-danger",
+  info: "bg-info text-on-info",
 };
 
 export const TONE_OUTLINE: Record<Tone, string> = {

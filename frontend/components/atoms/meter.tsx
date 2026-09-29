@@ -38,3 +38,29 @@ export function Meter({ value, threshold, tone = "brand", label, className }: Me
     </span>
   );
 }
+
+/**
+ * Medida en bloques (la caja de cristal): cada bloque es 1/`blocks` del total y se enciende en secuencia.
+ * El umbral es una marca de tinta entre dos bloques.
+ */
+export function BlockMeter({ value, threshold, tone = "brand", label, blocks = 20, className }: MeterProps & { blocks?: number }) {
+  const pct = Math.max(0, Math.min(1, value));
+  const filled = Math.round(pct * blocks);
+  const mark = threshold === undefined ? null : Math.max(0, Math.min(1, threshold));
+  return (
+    <span
+      role="meter"
+      aria-label={label}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuenow={Math.round(pct * 100)}
+      className={cn("relative grid h-3 gap-[2px]", className)}
+      style={{ gridTemplateColumns: `repeat(${blocks}, minmax(0, 1fr))` }}
+    >
+      {Array.from({ length: blocks }, (_, i) => (
+        <span key={i} className={cn("animate-pop", i < filled ? TONE_FILL[tone] : "bg-surface-3")} style={{ animationDelay: `${i * 16}ms` }} />
+      ))}
+      {mark !== null && <span aria-hidden className="absolute -top-1 -bottom-1 w-[2px] -translate-x-1/2 bg-ink" style={{ left: `${mark * 100}%` }} />}
+    </span>
+  );
+}

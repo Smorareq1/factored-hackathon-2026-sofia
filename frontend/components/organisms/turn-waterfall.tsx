@@ -1,10 +1,10 @@
 "use client";
 
-import { Icon } from "@/components/atoms/icon";
 import { Eyebrow } from "@/components/atoms/primitives";
+import { Shape } from "@/components/atoms/shape";
 import { cn } from "@/lib/cn";
 import { t } from "@/lib/i18n";
-import { LAYER_ICON, NODE_LAYER } from "@/lib/layers";
+import { LAYER_SHAPE, NODE_LAYER } from "@/lib/layers";
 import type { Language, Layer, LayerEvent } from "@/lib/types";
 
 interface Span {
@@ -54,7 +54,7 @@ function spansOf(events: LayerEvent[]): { spans: Span[]; total: number } {
 
 const pct = (value: number, total: number) => `${(value / total) * 100}%`;
 
-/** Cascada del turno: cuándo corrió cada nodo, cuánto tardó y cuánto de eso fue esperar a las tools. */
+/** Cascada del turno: cuándo corrió cada nodo (bloque cobalto), cuánto tardó y cuánto fue esperar a las tools (tinta). */
 export function TurnWaterfall({ events, lang }: { events: LayerEvent[]; lang: Language }) {
   const { spans, total } = spansOf(events);
   if (spans.length === 0) return null;
@@ -64,44 +64,44 @@ export function TurnWaterfall({ events, lang }: { events: LayerEvent[]; lang: La
         <Eyebrow>{t(lang, "waterfall")}</Eyebrow>
         <span className="flex items-center gap-3 text-[10px] text-ink-3">
           <span className="flex items-center gap-1">
-            <span className="size-2 rounded-[3px] bg-series-1" aria-hidden />
+            <span className="size-2 bg-brand" aria-hidden />
             {t(lang, "nodeTime")}
           </span>
           <span className="flex items-center gap-1">
-            <span className="size-2 rounded-[3px] bg-series-2" aria-hidden />
+            <span className="size-2 bg-ink" aria-hidden />
             {t(lang, "toolTime")}
           </span>
         </span>
       </figcaption>
-      <div className="space-y-1">
+      <div className="space-y-0.5">
         {spans.map((span, i) => {
           const duration = Math.max(0, span.end - span.start);
           return (
             <div
               key={span.node}
               tabIndex={0}
-              className="group relative grid grid-cols-[92px_1fr_48px] items-center gap-2 rounded-md px-1 py-0.5 text-[11px] outline-offset-1 hover:bg-surface-2"
+              className="group relative grid grid-cols-[92px_1fr_52px] items-center gap-2 py-1 text-[11px] outline-offset-1 hover:bg-surface-2"
             >
-              <span className="flex min-w-0 items-center gap-1.5 font-mono text-ink-2">
-                <Icon name={LAYER_ICON[span.layer]} size={12} className={span.failed ? "text-danger-ink" : "text-ink-3"} />
+              <span className="flex min-w-0 items-center gap-1.5 font-mono font-semibold text-ink-2">
+                <Shape kind={LAYER_SHAPE[span.layer]} color="current" size={9} className={span.failed ? "text-danger" : "text-ink-3"} />
                 <span className="truncate">{span.node}</span>
               </span>
-              <span className="relative h-2.5 rounded-[3px] bg-surface-2">
+              <span className="relative h-3.5 bg-surface-2">
                 <span
-                  className={cn("absolute inset-y-0 flex origin-left animate-grow-x overflow-hidden rounded-[3px]", span.failed ? "bg-danger" : "bg-series-1")}
+                  className={cn("absolute inset-y-0 flex origin-left animate-grow-x overflow-hidden", span.failed ? "bg-danger" : "bg-brand")}
                   style={{ left: pct(span.start, total), width: `max(3px, ${pct(duration, total)})`, animationDelay: `${i * 90}ms` }}
                 >
                   {span.toolMs > 0 && (
                     <span
-                      className="ml-auto h-full border-l-2 border-bg bg-series-2"
+                      className="ml-auto h-full border-l-2 border-bg bg-ink"
                       style={{ width: `${Math.min(100, (span.toolMs / Math.max(1, duration)) * 100)}%` }}
                     />
                   )}
                 </span>
               </span>
-              <span className="text-right font-mono text-ink-3 tabular-nums">{duration} ms</span>
+              <span className="text-right font-mono font-semibold text-ink-2 tabular-nums">{duration} ms</span>
               {span.tools.length > 0 && (
-                <span className="pointer-events-none absolute top-full left-24 z-10 mt-1 hidden min-w-56 rounded-lg bg-ink p-2 font-mono text-[10px] leading-relaxed text-bg shadow-pop group-hover:block group-focus:block">
+                <span className="pointer-events-none absolute top-full left-24 z-10 mt-1 hidden min-w-56 bg-ink p-2 font-mono text-[10px] leading-relaxed text-on-ink group-hover:block group-focus:block">
                   {span.tools.map((tool, j) => (
                     <span key={j} className="block whitespace-nowrap">
                       {String(tool.params.method)} {String(tool.params.path)} → {String(tool.params.http_status ?? "—")} · {String(tool.params.ms)} ms
@@ -113,7 +113,7 @@ export function TurnWaterfall({ events, lang }: { events: LayerEvent[]; lang: La
           );
         })}
       </div>
-      <div className="ml-[100px] mr-14 flex justify-between font-mono text-[10px] text-ink-4 tabular-nums" aria-hidden>
+      <div className="mr-[60px] ml-[100px] flex justify-between border-t border-line pt-1 font-mono text-[10px] text-ink-3 tabular-nums" aria-hidden>
         <span>0</span>
         <span>{Math.round(total / 2)}</span>
         <span>{Math.round(total)} ms</span>

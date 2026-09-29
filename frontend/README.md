@@ -20,7 +20,7 @@ app/globals.css            tokens (color, figuras, movimiento) + tema "night" (c
 components/
 ├── atoms/                 Icon (+ icon-set: 52 iconos propios), Shape (10 figuras), Button, IconButton, Badge,
 │                          StatusDot, Meter, Avatar, Flag, SofiaMark, Spinner, Card, Input…
-├── molecules/             figures (FigureFrieze, CustomerFigure, FigureCluster), OtpInput, SmsToast, Stepper,
+├── molecules/             figures (FigureFrieze, CustomerFigure, FigureCluster), LayerTile, OtpInput, SmsToast, Stepper,
 │   │                      Segmented, CustomerTile, CandidateOption,
 │   │                      TransactionTicket, CaseReceipt, LayerTrack, PolicyLadder, FactRow, JsonView…
 │   └── charts/            Sparkline, ColumnChart, BarList, SplitBar, RingGauge (SVG propio)
@@ -35,6 +35,7 @@ Reglas:
 - Los componentes usan **tokens semánticos** (`bg-surface`, `text-ink-2`, `border-line`, `bg-brand-soft`…), nunca hex sueltos. El tema `data-theme="night"` cambia solo los tokens.
 - Iconos: grilla de 24 px, trazo 1.75, `currentColor`. Uno nuevo se agrega en `atoms/icon-set.tsx`.
 - Figuras (`atoms/shape.tsx`): grilla de 100 × 100, colores `--fig-*`. Son decorativas (`aria-hidden`), nunca llevan significado solas.
+- Caja de cristal: cada capa tiene su figura (`LAYER_SHAPE`: meta = círculo, percepción = anillo, interpretación = triángulo, decisión = rombo, acción = cuadrado, guarda = arco, aprendizaje = hoja) sobre el color de su estado (cobalto ok, sol advertencia, rojo error, blanco corriendo). La misma figura se enciende en el chat mientras Sofía piensa. El texto sobre rellenos de estado usa los tokens `on-*` (blanco en claro, tinta en noche).
 - Gráficas: las series `--series-1` (cobalto) y `--series-2` (frambuesa) tienen contraste ≥ 3:1 contra la superficie en ambos temas y se distinguen con daltonismo (azul frente a rosa). El texto va siempre en tinta, nunca del color de la serie.
 - Movimiento: `ease-out-soft` / `ease-spring`, `animate-*` definidos en `globals.css` (titulares que suben desde una máscara, piezas que giran de a un cuarto de vuelta, cuadrado ↔ círculo). Todo respeta `prefers-reduced-motion`.
 - Cada nivel importa solo de niveles inferiores (átomos ← moléculas ← organismos ← plantillas ← pantallas).

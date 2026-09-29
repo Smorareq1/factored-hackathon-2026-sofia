@@ -64,7 +64,7 @@ const ROUTE_TONE: Record<string, Tone> = { auto: "ok", human: "info", escalate: 
 export function PolicyLadder({ ruleId, route }: { ruleId: string; route: string }) {
   const fired = POLICY_ORDER.indexOf(ruleId as (typeof POLICY_ORDER)[number]);
   return (
-    <ol className="flex flex-wrap items-center gap-y-1">
+    <ol className="flex flex-wrap items-center gap-1">
       {POLICY_ORDER.map((rule, i) => {
         const state = fired < 0 ? "idle" : i < fired ? "passed" : i === fired ? "fired" : "skipped";
         return (
@@ -72,17 +72,16 @@ export function PolicyLadder({ ruleId, route }: { ruleId: string; route: string 
             <span
               title={state}
               className={cn(
-                "inline-flex h-6 items-center gap-1 rounded-md px-1.5 font-mono text-[10px] font-semibold",
-                state === "passed" && "bg-surface-2 text-ink-3",
-                state === "fired" && cn(TONE_SOLID[ROUTE_TONE[route] ?? "neutral"], "animate-pop"),
-                (state === "skipped" || state === "idle") && "text-ink-4 ring-1 ring-line ring-inset",
+                "inline-flex h-6 items-center gap-1 rounded-[3px] px-1.5 font-mono text-[10px] font-bold",
+                state === "passed" && "bg-surface-3 text-ink-3",
+                state === "fired" && cn(TONE_SOLID[ROUTE_TONE[route] ?? "neutral"], "animate-pop px-2"),
+                (state === "skipped" || state === "idle") && "text-ink-4 ring-1 ring-line-strong ring-inset",
               )}
               style={state === "fired" ? { animationDelay: `${i * 90}ms` } : undefined}
             >
               {state === "passed" && <Icon name="check" size={10} strokeWidth={2.6} />}
               {rule}
             </span>
-            {i < POLICY_ORDER.length - 1 && <Icon name="chevron-right" size={10} className="mx-0.5 text-ink-4" />}
           </li>
         );
       })}

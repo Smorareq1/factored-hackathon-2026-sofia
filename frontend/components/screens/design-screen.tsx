@@ -494,7 +494,7 @@ export default function DesignScreen() {
           <Section id="graficas" eyebrow="Visualización" title="Gráficas propias en SVG">
             <p className="-mt-3 max-w-2xl text-sm text-ink-3">
               Marcas finas (líneas de 2 px, barras de hasta 24 px con punta redondeada de 4 px), 2 px de aire entre segmentos, texto siempre en tinta y
-              tooltip al pasar el cursor. Las series pasan el validador de paleta (daltonismo, contraste y luminosidad) en ambos temas.
+              tooltip al pasar el cursor. Las series (cobalto y frambuesa) tienen contraste ≥ 3:1 contra la superficie en ambos temas y se distinguen con daltonismo.
             </p>
             <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
               <StatTile label="Latencia por turno" value={480} format={(v) => `${Math.round(v)} ms`} icon="activity">

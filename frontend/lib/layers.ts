@@ -1,19 +1,24 @@
-// Metadatos de las 7 capas para la UI: orden, icono y qué nodo del grafo pertenece a cuál.
+// Metadatos de las 7 capas para la UI: orden, figura y qué nodo del grafo pertenece a cuál.
 import type { IconName } from "@/components/atoms/icon";
+import type { ShapeKind } from "@/components/atoms/shape";
 
 import type { EventStatus, Layer, LayerEvent, Route } from "./types";
 import type { Tone } from "@/components/atoms/tone";
 
 export const LAYERS: Layer[] = ["PURPOSE", "SENSE", "INTERPRET", "DECIDE", "ORCHESTRATE", "GOVERN", "LEARN"];
 
-export const LAYER_ICON: Record<Layer, IconName> = {
-  PURPOSE: "layer-purpose",
-  SENSE: "layer-sense",
-  INTERPRET: "layer-interpret",
-  DECIDE: "layer-decide",
-  ORCHESTRATE: "layer-orchestrate",
-  GOVERN: "shield-check",
-  LEARN: "layer-learn",
+/**
+ * Figura de cada capa (caja de cristal): meta = círculo, percepción = anillo, interpretación = triángulo,
+ * decisión = rombo (como en un diagrama de flujo), acción = cuadrado, guarda = arco (una puerta), aprendizaje = hoja.
+ */
+export const LAYER_SHAPE: Record<Layer, ShapeKind> = {
+  PURPOSE: "circle",
+  SENSE: "ring",
+  INTERPRET: "triangle",
+  DECIDE: "diamond",
+  ORCHESTRATE: "square",
+  GOVERN: "arch",
+  LEARN: "leaf",
 };
 
 /** Nodo del grafo (agent/graph.py) → capa dueña, para la cascada de tiempos. */
