@@ -1,0 +1,97 @@
+# Plantillas determinísticas (fallback del grounding check y modo sin LLM). Solo placeholders, nunca datos.
+version: templates-es-0.1.0
+templates:
+  greeting: >-
+    ¡Hola! Soy Sofía, la asistente de disputas de transacciones. Puedo ayudarte a reportar un cargo que no
+    reconoces, revisar el estado de una disputa o consultar una transacción. ¿Qué necesitas?
+  clarify_intent_unclear: >-
+    No estoy segura de haberte entendido. Puedo ayudarte a disputar un cargo, revisar el estado de una
+    disputa o consultar una transacción. ¿Cuál necesitas?
+  clarify_tx_missing_details: >-
+    Para encontrar la transacción necesito un poco más de información: ¿en qué comercio fue, en qué fecha
+    aproximada o por qué monto?
+  clarify_tx_not_found: >-
+    No encontré una transacción que coincida con esos datos en tu cuenta. ¿Me confirmas el comercio, la
+    fecha aproximada o el monto?
+  clarify_tx_too_many: >-
+    Encontré varias transacciones posibles. Para ubicar la correcta, ¿me dices el comercio, la fecha o el monto?
+  clarify_candidates: >-
+    Encontré estas transacciones que coinciden. ¿Cuál quieres disputar?
+  clarify_selection: >-
+    No logré identificar cuál de las opciones elegiste. ¿Me dices el número de la opción?
+  confirm_request: >-
+    Encontré la transacción de {{tx.amount}} en {{tx.merchant}} del {{tx.date}}. ¿Confirmas que quieres
+    abrir una disputa por este cargo? Responde «Sí, confirmo» para registrarla.
+  confirm_again: >-
+    Para registrar la disputa por {{tx.amount}} en {{tx.merchant}} necesito tu confirmación explícita.
+    ¿La registro? Responde «Sí, confirmo» o «No».
+  dispute_created: >-
+    Listo: registré tu disputa y verifiqué que quedó abierta. Tu número de caso es {{case.id}}. Un
+    especialista la revisará y te contactará.
+  dispute_cancelled: >-
+    Entendido, no registré ninguna disputa. ¿Te ayudo con algo más?
+  deny_POL-1: >-
+    No encontré esa transacción entre las de tu cuenta, así que no puedo ayudarte con ella.
+  deny_POL-2: >-
+    Esta transacción no se puede disputar porque su estado no lo permite: solo se disputan cargos
+    aprobados que no hayan sido reversados.
+  deny_POL-3: >-
+    Esta transacción está fuera del plazo para abrir una disputa por este canal. Si quieres, te comunico
+    con un agente para revisar tu caso. ¿Te comunico?
+  deny_POL-4: >-
+    Ya tienes una disputa abierta por esta transacción, con el número de caso {{existing_case.id}}. No
+    hace falta abrir otra.
+  deny_other_customer: >-
+    No puedo consultar ni compartir información de otros clientes. Solo puedo ayudarte con las
+    transacciones de tu propia cuenta.
+  escalated_default: >-
+    Te voy a comunicar con un agente humano, que ya tendrá el resumen de tu caso. Tu número de
+    referencia es {{handoff.id}}.
+  escalated_POL-6: >-
+    Por las características de esta transacción, un especialista debe revisarla personalmente. Ya le pasé
+    el resumen de tu caso; tu número de referencia es {{handoff.id}}.
+  escalated_POL-7: >-
+    No logré identificar la transacción con seguridad, así que te comunico con un agente humano. Tu número
+    de referencia es {{handoff.id}}.
+  escalated_verification_failed: >-
+    No pude confirmar que la disputa quedara registrada, así que no la doy por hecha. Te comunico con un
+    agente para asegurarlo; tu número de referencia es {{handoff.id}}.
+  escalated_tool_unavailable: >-
+    Estoy teniendo un problema técnico para completar tu solicitud. Te comunico con un agente humano; tu
+    número de referencia es {{handoff.id}}.
+  escalated_customer_request: >-
+    Claro, te comunico con un agente humano. Ya tiene el resumen de tu caso; tu número de referencia es
+    {{handoff.id}}.
+  escalated_kill_switch: >-
+    En este momento las disputas se registran con un agente humano. Ya le pasé el resumen; tu número de
+    referencia es {{handoff.id}}.
+  escalate_failed: >-
+    Tengo un problema técnico y no pude transferirte en este momento. Por favor, intenta de nuevo en
+    unos minutos o comunícate con la línea de atención.
+  abstain: >-
+    Eso está fuera de lo que puedo hacer: solo ayudo con disputas de transacciones. ¿Quieres que te
+    comunique con un agente humano?
+  human_declined: >-
+    Entendido. Si necesitas ayuda con una disputa, aquí estoy.
+  status_none: >-
+    No tienes disputas abiertas en este momento.
+  status_one: >-
+    Tu disputa {{case.id}} está {{case.status}}.
+  status_list: >-
+    Estas son tus disputas:
+  inquiry_one: >-
+    La transacción es de {{tx.amount}} en {{tx.merchant}}, del {{tx.date}}, y su estado es {{tx.status}}.
+  inquiry_list: >-
+    Estas son tus transacciones más recientes:
+  inquiry_none: >-
+    No encontré transacciones que coincidan con lo que me indicas.
+  reauth: >-
+    Tu sesión expiró o no es válida. Por seguridad, vuelve a iniciar sesión para continuar.
+quick_replies:
+  confirm: ["Sí, confirmo", "No"]
+  human: ["Sí, por favor", "No, gracias"]
+option_label: "Opción {n}"
+labels:
+  dispute_status: {open: abierta, in_review: en revisión, resolved: resuelta, rejected: rechazada}
+  tx_status: {Approved: aprobada, Declined: rechazada, Pending: pendiente, Reversed: reversada}
+  months: [enero, febrero, marzo, abril, mayo, junio, julio, agosto, septiembre, octubre, noviembre, diciembre]

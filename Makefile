@@ -4,7 +4,7 @@
 ENV_FILE := $(if $(wildcard .env),--env-file .env,)
 COMPOSE  := docker compose -f containers/local/compose.yaml $(ENV_FILE)
 
-.PHONY: setup up run dev down logs ps langfuse data eval notebook test lint lock clean
+.PHONY: setup up run dev down logs ps langfuse data eval eval-gate translate-cases notebook test lint lock clean
 
 setup: ## Construye todas las imágenes
 	$(COMPOSE) --profile langfuse --profile data --profile eval --profile analysis build
@@ -34,6 +34,12 @@ data: ## Pipeline S3 → bronze → silver → gold (OPS)
 
 eval: ## Harness baseline vs propuesto (SIM + DS)
 	$(COMPOSE) --profile eval run --rm eval
+
+eval-gate: ## Gate de regresión de AG (set dev, propuesto vs baseline). ARGS="--accept" para fijar referencia
+	$(COMPOSE) run --rm --no-deps -v "$(CURDIR)/agent/evals:/app/agent/evals" -w /app/agent agent 		python scripts/eval_gate.py $(ARGS)
+
+translate-cases: ## ES → PT de casos con Gemini (IDs enmascarados). ARGS="evals/dev_cases.jsonl --dry-run"
+	$(COMPOSE) run --rm --no-deps -v "$(CURDIR)/agent/evals:/app/agent/evals" -w /app/agent agent 		python scripts/translate_cases.py $(ARGS)
 
 notebook: ## JupyterLab para analysis/ (DS) en http://localhost:8888
 	$(COMPOSE) --profile analysis up -d --build jupyter

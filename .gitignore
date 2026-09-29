@@ -139,3 +139,6 @@ Desktop.ini
 .vscode/
 *.swp
 *~
+
+# --- Reportes de corridas del gate (agent/scripts/eval_gate.py); la referencia sí se versiona ---
+agent/evals/reports/
