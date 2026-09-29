@@ -23,10 +23,8 @@ CMD ["npm", "run", "dev", "--", "--hostname", "0.0.0.0", "--port", "3000"]
 FROM deps AS build
 # NEXT_PUBLIC_* se incrustan en el bundle al compilar: se pasan como build args
 ARG NEXT_PUBLIC_AGENT_URL
-ARG NEXT_PUBLIC_BANK_API_URL
 ARG NEXT_PUBLIC_LANGFUSE_URL
 ENV NEXT_PUBLIC_AGENT_URL=${NEXT_PUBLIC_AGENT_URL} \
-    NEXT_PUBLIC_BANK_API_URL=${NEXT_PUBLIC_BANK_API_URL} \
     NEXT_PUBLIC_LANGFUSE_URL=${NEXT_PUBLIC_LANGFUSE_URL}
 COPY . .
 RUN npm run build

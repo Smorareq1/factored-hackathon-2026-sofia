@@ -1,0 +1,357 @@
+// i18n liviano: textos de la UI y traducción de los códigos de los eventos de capa (REQ-19: la caja de
+// cristal se arma solo con `code` + `params`; ningún LLM escribe la explicación).
+import type { JsonValue, Language, Layer, LayerEvent, Route } from "./types";
+
+const es = {
+  tagline: "Recepción de disputas de transacciones",
+  heroEyebrow: "Banca demo · S.O.F.I.A.",
+  heroTitle: "Hola, soy",
+  heroBody:
+    "Reviso contigo los cargos que no reconoces y los llevo hasta un caso verificado en el banco, o hasta una persona cuando hace falta.",
+  promiseVerified: "Solo uso datos que devuelve tu banco",
+  promiseConfirm: "Te pido confirmación antes de actuar",
+  promiseHuman: "Si no puedo resolverlo, te paso con una persona",
+  loginTitle: "Ingresa a tu banca",
+  loginHint: "Elige un cliente demo o escribe un número de documento.",
+  documentLabel: "Número de documento",
+  documentHint: "El número de documento solo no basta: después te enviamos un código.",
+  continue: "Continuar",
+  otpTitle: "Verifica que eres tú",
+  otpNotice: "Te enviamos un código de 6 dígitos por SMS.",
+  otpLabel: "Código de verificación",
+  verify: "Verificar",
+  smsApp: "Mensajes",
+  smsNow: "ahora",
+  smsBody: "Sofía Banco: tu código es",
+  smsTail: "No lo compartas con nadie.",
+  smsUse: "Usar código",
+  otpInvalid: "El código no es válido o venció. Pide uno nuevo.",
+  demoCustomers: "Clientes demo",
+  demoCustomersHint: "Datos de prueba: ningún cliente real",
+  back: "Volver",
+  stepDocument: "Documento",
+  stepCode: "Código",
+  stepChat: "Chat",
+  designSystem: "Sistema de diseño",
+  composerPlaceholder: "Escribe tu mensaje…",
+  composerTrust: "Sofía solo afirma datos verificados con tu banco.",
+  send: "Enviar",
+  thinking: "Sofía está pensando",
+  newConversation: "Nueva conversación",
+  logout: "Salir",
+  systemLabel: "Sistema que responde",
+  systemBaselineTitle: "Modo baseline (§8.7)",
+  systemBaselineBody: "Un solo LLM con las mismas tools: sin capas, sin política propia, sin verificación. Es el punto de comparación.",
+  systemProposedHint: "Sofía: agente de 7 capas",
+  systemBaselineHint: "Baseline: un LLM con tools, sin capas",
+  handoffTitle: "Te transferimos con un agente humano",
+  handoffRef: "Referencia",
+  handoffNote: "La persona recibe una ficha con los datos verificados, no esta conversación.",
+  reauthTitle: "Tu sesión expiró",
+  reauthBody: "Por seguridad, vuelve a iniciar sesión para continuar.",
+  reauthAction: "Iniciar sesión",
+  errorGeneric: "No pude procesar tu mensaje. Intenta de nuevo.",
+  glassBox: "Caja de cristal",
+  glassBoxHint: "Qué hizo cada capa en cada turno. Son registros de ejecución, no razonamiento del modelo.",
+  glassEmptyTitle: "Las capas esperan tu primer mensaje",
+  glassEmptyBody: "Cuando escribas, vas a ver cada capa encenderse con lo que hizo y con qué datos.",
+  turn: "Turno",
+  viewTrace: "ver traza",
+  rawJson: "JSON",
+  hideJson: "ocultar",
+  learnOffline: "offline · feedback del agente humano y gate de regresión",
+  waterfall: "Tiempo por nodo",
+  toolTime: "tools",
+  nodeTime: "nodo",
+  latency: "Latencia por turno",
+  threshold: "umbral",
+  policyOrder: "Orden de evaluación de la política",
+  emptyTitle: "¿Qué cargo quieres revisar?",
+  emptyBody: "Cuéntamelo con tus palabras. Busco la transacción en tu banca y te pido confirmación antes de registrar nada.",
+  online: "en línea",
+  option: "Opción",
+  chooseOption: "Elige la transacción",
+  transaction: "Transacción",
+  caseTitle: "Caso",
+  caseRegistered: "Registrada",
+  caseVerified: "Verificada",
+  caseReview: "En revisión",
+  caseResolved: "Resuelta",
+  caseRejected: "Rechazada",
+  caseProof: "Releída en el banco después de crearla",
+  languageLabel: "Idioma",
+  glassShow: "Mostrar caja de cristal",
+  glassHide: "Ocultar caja de cristal",
+  close: "Cerrar",
+};
+
+type UiText = Record<keyof typeof es, string>;
+
+const pt: UiText = {
+  tagline: "Contestação de transações",
+  heroEyebrow: "Banco demo · S.O.F.I.A.",
+  heroTitle: "Olá, eu sou a",
+  heroBody:
+    "Reviso com você as cobranças que você não reconhece e levo até um caso verificado no banco, ou até uma pessoa quando for preciso.",
+  promiseVerified: "Só uso dados que o seu banco devolve",
+  promiseConfirm: "Peço confirmação antes de agir",
+  promiseHuman: "Se eu não puder resolver, passo para uma pessoa",
+  loginTitle: "Entre na sua conta",
+  loginHint: "Escolha um cliente demo ou digite um número de documento.",
+  documentLabel: "Número do documento",
+  documentHint: "O número do documento sozinho não basta: depois enviamos um código.",
+  continue: "Continuar",
+  otpTitle: "Confirme que é você",
+  otpNotice: "Enviamos um código de 6 dígitos por SMS.",
+  otpLabel: "Código de verificação",
+  verify: "Verificar",
+  smsApp: "Mensagens",
+  smsNow: "agora",
+  smsBody: "Sofía Banco: seu código é",
+  smsTail: "Não compartilhe com ninguém.",
+  smsUse: "Usar código",
+  otpInvalid: "O código não é válido ou expirou. Peça um novo.",
+  demoCustomers: "Clientes demo",
+  demoCustomersHint: "Dados de teste: nenhum cliente real",
+  back: "Voltar",
+  stepDocument: "Documento",
+  stepCode: "Código",
+  stepChat: "Chat",
+  designSystem: "Sistema de design",
+  composerPlaceholder: "Digite sua mensagem…",
+  composerTrust: "A Sofía só afirma dados verificados com o seu banco.",
+  send: "Enviar",
+  thinking: "A Sofía está pensando",
+  newConversation: "Nova conversa",
+  logout: "Sair",
+  systemLabel: "Sistema que responde",
+  systemBaselineTitle: "Modo baseline (§8.7)",
+  systemBaselineBody: "Um único LLM com as mesmas tools: sem camadas, sem política própria, sem verificação. É o ponto de comparação.",
+  systemProposedHint: "Sofía: agente de 7 camadas",
+  systemBaselineHint: "Baseline: um LLM com tools, sem camadas",
+  handoffTitle: "Transferimos você para um atendente humano",
+  handoffRef: "Referência",
+  handoffNote: "A pessoa recebe uma ficha com os dados verificados, não esta conversa.",
+  reauthTitle: "Sua sessão expirou",
+  reauthBody: "Por segurança, entre novamente para continuar.",
+  reauthAction: "Entrar",
+  errorGeneric: "Não consegui processar sua mensagem. Tente de novo.",
+  glassBox: "Caixa de vidro",
+  glassBoxHint: "O que cada camada fez em cada turno. São registros de execução, não raciocínio do modelo.",
+  glassEmptyTitle: "As camadas esperam sua primeira mensagem",
+  glassEmptyBody: "Quando você escrever, vai ver cada camada acender com o que fez e com quais dados.",
+  turn: "Turno",
+  viewTrace: "ver trace",
+  rawJson: "JSON",
+  hideJson: "ocultar",
+  learnOffline: "offline · feedback do atendente humano e gate de regressão",
+  waterfall: "Tempo por nó",
+  toolTime: "tools",
+  nodeTime: "nó",
+  latency: "Latência por turno",
+  threshold: "limiar",
+  policyOrder: "Ordem de avaliação da política",
+  emptyTitle: "Qual cobrança você quer revisar?",
+  emptyBody: "Conte com suas palavras. Busco a transação na sua conta e peço confirmação antes de registrar qualquer coisa.",
+  online: "online",
+  option: "Opção",
+  chooseOption: "Escolha a transação",
+  transaction: "Transação",
+  caseTitle: "Caso",
+  caseRegistered: "Registrada",
+  caseVerified: "Verificada",
+  caseReview: "Em análise",
+  caseResolved: "Resolvida",
+  caseRejected: "Rejeitada",
+  caseProof: "Relida no banco depois de criada",
+  languageLabel: "Idioma",
+  glassShow: "Mostrar caixa de vidro",
+  glassHide: "Ocultar caixa de vidro",
+  close: "Fechar",
+};
+
+const ui: Record<Language, UiText> = { es, pt };
+
+export type UiKey = keyof typeof es;
+export const t = (lang: Language, key: UiKey): string => ui[lang][key];
+
+export const SUGGESTIONS: Record<Language, string[]> = {
+  es: ["No reconozco un cargo de Rappi", "Me cobraron dos veces en Cinépolis", "¿Cómo va mi disputa?"],
+  pt: ["Não reconheço uma cobrança do Mercado Libre", "Me cobraram duas vezes", "Como está minha contestação?"],
+};
+
+export const ROUTE_LABEL: Record<Language, Record<Route, string>> = {
+  es: { auto: "automático", clarify: "aclarar", abstain: "abstenerse", escalate: "humano", deny: "denegar", reauth: "reautenticar" },
+  pt: { auto: "automático", clarify: "esclarecer", abstain: "abster-se", escalate: "humano", deny: "negar", reauth: "reautenticar" },
+};
+
+/** Lo que está haciendo cada capa, para el indicador de "pensando". */
+export const LAYER_DOING: Record<Language, Record<Layer, string>> = {
+  es: {
+    PURPOSE: "revisando la meta",
+    SENSE: "percibiendo",
+    INTERPRET: "interpretando",
+    DECIDE: "decidiendo",
+    ORCHESTRATE: "orquestando",
+    GOVERN: "verificando guardas",
+    LEARN: "aprendiendo",
+  },
+  pt: {
+    PURPOSE: "revisando a meta",
+    SENSE: "percebendo",
+    INTERPRET: "interpretando",
+    DECIDE: "decidindo",
+    ORCHESTRATE: "orquestrando",
+    GOVERN: "verificando guardas",
+    LEARN: "aprendendo",
+  },
+};
+
+export const LAYER_BLURB: Record<Language, Record<Layer, string>> = {
+  es: {
+    PURPOSE: "Misión, alcance y meta de la conversación",
+    SENSE: "Sesión, idioma, normalización y señales de riesgo",
+    INTERPRET: "Intención, datos y transacción anclada",
+    DECIDE: "Regla de política aplicada y ruta",
+    ORCHESTRATE: "Tools, verificación y respuesta",
+    GOVERN: "Guardas: grounding, allowlist y fallbacks",
+    LEARN: "Feedback humano y gate de regresión (offline)",
+  },
+  pt: {
+    PURPOSE: "Missão, escopo e meta da conversa",
+    SENSE: "Sessão, idioma, normalização e sinais de risco",
+    INTERPRET: "Intenção, dados e transação ancorada",
+    DECIDE: "Regra de política aplicada e rota",
+    ORCHESTRATE: "Tools, verificação e resposta",
+    GOVERN: "Guardas: grounding, allowlist e fallbacks",
+    LEARN: "Feedback humano e gate de regressão (offline)",
+  },
+};
+
+// ───────────── consola (back office: español, su lengua de trabajo) ─────────────
+export const REASON_LABEL: Record<string, string> = {
+  "POL-6": "Revisión por política",
+  "POL-7": "Transacción no identificada",
+  "POL-3": "Fuera de plazo",
+  customer_request: "Pidió una persona",
+  verification_failed: "Verificación fallida",
+  tool_unavailable: "Sistema no disponible",
+  action_rejected: "Acción rechazada",
+  kill_switch: "Kill switch",
+  guard_blocked: "Guarda activada",
+};
+
+export const FLAG_LABEL: Record<string, string> = {
+  high_amount: "Monto alto",
+  fraud_suspected: "Posible fraude",
+  repeat_complainer: "Reclamos repetidos",
+  prompt_injection_suspected: "Posible manipulación",
+  mixed_language: "Idioma mixto",
+  foreign_customer_id: "ID de otro cliente",
+  other_customer_reference: "Otro cliente",
+};
+
+export const CLAIM_LABEL: Record<string, string> = {
+  not_recognized: "No reconoce el cargo",
+  duplicate: "Cargo duplicado",
+  wrong_amount: "Monto incorrecto",
+  not_received: "No recibió lo pagado",
+  other: "Otro",
+};
+
+// ───────────── eventos de capa ─────────────
+type Params = Record<string, JsonValue>;
+type Formatter = (p: Params) => string;
+
+const s = (v: JsonValue | undefined): string => (Array.isArray(v) ? v.join(", ") : v === null || v === undefined ? "—" : String(v));
+const pct = (v: JsonValue | undefined): string => (typeof v === "number" ? `${Math.round(v * 100)}%` : s(v));
+
+const eventsEs: Record<string, Formatter> = {
+  session_valid: (p) => `sesión válida · vence en ${Math.round(Number(p.expires_in_s) / 60)} min`,
+  session_expired: () => "sesión expirada → reautenticar",
+  message_normalized: (p) => `texto normalizado (${s(p.flags)})`,
+  language_detected: (p) => `idioma ${s(p.lang)} (${pct(p.conf)}, ${s(p.source)})${p.mixed ? " · mezcla ES/PT" : ""}`,
+  risk_signal: (p) => `señal: ${s(p.signal)}`,
+  intent_classified: (p) => `intención ${s(p.intent)} (${pct(p.confidence)})`,
+  router_fallback: () => "router de DS no disponible → reglas locales",
+  llm_fallback: (p) => `LLM no disponible (${s(p.reason)}) → reglas y plantillas`,
+  slots_extracted: (p) => `datos: ${s(p.fields) || "ninguno"} (${s(p.source)})`,
+  goal_opened: (p) => `nueva meta: ${s(p.goal)}`,
+  slots_changed: (p) => `cambió ${s(p.fields)} → se invalida la confirmación`,
+  confirmation_ambiguous: () => "confirmación ambigua",
+  transaction_anchored: (p) => `transacción anclada ${s(p.transaction_id)}`,
+  transaction_not_accessible: () => "transacción no accesible (404)",
+  transaction_unresolved: (p) => `sin anclar: ${s(p.reason)} (${s(p.candidates)} candidatas)`,
+  clarification_requested: (p) => `aclaración ${s(p.attempt)}/${s(p.max)} · ${s(p.reason)}`,
+  clarification_limit: () => "POL-7: límite de aclaraciones → humano",
+  rule_applied: (p) => `${s(p.rule_id)} → ${s(p.route)}${Array.isArray(p.risk_flags) && p.risk_flags.length ? ` · ${s(p.risk_flags)}` : ""}`,
+  confirmation_requested: () => "pide confirmación explícita",
+  confirmation_received: () => "confirmación explícita recibida",
+  confirmation_declined: () => "el cliente no confirmó",
+  confirmation_pending: () => "confirmación pendiente",
+  human_requested: () => "el cliente pidió un humano",
+  human_declined: () => "el cliente no quiso un humano",
+  out_of_scope: () => "fuera de alcance",
+  abstained: () => "se abstiene y ofrece humano",
+  disputes_read: (p) => `${s(p.count)} disputa(s) leída(s)`,
+  transactions_read: (p) => `${s(p.count)} transacción(es) leída(s)`,
+  transaction_read: (p) => `transacción ${s(p.transaction_id)}`,
+  kill_switch_active: () => "kill switch activo → humano",
+  dispute_submitted: (p) => `disputa ${s(p.dispute_id)} enviada`,
+  action_verified: (p) => `verificada al releer ${s(p.dispute_id)}`,
+  verification_failed: (p) => `no se pudo verificar ${s(p.dispute_id)} → humano`,
+  action_rejected: (p) => `acción rechazada por la API (${s(p.http_status)})`,
+  handoff_created: (p) => `handoff ${s(p.handoff_id)} verificado`,
+  handoff_failed: () => "no se pudo transferir",
+  handoff_unverified: () => "handoff sin verificar",
+  tool_call: (p) => `${s(p.method)} ${s(p.path)} → ${s(p.http_status)} · ${s(p.ms)} ms`,
+  tool_unavailable: (p) => `tool caída: ${s(p.method)} ${s(p.path)}`,
+  tool_blocked: () => "acción bloqueada por allowlist",
+  grounding_passed: () => "grounding ok: solo datos verificados",
+  grounding_fallback: (p) => `grounding falló (${s(p.reason)}) → plantilla`,
+  output_blocked: (p) => `guardia de salida bloqueó (${s(p.reason)})`,
+  missing_verified_fact: () => "falta un hecho verificado → no se afirma",
+  response_ready: (p) => `respuesta por ${s(p.source)} · ${s(p.llm_calls)} llamada(s) LLM`,
+  goal_status: (p) => `meta ${s(p.goal)} · ${s(p.goal_status)} · purpose ${s(p.purpose_version)}`,
+  reauth_required: () => "pide reautenticación",
+  injection_without_request: () => "intento de inyección sin pedido válido → se abstiene",
+  baseline_mode: (p) => `baseline §8.7: ${s(p.model)} con tools, sin capas ni verificación`,
+};
+
+// PT: mismas claves; se traducen solo las frases (los códigos técnicos quedan igual).
+const eventsPt: Record<string, Formatter> = {
+  ...eventsEs,
+  session_valid: (p) => `sessão válida · expira em ${Math.round(Number(p.expires_in_s) / 60)} min`,
+  session_expired: () => "sessão expirada → autenticar de novo",
+  language_detected: (p) => `idioma ${s(p.lang)} (${pct(p.conf)}, ${s(p.source)})${p.mixed ? " · mistura ES/PT" : ""}`,
+  risk_signal: (p) => `sinal: ${s(p.signal)}`,
+  intent_classified: (p) => `intenção ${s(p.intent)} (${pct(p.confidence)})`,
+  router_fallback: () => "router de DS indisponível → regras locais",
+  llm_fallback: (p) => `LLM indisponível (${s(p.reason)}) → regras e modelos`,
+  slots_extracted: (p) => `dados: ${s(p.fields) || "nenhum"} (${s(p.source)})`,
+  goal_opened: (p) => `nova meta: ${s(p.goal)}`,
+  transaction_anchored: (p) => `transação ancorada ${s(p.transaction_id)}`,
+  transaction_unresolved: (p) => `não ancorada: ${s(p.reason)} (${s(p.candidates)} candidatas)`,
+  clarification_requested: (p) => `esclarecimento ${s(p.attempt)}/${s(p.max)} · ${s(p.reason)}`,
+  confirmation_requested: () => "pede confirmação explícita",
+  confirmation_received: () => "confirmação explícita recebida",
+  dispute_submitted: (p) => `contestação ${s(p.dispute_id)} enviada`,
+  action_verified: (p) => `verificada ao reler ${s(p.dispute_id)}`,
+  handoff_created: (p) => `handoff ${s(p.handoff_id)} verificado`,
+  grounding_passed: () => "grounding ok: só dados verificados",
+  grounding_fallback: (p) => `grounding falhou (${s(p.reason)}) → modelo`,
+  response_ready: (p) => `resposta por ${s(p.source)} · ${s(p.llm_calls)} chamada(s) LLM`,
+  injection_without_request: () => "tentativa de injeção sem pedido válido → se abstém",
+  baseline_mode: (p) => `baseline §8.7: ${s(p.model)} com tools, sem camadas nem verificação`,
+};
+
+const events: Record<Language, Record<string, Formatter>> = { es: eventsEs, pt: eventsPt };
+
+export function describeEvent(lang: Language, event: LayerEvent): string {
+  const format = events[lang][event.code];
+  if (format) return format(event.params);
+  const params = Object.entries(event.params)
+    .map(([k, v]) => `${k}=${s(v)}`)
+    .join(" ");
+  return params ? `${event.code} · ${params}` : event.code;
+}

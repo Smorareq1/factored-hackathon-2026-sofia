@@ -1,0 +1,98 @@
+# Modelos determinísticos em português (origin: team_generated; revisão humana pendente, D4–D5).
+version: templates-pt-0.1.0
+templates:
+  greeting: >-
+    Olá! Sou a Sofía, a assistente de contestação de transações. Posso ajudar você a contestar uma
+    cobrança que não reconhece, ver o andamento de uma contestação ou consultar uma transação. Do que
+    você precisa?
+  clarify_intent_unclear: >-
+    Não tenho certeza se entendi. Posso ajudar você a contestar uma cobrança, ver o andamento de uma
+    contestação ou consultar uma transação. Qual delas você precisa?
+  clarify_tx_missing_details: >-
+    Para encontrar a transação preciso de mais informações: em qual loja foi, em que data aproximada ou
+    de qual valor?
+  clarify_tx_not_found: >-
+    Não encontrei nenhuma transação com esses dados na sua conta. Você pode confirmar a loja, a data
+    aproximada ou o valor?
+  clarify_tx_too_many: >-
+    Encontrei várias transações possíveis. Para achar a certa, você me diz a loja, a data ou o valor?
+  clarify_candidates: >-
+    Encontrei estas transações que correspondem. Qual você quer contestar?
+  clarify_selection: >-
+    Não consegui identificar qual opção você escolheu. Você me diz o número da opção?
+  confirm_request: >-
+    Encontrei a transação de {{tx.amount}} em {{tx.merchant}} do dia {{tx.date}}. Você confirma que quer
+    abrir uma contestação dessa cobrança? Responda «Sim, confirmo» para registrá-la.
+  confirm_again: >-
+    Para registrar a contestação de {{tx.amount}} em {{tx.merchant}} preciso da sua confirmação
+    explícita. Posso registrar? Responda «Sim, confirmo» ou «Não».
+  dispute_created: >-
+    Pronto: registrei sua contestação e verifiquei que ela está aberta. O número do seu caso é
+    {{case.id}}. Um especialista vai analisá-la e entrar em contato.
+  dispute_cancelled: >-
+    Entendido, não registrei nenhuma contestação. Posso ajudar com mais alguma coisa?
+  deny_POL-1: >-
+    Não encontrei essa transação entre as da sua conta, então não posso ajudar com ela.
+  deny_POL-2: >-
+    Essa transação não pode ser contestada porque o status dela não permite: só é possível contestar
+    cobranças aprovadas que não foram estornadas.
+  deny_POL-3: >-
+    Essa transação está fora do prazo para abrir uma contestação por este canal. Se quiser, eu transfiro
+    você para um atendente analisar o seu caso. Posso transferir?
+  deny_POL-4: >-
+    Você já tem uma contestação aberta para essa transação, com o número de caso {{existing_case.id}}.
+    Não é preciso abrir outra.
+  deny_other_customer: >-
+    Não posso consultar nem compartilhar informações de outros clientes. Só posso ajudar com as
+    transações da sua própria conta.
+  escalated_default: >-
+    Vou transferir você para um atendente humano, que já terá o resumo do seu caso. O seu número de
+    referência é {{handoff.id}}.
+  escalated_POL-6: >-
+    Pelas características dessa transação, um especialista precisa analisá-la pessoalmente. Já enviei o
+    resumo do seu caso; o seu número de referência é {{handoff.id}}.
+  escalated_POL-7: >-
+    Não consegui identificar a transação com segurança, então vou transferir você para um atendente
+    humano. O seu número de referência é {{handoff.id}}.
+  escalated_verification_failed: >-
+    Não consegui confirmar que a contestação foi registrada, então não vou dá-la como feita. Vou
+    transferir você para um atendente; o seu número de referência é {{handoff.id}}.
+  escalated_tool_unavailable: >-
+    Estou com um problema técnico para concluir a sua solicitação. Vou transferir você para um atendente
+    humano; o seu número de referência é {{handoff.id}}.
+  escalated_customer_request: >-
+    Claro, vou transferir você para um atendente humano. Ele já tem o resumo do seu caso; o seu número de
+    referência é {{handoff.id}}.
+  escalated_kill_switch: >-
+    Neste momento as contestações são registradas por um atendente humano. Já enviei o resumo; o seu
+    número de referência é {{handoff.id}}.
+  escalate_failed: >-
+    Estou com um problema técnico e não consegui transferir você agora. Por favor, tente de novo em
+    alguns minutos ou ligue para a central de atendimento.
+  abstain: >-
+    Isso está fora do que eu posso fazer: só ajudo com contestação de transações. Quer que eu transfira
+    você para um atendente humano?
+  human_declined: >-
+    Entendido. Se precisar de ajuda com uma contestação, estou aqui.
+  status_none: >-
+    Você não tem contestações abertas no momento.
+  status_one: >-
+    A sua contestação {{case.id}} está {{case.status}}.
+  status_list: >-
+    Estas são as suas contestações:
+  inquiry_one: >-
+    A transação é de {{tx.amount}} em {{tx.merchant}}, do dia {{tx.date}}, e o status dela é {{tx.status}}.
+  inquiry_list: >-
+    Estas são as suas transações mais recentes:
+  inquiry_none: >-
+    Não encontrei transações que correspondam ao que você indicou.
+  reauth: >-
+    A sua sessão expirou ou não é válida. Por segurança, entre novamente para continuar.
+quick_replies:
+  confirm: ["Sim, confirmo", "Não"]
+  human: ["Sim, por favor", "Não, obrigado"]
+option_label: "Opção {n}"
+labels:
+  dispute_status: {open: aberta, in_review: em análise, resolved: resolvida, rejected: rejeitada}
+  tx_status: {Approved: aprovada, Declined: recusada, Pending: pendente, Reversed: estornada}
+  months: [janeiro, fevereiro, março, abril, maio, junho, julho, agosto, setembro, outubro, novembro, dezembro]

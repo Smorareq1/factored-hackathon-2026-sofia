@@ -1,26 +1,452 @@
 @import "tailwindcss";
 
+/*
+ * Sofía DS: tokens.
+ * Capa 1: valores por tema (:root claro; [data-theme="night"] para la caja de cristal y las piezas oscuras).
+ * Capa 2: @theme los expone como utilidades de Tailwind (bg-surface, text-ink-2, border-line…).
+ * Los componentes solo usan tokens semánticos, nunca hex sueltos.
+ *
+ * Dirección: colores sólidos, sin degradados ni vidrio. Tinta casi negra, blanco y el gris de lectura
+ * (#f5f5f7) como base; cobalto = Sofía, sol = persona (agente humano, baseline, LEARN), negro = cliente.
+ * Las figuras (círculo, medio círculo, cuarto, cuadrado) usan la paleta de figuras: cobalto, sol, coral y tinta.
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg: #f5f5f7;
+  --surface: #ffffff;
+  --surface-2: #f5f5f7;
+  --surface-3: #e8e8ed;
+  --line: #e2e2e7;
+  --line-strong: #c7c7cc;
+
+  --ink: #111113;
+  --ink-2: #3a3a3c;
+  --ink-3: #6e6e73;
+  --ink-4: #aeaeb2; /* decorativo: no alcanza 4.5:1 para texto */
+  --on-ink: #ffffff; /* texto sobre un relleno de tinta */
+  --on-accent: #111113; /* texto sobre el amarillo sol (en ambos temas) */
+
+  --brand: #1e3fff;
+  --brand-strong: #1330d6;
+  --brand-soft: #e2e7ff;
+  --brand-ink: #1a33d9;
+  --accent: #ffc629;
+  --accent-strong: #f2b300;
+  --accent-soft: #fff0b8;
+  --accent-ink: #111113;
+
+  --ok: #07843f;
+  --ok-soft: #dcf3e4;
+  --ok-ink: #05662f;
+  --warn: #c84800;
+  --warn-soft: #ffe7d6;
+  --warn-ink: #9a3700;
+  --danger: #dc1f2e;
+  --danger-soft: #ffe2e2;
+  --danger-ink: #b0101c;
+  --info: #0a6ccf;
+  --info-soft: #dcecfd;
+  --info-ink: #0853a1;
+
+  /* Figuras: solo decorativas (nunca como único portador de significado). */
+  --fig-cobalt: #1e3fff;
+  --fig-sun: #ffc629;
+  --fig-coral: #ff5a3c;
+  --fig-ink: #111113;
+  --fig-paper: #ffffff;
+  --fig-mist: #e8e8ed;
+
+  --series-1: #1e3fff;
+  --series-2: #e0457b;
+  --grid: #e5e5ea;
+  --scrim: rgb(17 17 19 / 0.55);
+  color-scheme: light;
+}
+
+/* Tema "noche": la caja de cristal. Mismos roles, grises sólidos (sin transparencias). */
+[data-theme="night"] {
+  --bg: #0b0b0c;
+  --surface: #1c1c1e;
+  --surface-2: #232326;
+  --surface-3: #2c2c2e;
+  --line: #2f2f33;
+  --line-strong: #48484c;
+
+  --ink: #f5f5f7;
+  --ink-2: #d1d1d6;
+  --ink-3: #98989d;
+  --ink-4: #636366;
+  --on-ink: #111113;
+
+  --brand: #4d66ff;
+  --brand-strong: #6b80ff;
+  --brand-soft: #1b2466;
+  --brand-ink: #aab7ff;
+  --accent: #ffc629;
+  --accent-strong: #ffd560;
+  --accent-soft: #3d3000;
+  --accent-ink: #ffd75e;
+
+  --ok: #30d158;
+  --ok-soft: #0e3a1d;
+  --ok-ink: #7ee2a0;
+  --warn: #ff9f0a;
+  --warn-soft: #3d2600;
+  --warn-ink: #ffc46b;
+  --danger: #ff453a;
+  --danger-soft: #45110e;
+  --danger-ink: #ff8a80;
+  --info: #64d2ff;
+  --info-soft: #0b3346;
+  --info-ink: #9fe3ff;
+
+  --fig-paper: #1c1c1e;
+  --fig-ink: #f5f5f7;
+  --fig-mist: #2c2c2e;
+
+  --series-1: #6b80ff;
+  --series-2: #ff6b9a;
+  --grid: #2a2a2d;
+  color: var(--ink);
+  color-scheme: dark;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-ink-4: var(--ink-4);
+  --color-on-ink: var(--on-ink);
+  --color-on-accent: var(--on-accent);
+  --color-brand: var(--brand);
+  --color-brand-strong: var(--brand-strong);
+  --color-brand-soft: var(--brand-soft);
+  --color-brand-ink: var(--brand-ink);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-ink: var(--accent-ink);
+  --color-ok: var(--ok);
+  --color-ok-soft: var(--ok-soft);
+  --color-ok-ink: var(--ok-ink);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-warn-ink: var(--warn-ink);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-danger-ink: var(--danger-ink);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --color-info-ink: var(--info-ink);
+  --color-fig-cobalt: var(--fig-cobalt);
+  --color-fig-sun: var(--fig-sun);
+  --color-fig-coral: var(--fig-coral);
+  --color-fig-ink: var(--fig-ink);
+  --color-fig-paper: var(--fig-paper);
+  --color-fig-mist: var(--fig-mist);
+  --color-series-1: var(--series-1);
+  --color-series-2: var(--series-2);
+  --color-grid: var(--grid);
+  --color-scrim: var(--scrim);
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* Movimiento: un solo ritmo para todo el producto. */
+@theme {
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-in-soft: cubic-bezier(0.55, 0, 1, 0.45);
+
+  /* Sombras mínimas: los planos se separan por color, no por difuminado. */
+  --shadow-card: 0 1px 0 rgb(17 17 19 / 0.05);
+  --shadow-pop: 0 18px 40px -12px rgb(17 17 19 / 0.35);
+
+  --animate-rise: rise 460ms var(--ease-out-soft) both;
+  --animate-reveal: reveal 820ms var(--ease-out-soft) both;
+  --animate-pop: pop 420ms var(--ease-spring) both;
+  --animate-fade: fade 320ms ease-out both;
+  --animate-slide-down: slide-down 560ms var(--ease-spring) both;
+  --animate-slide-left: slide-left 420ms var(--ease-out-soft) both;
+  --animate-grow-x: grow-x 760ms var(--ease-out-soft) both;
+  --animate-grow-y: grow-y 760ms var(--ease-out-soft) both;
+  --animate-shimmer: shimmer 1.6s linear infinite;
+  --animate-ping-soft: ping-soft 1.8s var(--ease-out-soft) infinite;
+  --animate-flow: flow 700ms linear infinite;
+  --animate-bob: bob 2.8s var(--ease-out-soft) infinite;
+  --animate-morph: morph 4.8s var(--ease-spring) infinite;
+  --animate-turn: turn 6s var(--ease-spring) infinite;
+  --animate-shake: shake 420ms ease-in-out;
+  --animate-blink: blink 1s step-end infinite;
+  --animate-orbit: spin 1.6s linear infinite;
+  --animate-orbit-slow: spin 9s linear infinite;
+  --animate-breathe: breathe 1.8s ease-in-out infinite;
+  --animate-typing: typing 1.2s ease-in-out infinite;
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  /* Texto que sube desde detrás de una máscara (el contenedor lleva overflow-hidden). */
+  @keyframes reveal {
+    from {
+      transform: translateY(105%);
+    }
+    to {
+      transform: none;
+    }
+  }
+  @keyframes pop {
+    from {
+      opacity: 0;
+      transform: scale(0.9);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes fade {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes slide-down {
+    from {
+      opacity: 0;
+      transform: translateY(-18px) scale(0.97);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes slide-left {
+    from {
+      opacity: 0;
+      transform: translateX(24px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes grow-x {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
+    }
+  }
+  @keyframes grow-y {
+    from {
+      transform: scaleY(0);
+    }
+    to {
+      transform: scaleY(1);
+    }
+  }
+  @keyframes draw {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+  @keyframes shimmer {
+    from {
+      background-position: 200% 0;
+    }
+    to {
+      background-position: -200% 0;
+    }
+  }
+  @keyframes ping-soft {
+    0% {
+      transform: scale(1);
+      opacity: 0.55;
+    }
+    80%,
+    100% {
+      transform: scale(1.9);
+      opacity: 0;
+    }
+  }
+  @keyframes flow {
+    to {
+      stroke-dashoffset: -12;
+    }
+  }
+  @keyframes bob {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    40% {
+      transform: translateY(-14%);
+    }
+    60% {
+      transform: translateY(2%);
+    }
+  }
+  /* Cuadrado → círculo → cuadrado, con pausas. */
+  @keyframes morph {
+    0%,
+    30% {
+      border-radius: 0;
+    }
+    45%,
+    80% {
+      border-radius: 50%;
+    }
+    95%,
+    100% {
+      border-radius: 0;
+    }
+  }
+  /* Un cuarto de vuelta, pausa, otro cuarto… (las figuras "giran" como piezas). */
+  @keyframes turn {
+    0%,
+    20% {
+      transform: rotate(0deg);
+    }
+    30%,
+    45% {
+      transform: rotate(90deg);
+    }
+    55%,
+    70% {
+      transform: rotate(180deg);
+    }
+    80%,
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+  @keyframes shake {
+    0%,
+    100% {
+      transform: none;
+    }
+    20% {
+      transform: translateX(-6px);
+    }
+    40% {
+      transform: translateX(5px);
+    }
+    60% {
+      transform: translateX(-3px);
+    }
+    80% {
+      transform: translateX(2px);
+    }
+  }
+  @keyframes blink {
+    50% {
+      opacity: 0;
+    }
+  }
+  @keyframes breathe {
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 var(--brand);
+    }
+    70% {
+      box-shadow: 0 0 0 6px transparent;
+    }
+  }
+  @keyframes typing {
+    0%,
+    60%,
+    100% {
+      transform: translateY(0);
+      opacity: 0.35;
+    }
+    30% {
+      transform: translateY(-3px);
+      opacity: 1;
+    }
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-feature-settings: "ss01", "cv11";
+  }
+  :focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+  }
+  ::selection {
+    background: var(--accent);
+    color: #111113;
+  }
+  button:not(:disabled) {
+    cursor: pointer;
+  }
+}
+
+/* Titulares grandes: peso alto e interletra cerrada (como los titulares de producto). */
+@utility headline {
+  font-weight: 700;
+  letter-spacing: -0.045em;
+  line-height: 0.95;
+}
+
+/* Trazo que se dibuja solo (SVG con pathLength="1"). El retraso va en style={{ animationDelay }}. */
+@utility stroke-draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: draw 820ms var(--ease-out-soft) forwards;
+}
+
+/* Ticket con muescas laterales (el borde va en un contenedor con drop-shadow). */
+@utility ticket {
+  --notch: 9px;
+  mask:
+    radial-gradient(circle var(--notch) at 0 var(--notch-y, 62%), transparent 97%, #000) left / 51% 100% no-repeat,
+    radial-gradient(circle var(--notch) at 100% var(--notch-y, 62%), transparent 97%, #000) right / 51% 100% no-repeat;
+}
+
+@utility shimmer {
+  background: linear-gradient(90deg, var(--surface-3) 0%, var(--surface-2) 50%, var(--surface-3) 100%);
+  background-size: 200% 100%;
+  animation: var(--animate-shimmer);
+}
+
+@utility scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
 }
