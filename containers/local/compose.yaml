@@ -33,11 +33,18 @@ x-langfuse-client-env: &langfuse-client-env
 
 x-agent-env: &agent-env
   SOFIA_ENV: local
-  BANK_API_URL: http://bank-api:8000
+  # "fake" = banco en proceso del agente (agent/.../tools/fake_bank.py) hasta que SIM publique su stub;
+  # después: BANK_API_URL=http://bank-api:8000 en .env
+  BANK_API_URL: ${BANK_API_URL:-fake}
   ROUTER_URL: http://router:8002
   DATABASE_URL: postgresql://${POSTGRES_USER:-sofia}:${POSTGRES_PASSWORD:-sofia}@postgres:5432/sofia_agent
   GEMINI_API_KEY: ${GEMINI_API_KEY:-}
   GEMINI_MODEL: ${GEMINI_MODEL:-}
+  # Respaldo si el principal da 503/429 (free tier); "none" = sin respaldo (corridas de eval reproducibles)
+  GEMINI_FALLBACK_MODELS: ${GEMINI_FALLBACK_MODELS:-}
+  GEMINI_THINKING_LEVEL: ${GEMINI_THINKING_LEVEL:-}
+  # auto = Gemini si hay API key; rules = sin LLM (reglas + plantillas)
+  SOFIA_LLM_MODE: ${SOFIA_LLM_MODE:-auto}
   SOFIA_AUTO_ACTIONS: ${SOFIA_AUTO_ACTIONS:-on}
   <<: *langfuse-client-env
 
@@ -169,9 +176,8 @@ services:
     image: sofia/frontend:dev
     restart: unless-stopped
     environment:
-      # El navegador habla con los servicios a través de los puertos del host
+      # El navegador habla solo con el agente (que hace de BFF hacia SIM) a través del puerto del host
       NEXT_PUBLIC_AGENT_URL: http://localhost:8001
-      NEXT_PUBLIC_BANK_API_URL: http://localhost:8000
       NEXT_PUBLIC_LANGFUSE_URL: http://localhost:3100
     ports:
       - 3000:3000
