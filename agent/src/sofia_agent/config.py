@@ -26,6 +26,10 @@ class Settings(BaseSettings):
     database_url: str | None = Field(default=None, validation_alias="DATABASE_URL")
 
     gemini_api_key: SecretStr | None = Field(default=None, validation_alias="GEMINI_API_KEY")
+    # ai_studio = API key (free tier); vertex = Vertex AI con la cuenta de servicio de Cloud Run (créditos de GCP).
+    gemini_backend: Literal["ai_studio", "vertex"] = Field(default="ai_studio", validation_alias="GEMINI_BACKEND")
+    gcp_project: str | None = Field(default=None, validation_alias="GOOGLE_CLOUD_PROJECT")
+    gcp_location: str = Field(default="global", validation_alias="GOOGLE_CLOUD_LOCATION")
     # La versión exacta se fija por env y queda en cada traza. Los 2.5 ya no están disponibles (27-sep).
     gemini_model: str = Field(default=DEFAULT_GEMINI_MODEL, validation_alias="GEMINI_MODEL")
     # Se prueban en orden si el principal falla (503/429/timeout). "none" = sin respaldo (eval reproducible).
@@ -62,6 +66,7 @@ class Settings(BaseSettings):
     @field_validator(
         "router_url",
         "database_url",
+        "gcp_project",
         "gemini_api_key",
         "langfuse_host",
         "langfuse_public_key",
@@ -80,6 +85,8 @@ class Settings(BaseSettings):
         "gemini_price_in_per_mtok",
         "gemini_price_out_per_mtok",
         "llm_mode",
+        "gemini_backend",
+        "gcp_location",
         mode="before",
     )
     @classmethod
@@ -91,7 +98,18 @@ class Settings(BaseSettings):
     def use_gemini(self) -> bool:
         if self.llm_mode == "rules":
             return False
+        if self.gemini_backend == "vertex":
+            return self.gcp_project is not None
         return self.gemini_api_key is not None
+
+    @property
+    def gemini_client_kwargs(self) -> dict:
+        """Credenciales para ChatGoogleGenerativeAI según el backend. Vacío si no hay con qué llamar a Gemini."""
+        if self.gemini_backend == "vertex":
+            if not self.gcp_project:
+                return {}
+            return {"vertexai": True, "project": self.gcp_project, "location": self.gcp_location}
+        return {"google_api_key": self.gemini_api_key.get_secret_value()} if self.gemini_api_key else {}
 
     @property
     def gemini_models(self) -> list[str]:
