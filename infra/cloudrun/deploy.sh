@@ -13,7 +13,6 @@ PROJECT="${GCP_PROJECT:-sofia-factored-hackathon}"
 REGION="${GCP_REGION:-us-central1}"
 REPO="sofia"
 VERTEX_LOCATION="${VERTEX_LOCATION:-global}"
-LANGFUSE_HOST_CLOUD="${LANGFUSE_HOST_CLOUD:-https://us.cloud.langfuse.com}"
 # min-instances=1 solo en la ventana con jueces (DEL-02): MIN_INSTANCES=1 infra/cloudrun/deploy.sh services
 MIN_INSTANCES="${MIN_INSTANCES:-0}"
 
@@ -28,6 +27,9 @@ env_value() { # lee una variable de .env sin exportar el archivo entero
   [ -f "$ROOT/.env" ] || return 0
   grep -E "^$1=" "$ROOT/.env" | tail -1 | cut -d= -f2- | sed -e 's/^"//' -e 's/"$//'
 }
+
+LANGFUSE_HOST_CLOUD="${LANGFUSE_HOST_CLOUD:-$(env_value LANGFUSE_HOST)}"
+LANGFUSE_HOST_CLOUD="${LANGFUSE_HOST_CLOUD:-https://us.cloud.langfuse.com}"
 
 ensure_platform() {
   log "APIs"
