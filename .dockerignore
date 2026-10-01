@@ -1,0 +1,18 @@
+# Contexto de build de containers/python.Dockerfile (raíz del repo). Ni secretos ni datos dentro de las imágenes (CON-03).
+.env
+.env.*
+!.env.example
+.git
+**/__pycache__
+**/.pytest_cache
+**/.ruff_cache
+**/.venv
+data/raw
+data/bronze
+data/silver
+data/gold
+data/_state
+data/fixture
+data/cache
+frontend
+eval/reports

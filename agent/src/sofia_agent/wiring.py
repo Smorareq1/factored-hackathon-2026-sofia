@@ -24,10 +24,10 @@ def router_http(settings: Settings, purpose: Purpose) -> httpx.AsyncClient | Non
 
 
 def make_llm(settings: Settings, prompts: PromptBook) -> LLMPort:
-    if settings.use_gemini and settings.gemini_api_key is not None:
+    if settings.use_gemini:
         return GeminiLLM(
             models=settings.gemini_models,
-            api_key=settings.gemini_api_key,
+            client_kwargs=settings.gemini_client_kwargs,
             prompts=prompts,
             timeout_s=settings.llm_timeout_s,
             attempt_timeout_s=settings.llm_attempt_timeout_s,

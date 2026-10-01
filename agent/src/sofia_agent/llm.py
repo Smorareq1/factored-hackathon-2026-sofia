@@ -177,8 +177,9 @@ class GeminiLLM:
         self,
         *,
         models: list[str],
-        api_key: SecretStr,
         prompts: PromptBook,
+        api_key: SecretStr | None = None,
+        client_kwargs: dict | None = None,
         timeout_s: float,
         attempt_timeout_s: float | None = None,
         thinking_level: str | None = "low",
@@ -189,6 +190,10 @@ class GeminiLLM:
 
         if not models:
             raise ValueError("GeminiLLM necesita al menos un modelo")
+        # API key de AI Studio o, en Cloud Run, Vertex AI (`vertexai=True, project, location`)
+        credentials = client_kwargs or ({"google_api_key": api_key.get_secret_value()} if api_key else None)
+        if not credentials:
+            raise ValueError("GeminiLLM necesita api_key o client_kwargs")
         self.model_name = models[0]
         self.usage = LLMUsage()
         self._prompts = prompts
@@ -200,7 +205,7 @@ class GeminiLLM:
         for model in models:
             chat = ChatGoogleGenerativeAI(
                 model=model,
-                google_api_key=api_key.get_secret_value(),
+                **credentials,
                 temperature=0,
                 # Con respaldo no se reintenta el mismo modelo: pasar al siguiente es más rápido.
                 max_retries=0 if len(models) > 1 else 1,

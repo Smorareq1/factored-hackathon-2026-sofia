@@ -1,0 +1,13 @@
+# Lo que `gcloud builds submit` NO sube a Cloud Build (además de lo ignorado por .gitignore).
+#!include:.gitignore
+.git
+.env
+.env.*
+data/raw/
+data/bronze/
+data/silver/
+data/gold/
+data/_state/
+data/fixture/
+frontend/node_modules/
+frontend/.next/

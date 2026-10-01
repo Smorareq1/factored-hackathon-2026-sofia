@@ -1,0 +1,37 @@
+# Imágenes `runtime` de S.O.F.I.A. en Artifact Registry. Lo invoca infra/cloudrun/deploy.sh:
+#   gcloud builds submit --config infra/cloudrun/cloudbuild.yaml --substitutions _TARGETS=backend,...
+# El frontend se construye aparte porque NEXT_PUBLIC_AGENT_URL se incrusta al compilar y depende de la URL del agente.
+substitutions:
+  _REGION: us-central1
+  _REPO: sofia
+  _TAG: latest # deploy.sh pasa el SHA corto de git
+  _TARGETS: backend # backend | frontend
+  _AGENT_URL: ""
+  _LANGFUSE_URL: ""
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+steps:
+  - id: build
+    name: gcr.io/cloud-builders/docker
+    entrypoint: bash
+    env:
+      - DOCKER_BUILDKIT=1
+    args:
+      - -ceu
+      - |
+        IMG="${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}"
+        if [ "${_TARGETS}" = "backend" ]; then
+          for pair in bank-api:sofia-services router:sofia-ml agent:sofia-agent; do
+            name="$${pair%%:*}"; pkg="$${pair##*:}"
+            docker build -f containers/python.Dockerfile --target runtime --build-arg PACKAGE="$$pkg" \
+              -t "$$IMG/$$name:${_TAG}" -t "$$IMG/$$name:latest" .
+            docker push --all-tags "$$IMG/$$name"
+          done
+        else
+          docker build -f containers/frontend.Dockerfile --target runtime \
+            --build-arg NEXT_PUBLIC_AGENT_URL="${_AGENT_URL}" --build-arg NEXT_PUBLIC_LANGFUSE_URL="${_LANGFUSE_URL}" \
+            -t "$$IMG/frontend:${_TAG}" -t "$$IMG/frontend:latest" frontend
+          docker push --all-tags "$$IMG/frontend"
+        fi
