@@ -42,13 +42,17 @@ ensure_platform() {
       --description "Imágenes de S.O.F.I.A."
 
   log "Cuentas de servicio"
-  for sa in sofia-agent sofia-runtime; do
+  for sa in sofia-agent sofia-runtime sofia-build; do
     "${GC[@]}" iam service-accounts describe "$sa@$PROJECT.iam.gserviceaccount.com" >/dev/null 2>&1 ||
       "${GC[@]}" iam service-accounts create "$sa" --display-name "S.O.F.I.A. $sa"
   done
   # El agente llama a Gemini por Vertex AI (créditos de GCP) y lee sus secretos; el resto no necesita roles.
   "${GC[@]}" projects add-iam-policy-binding "$PROJECT" \
     --member "serviceAccount:sofia-agent@$PROJECT.iam.gserviceaccount.com" --role roles/aiplatform.user \
+    --condition None >/dev/null
+  # Cloud Build corre con su propia cuenta: la default de Compute no tiene permisos en proyectos nuevos.
+  "${GC[@]}" projects add-iam-policy-binding "$PROJECT" \
+    --member "serviceAccount:sofia-build@$PROJECT.iam.gserviceaccount.com" --role roles/cloudbuild.builds.builder \
     --condition None >/dev/null
 }
 
@@ -77,6 +81,7 @@ secret_exists() { "${GC[@]}" secrets describe "$1" >/dev/null 2>&1; }
 build() { # build backend|frontend [agent_url]
   log "Cloud Build: $1 ($TAG)"
   "${GC[@]}" builds submit "$ROOT" --config "$ROOT/infra/cloudrun/cloudbuild.yaml" --region "$REGION" \
+    --service-account "projects/$PROJECT/serviceAccounts/sofia-build@$PROJECT.iam.gserviceaccount.com" \
     --substitutions "_REGION=$REGION,_REPO=$REPO,_TAG=$TAG,_TARGETS=$1,_AGENT_URL=${2:-},_LANGFUSE_URL=${3:-}"
 }
 
