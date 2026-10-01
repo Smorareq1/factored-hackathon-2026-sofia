@@ -67,7 +67,7 @@ GOLD_SQL = {
                     CASE WHEN lower(coalesce(tr.detected_language, 'es')) SIMILAR TO '(pt|por|portugu).*' THEN 'pt'
                          WHEN lower(coalesce(tr.detected_language, 'es')) SIMILAR TO '(es|spa|espa).*' THEN 'es'
                     END AS language,
-                    i.customer_id,
+                    coalesce(tr.customer_id, i.customer_id) AS customer_id,
                     CAST(i.interaction_date AS DATE) AS event_date,
                     concat_ws(' | ', i.reason_category, i.contact_reason, tr.detected_intents) AS label_source
              FROM {call_transcripts} tr

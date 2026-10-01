@@ -149,6 +149,8 @@ def write_raw(raw_dir: Path, customers: int = 200, transactions: int = 3000) -> 
             text = template.format(m=rng.choice(MERCHANTS), n=rng.randint(100000, 999999))
             trans.append(
                 {
+                    "transcript_id": f"R{iid[1:]}",
+                    "customer_id": cid,
                     "interaction_id": iid,
                     "full_text": f"Agente: Buen día. Cliente: {text}",
                     "customer_text": text,
@@ -176,7 +178,7 @@ def write_raw(raw_dir: Path, customers: int = 200, transactions: int = 3000) -> 
                     "status": rng.choice(["Abierto", "Cerrado"]),
                     "sla_breached": rng.choice(["true", "false"]),
                     "resolution_days": rng.randint(1, 30),
-                    "compensation_granted": rng.choice(["true", "false"]),
+                    "compensation_granted": rng.choice(["", "", f"{rng.uniform(5, 300):.2f}"]),
                     "is_repeat_complainer": rng.choice(["true", "false", "false"]),
                 }
             )

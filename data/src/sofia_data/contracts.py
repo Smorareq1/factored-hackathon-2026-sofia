@@ -26,6 +26,10 @@ class TableContract:
     aliases: dict[str, str] = field(default_factory=dict)
     # Valores categóricos que se normalizan sin importar mayúsculas: columna -> valores canónicos
     enums: dict[str, tuple[str, ...]] = field(default_factory=dict)
+    # Variantes de esos valores en el origen (en minúsculas) -> valor canónico
+    value_aliases: dict[str, dict[str, str]] = field(default_factory=dict)
+    # Fecha de procesamiento del origen: si llega días después del evento, es una llegada tardía
+    process_date: str | None = None
 
 
 CUSTOMERS = TableContract(
@@ -42,6 +46,7 @@ CUSTOMERS = TableContract(
     required=("customer_id", "country"),
     aliases={"client_id": "customer_id", "pais": "country", "status": "customer_status"},
     enums={"country": ("MX", "CO", "AR")},
+    value_aliases={"country": {"méxico": "MX", "mexico": "MX", "colombia": "CO", "argentina": "AR"}},
 )
 
 PRODUCTS = TableContract(
@@ -62,6 +67,7 @@ TRANSACTIONS = TableContract(
     columns={
         "transaction_id": "VARCHAR",
         "transaction_date": "TIMESTAMP",
+        "process_date": "DATE",
         "customer_id": "VARCHAR",
         "product_id": "VARCHAR",
         "transaction_type": "VARCHAR",
@@ -78,6 +84,7 @@ TRANSACTIONS = TableContract(
     primary_key="transaction_id",
     required=("transaction_id", "customer_id", "transaction_date", "amount", "currency", "transaction_status"),
     event_date="transaction_date",
+    process_date="process_date",
     foreign_keys=(ForeignKey("customer_id", "customers", "customer_id"),),
     aliases={"merchant": "merchant_name", "status": "transaction_status"},
     enums={
@@ -91,6 +98,7 @@ COMPLAINTS = TableContract(
     columns={
         "complaint_id": "VARCHAR",
         "creation_date": "TIMESTAMP",
+        "process_date": "DATE",
         "customer_id": "VARCHAR",
         "case_type": "VARCHAR",
         "category": "VARCHAR",
@@ -104,12 +112,13 @@ COMPLAINTS = TableContract(
         "status": "VARCHAR",
         "sla_breached": "BOOLEAN",
         "resolution_days": "INTEGER",
-        "compensation_granted": "BOOLEAN",
+        "compensation_granted": "DECIMAL(18,2)",  # monto compensado, no un flag
         "is_repeat_complainer": "BOOLEAN",
     },
     primary_key="complaint_id",
     required=("complaint_id", "customer_id", "creation_date"),
     event_date="creation_date",
+    process_date="process_date",
     foreign_keys=(ForeignKey("customer_id", "customers", "customer_id"),),
 )
 
@@ -118,6 +127,7 @@ CALL_CENTER_INTERACTIONS = TableContract(
     columns={
         "interaction_id": "VARCHAR",
         "interaction_date": "TIMESTAMP",
+        "process_date": "DATE",
         "customer_id": "VARCHAR",
         "agent_id": "VARCHAR",
         "channel": "VARCHAR",
@@ -133,13 +143,16 @@ CALL_CENTER_INTERACTIONS = TableContract(
     primary_key="interaction_id",
     required=("interaction_id", "customer_id"),
     event_date="interaction_date",
+    process_date="process_date",
     foreign_keys=(ForeignKey("customer_id", "customers", "customer_id"),),
 )
 
 CALL_TRANSCRIPTS = TableContract(
     name="call_transcripts",
     columns={
+        "transcript_id": "VARCHAR",
         "interaction_id": "VARCHAR",
+        "customer_id": "VARCHAR",
         "full_text": "VARCHAR",
         "customer_text": "VARCHAR",
         "detected_language": "VARCHAR",
@@ -147,8 +160,8 @@ CALL_TRANSCRIPTS = TableContract(
         "main_topics": "VARCHAR",
         "mentioned_entities": "VARCHAR",
     },
-    primary_key="interaction_id",
-    required=("interaction_id",),
+    primary_key="transcript_id",
+    required=("transcript_id", "interaction_id"),
     foreign_keys=(ForeignKey("interaction_id", "call_center_interactions", "interaction_id"),),
 )
 

@@ -36,6 +36,8 @@ class TableQuality:
     renamed_columns: dict[str, str] = field(default_factory=dict)
     event_date_min: str | None = None
     event_date_max: str | None = None
+    # Filas cuyo process_date llega más de 1 día después de la fecha del evento (llegada tardía en el origen)
+    late_in_source: int | None = None
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -62,8 +64,12 @@ def _typed(col: str, dtype: str, contract: TableContract, name: str) -> str:
     if dtype == "BOOLEAN":
         return _bool_expr(raw)
     if name in contract.enums:
-        cases = " ".join(f"WHEN lower({raw}) = '{v.lower()}' THEN '{v}'" for v in contract.enums[name])
+        values = {v.lower(): v for v in contract.enums[name]} | contract.value_aliases.get(name, {})
+        cases = " ".join(f"WHEN lower({raw}) = '{k}' THEN '{v}'" for k, v in values.items())
         return f"CASE {cases} ELSE {raw} END"
+    if dtype == "INTEGER":
+        # "250.0" -> 250
+        return f"CAST(round(TRY_CAST({raw} AS DOUBLE)) AS INTEGER)"
     if dtype == "VARCHAR":
         return raw
     if dtype.startswith("DECIMAL") or dtype == "DOUBLE":
@@ -158,6 +164,11 @@ def build_table(con: duckdb.DuckDBPyConnection, settings: Settings, contract: Ta
         col = _q(contract.event_date)
         lo, hi = con.execute(f"SELECT min({col}), max({col}) FROM deduped").fetchone()
         q.event_date_min, q.event_date_max = (str(lo) if lo else None), (str(hi) if hi else None)
+    if contract.event_date and contract.process_date and q.silver_rows:
+        ev, pr = _q(contract.event_date), _q(contract.process_date)
+        q.late_in_source = con.execute(
+            f"SELECT count(*) FROM deduped WHERE {pr} > CAST({ev} AS DATE) + INTERVAL 1 DAY"
+        ).fetchone()[0]
 
     settings.silver.mkdir(parents=True, exist_ok=True)
     settings.quarantine.mkdir(parents=True, exist_ok=True)

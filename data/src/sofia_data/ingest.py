@@ -9,6 +9,7 @@
 import hashlib
 import json
 import logging
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -20,6 +21,7 @@ from sofia_data.settings import Settings
 
 log = logging.getLogger(__name__)
 
+DOWNLOAD_WORKERS = 16
 RAW_SUFFIXES = (".csv", ".csv.gz", ".parquet", ".json", ".jsonl", ".ndjson")
 
 
@@ -45,27 +47,38 @@ def table_for_key(key: str, tables: tuple[str, ...] = tuple(CONTRACTS)) -> str |
 def sync_raw(settings: Settings, tables: tuple[str, ...] = tuple(CONTRACTS)) -> int:
     """Descarga desde S3 los objetos nuevos o modificados de las tablas pedidas. Devuelve cuántos bajó."""
     import boto3
+    from botocore.config import Config
 
-    s3 = boto3.client("s3", region_name=settings.aws_region)
+    s3 = boto3.client("s3", region_name=settings.aws_region, config=Config(max_pool_connections=DOWNLOAD_WORKERS))
     manifest_path = settings.state / "s3_manifest.json"
     manifest: dict[str, str] = json.loads(manifest_path.read_text()) if manifest_path.exists() else {}
-    downloaded = 0
+    pending: list[tuple[str, str, int]] = []
     for page in s3.get_paginator("list_objects_v2").paginate(Bucket=settings.s3_bucket, Prefix=settings.s3_prefix):
         for obj in page.get("Contents", []):
             key, etag = obj["Key"], obj["ETag"].strip('"')
             if not key.lower().endswith(RAW_SUFFIXES) or table_for_key(key, tables) is None:
                 continue
-            target = settings.raw / key
-            if manifest.get(key) == etag and target.exists():
+            if manifest.get(key) == etag and (settings.raw / key).exists():
                 continue
-            target.parent.mkdir(parents=True, exist_ok=True)
-            log.info("s3 -> raw: %s (%.1f MB)", key, obj["Size"] / 1e6)
-            s3.download_file(settings.s3_bucket, key, str(target))
-            manifest[key] = etag
-            downloaded += 1
+            pending.append((key, etag, obj["Size"]))
+    log.info("s3 -> raw: %d objetos por bajar (%.1f MB)", len(pending), sum(p[2] for p in pending) / 1e6)
+
+    def fetch(item: tuple[str, str, int]) -> tuple[str, str]:
+        key, etag, _ = item
+        target = settings.raw / key
+        target.parent.mkdir(parents=True, exist_ok=True)
+        s3.download_file(settings.s3_bucket, key, str(target))
+        return key, etag
+
     settings.state.mkdir(parents=True, exist_ok=True)
+    with ThreadPoolExecutor(max_workers=DOWNLOAD_WORKERS) as pool:
+        for i, (key, etag) in enumerate(pool.map(fetch, pending), 1):
+            manifest[key] = etag
+            if i % 500 == 0 or i == len(pending):
+                log.info("s3 -> raw: %d/%d", i, len(pending))
+                manifest_path.write_text(json.dumps(manifest, indent=2, sort_keys=True))
     manifest_path.write_text(json.dumps(manifest, indent=2, sort_keys=True))
-    return downloaded
+    return len(pending)
 
 
 def _fingerprint(path: Path) -> str:

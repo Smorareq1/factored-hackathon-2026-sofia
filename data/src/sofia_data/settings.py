@@ -51,6 +51,6 @@ class Settings:
         return cls(
             data_dir=Path(data_dir or os.environ.get("DATA_DIR", "data")).resolve(),
             s3_bucket=os.environ.get("S3_BUCKET") or None,
-            s3_prefix=os.environ.get("S3_PREFIX", ""),
+            s3_prefix=os.environ.get("S3_PREFIX", "data/"),  # el bucket también trae data_backup_*/
             aws_region=os.environ.get("AWS_REGION", "us-east-2"),
         )
