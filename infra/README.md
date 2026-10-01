@@ -4,7 +4,12 @@ Despliegue y operación fuera del entorno local (el local vive en [containers/](
 
 ## Cloud Run (`cloudrun/`)
 
-Proyecto GCP `sofia-factored-hackathon`, región `us-central1`. Un servicio por imagen `runtime`:
+Proyecto GCP `sofia-factored-hackathon`, región `us-central1`.
+
+Desplegado el 2026-10-01: **https://frontend-i6dmh3qssa-uc.a.run.app** (agente en
+`https://agent-i6dmh3qssa-uc.a.run.app`, router y bank-api con el mismo sufijo).
+
+Un servicio por imagen `runtime`:
 
 | Servicio | Imagen | Notas |
 |---|---|---|
