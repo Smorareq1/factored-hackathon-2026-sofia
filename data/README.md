@@ -50,8 +50,15 @@ las columnas que el contrato no conoce se conservan y se reportan en `unexpected
 y `detected_intents` ([gold.py](src/sofia_data/gold.py)). DS es dueño del mapeo final (§8.6); `label_source` guarda el
 texto crudo para re-etiquetar sin re-correr el pipeline.
 
-## Pendientes conocidos
+## Hallazgos de la primera corrida real (2026-10-01)
 
-- La estructura real del bucket (formato y particiones) se confirma en la primera corrida con credenciales;
-  `table_for_key` reconoce la tabla por carpeta o prefijo del archivo.
-- `call_center_interactions.interaction_date` es un nombre supuesto: si el origen usa otro, agregarlo a `aliases`.
+- Bucket: `data/<tabla>/year=/month=/day=/<tabla>_YYYYMMDD.csv` (1.097 días) + `data/customers.csv`, `products.csv`;
+  también hay un `data_backup_20260831/` que se ignora (`S3_PREFIX=data/`). Primera corrida ~23 min (casi todo descarga);
+  re-correr sin archivos nuevos ~30 s.
+- Filas en gold: 150.000 clientes, 4.425.008 transacciones, 67.095 quejas, 171.321 textos de intención.
+- La versión actual no trae duplicados por llave, nulos en llaves ni huérfanos de FK; la suciedad está en columnas
+  opcionales: `merchant_name` 77% nulo, `amount_usd` 57%, `claimed_amount` 68%, `complaints.origin_interaction_id` 100%.
+- `call_transcripts.detected_intents` es casi siempre `consulta_general` y los textos son plantillas: el label
+  provisional sale casi todo `out_of_scope` / `transaction_inquiry`. DS tiene que definir el mapeo con
+  `complaints.category/subcategory` o etiquetado manual.
+- No hay transacciones en MXN: México opera en USD en este dataset.
