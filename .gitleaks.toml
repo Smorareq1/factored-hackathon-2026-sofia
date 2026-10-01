@@ -1,0 +1,15 @@
+# Reglas por defecto de gitleaks + excepciones para valores de desarrollo local que NO son secretos (CON-03).
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Placeholders y defaults de desarrollo local"
+regexes = [
+  '''pk-lf-local-dev''',
+  '''sk-lf-local-dev''',
+]
+paths = [
+  '''(^|/)\.env\.example$''',
+  '''(^|/)package-lock\.json$''',
+  '''(^|/)uv\.lock$''',
+]

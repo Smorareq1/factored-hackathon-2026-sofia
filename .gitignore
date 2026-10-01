@@ -62,6 +62,8 @@ data/bronze/**
 data/silver/**
 data/gold/**
 data/cache/**
+data/_state/**
+data/fixture/**
 !data/raw/.gitkeep
 !data/bronze/.gitkeep
 !data/silver/.gitkeep
