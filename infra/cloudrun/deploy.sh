@@ -25,7 +25,7 @@ log() { printf '\n\033[1m▸ %s\033[0m\n' "$*"; }
 
 env_value() { # lee una variable de .env sin exportar el archivo entero
   [ -f "$ROOT/.env" ] || return 0
-  grep -E "^$1=" "$ROOT/.env" | tail -1 | cut -d= -f2- | sed -e 's/^"//' -e 's/"$//'
+  { grep -E "^$1=" "$ROOT/.env" || true; } | tail -1 | cut -d= -f2- | sed -e 's/^"//' -e 's/"$//'
 }
 
 LANGFUSE_HOST_CLOUD="${LANGFUSE_HOST_CLOUD:-$(env_value LANGFUSE_HOST)}"
