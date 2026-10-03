@@ -91,7 +91,7 @@ y tipo de caso, con n e IC: [docs/evaluation-report.md](docs/evaluation-report.m
 | MET-03 Recall de escalación | {{eval/outputs/ds_stats.json:baseline.metricas.met03_escalation_recall}} | {{eval/outputs/ds_stats.json:proposed.metricas.met03_escalation_recall}} |
 | MET-04 Unsafe outcomes (conteo / n) | {{eval/outputs/ds_stats.json:baseline.metricas.met04_unsafe_outcomes}} | {{eval/outputs/ds_stats.json:proposed.metricas.met04_unsafe_outcomes}} |
 | MET-05 Latencia p50 / p95 | {{eval/outputs/ds_stats.json:baseline.metricas.met05_latency_p50_ms}} / {{eval/outputs/ds_stats.json:baseline.metricas.met05_latency_p95_ms}} | {{eval/outputs/ds_stats.json:proposed.metricas.met05_latency_p50_ms}} / {{eval/outputs/ds_stats.json:proposed.metricas.met05_latency_p95_ms}} |
-| MET-06 Costo por caso / por resolución | {{eval/outputs/ds_stats.json:baseline.metricas.met06_cost_per_case_usd}} / {{PENDIENTE:MET-06 costo por resolución exitosa, baseline}} | {{eval/outputs/ds_stats.json:proposed.metricas.met06_cost_per_case_usd}} / {{PENDIENTE:MET-06 costo por resolución exitosa, propuesto}} |
+| MET-06 Costo por caso / por resolución | {{eval/outputs/ds_stats.json:baseline.metricas.met06_cost_per_case_usd}} / {{eval/outputs/ds_stats.json:baseline.metricas.met06_cost_per_safe_resolution_usd}} | {{eval/outputs/ds_stats.json:proposed.metricas.met06_cost_per_case_usd}} / {{eval/outputs/ds_stats.json:proposed.metricas.met06_cost_per_safe_resolution_usd}} |
 
 n = {{eval/outputs/ds_stats.json:proposed.n}} casos (ES {{eval/outputs/ds_stats.json:desglose.idioma.es.n}}, PT {{eval/outputs/ds_stats.json:desglose.idioma.pt.n}}).
 Router aprendido vs reglas (REQ-13): macro-F1 {{ml/reports/router_eval.json:systems.rules-ds-0.1.macro_f1}} →
