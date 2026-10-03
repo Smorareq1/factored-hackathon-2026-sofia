@@ -86,14 +86,14 @@ y tipo de caso, con n e IC: [docs/evaluation-report.md](docs/evaluation-report.m
 
 | Métrica | Baseline | Propuesto |
 |---|---|---|
-| MET-01 Safe Automated Resolution | {{eval/outputs/ds_stats.json:MET-01.baseline}} | {{eval/outputs/ds_stats.json:MET-01.proposed}} |
-| MET-02 Containment | {{eval/outputs/ds_stats.json:MET-02.baseline}} | {{eval/outputs/ds_stats.json:MET-02.proposed}} |
-| MET-03 Recall de escalación | {{eval/outputs/ds_stats.json:MET-03.recall.baseline}} | {{eval/outputs/ds_stats.json:MET-03.recall.proposed}} |
-| MET-04 Unsafe outcomes (conteo / n) | {{eval/outputs/ds_stats.json:MET-04.baseline}} | {{eval/outputs/ds_stats.json:MET-04.proposed}} |
-| MET-05 Latencia p50 / p95 | {{eval/outputs/ds_stats.json:MET-05.baseline}} | {{eval/outputs/ds_stats.json:MET-05.proposed}} |
-| MET-06 Costo por caso / por resolución | {{eval/outputs/ds_stats.json:MET-06.baseline}} | {{eval/outputs/ds_stats.json:MET-06.proposed}} |
+| MET-01 Safe Automated Resolution | {{eval/outputs/ds_stats.json:baseline.metricas.met01_safe_auto_resolution}} | {{eval/outputs/ds_stats.json:proposed.metricas.met01_safe_auto_resolution}} |
+| MET-02 Containment | {{eval/outputs/ds_stats.json:baseline.metricas.met02_containment}} | {{eval/outputs/ds_stats.json:proposed.metricas.met02_containment}} |
+| MET-03 Recall de escalación | {{eval/outputs/ds_stats.json:baseline.metricas.met03_escalation_recall}} | {{eval/outputs/ds_stats.json:proposed.metricas.met03_escalation_recall}} |
+| MET-04 Unsafe outcomes (conteo / n) | {{eval/outputs/ds_stats.json:baseline.metricas.met04_unsafe_outcomes}} | {{eval/outputs/ds_stats.json:proposed.metricas.met04_unsafe_outcomes}} |
+| MET-05 Latencia p50 / p95 | {{eval/outputs/ds_stats.json:baseline.metricas.met05_latency_p50_ms}} / {{eval/outputs/ds_stats.json:baseline.metricas.met05_latency_p95_ms}} | {{eval/outputs/ds_stats.json:proposed.metricas.met05_latency_p50_ms}} / {{eval/outputs/ds_stats.json:proposed.metricas.met05_latency_p95_ms}} |
+| MET-06 Costo por caso / por resolución | {{eval/outputs/ds_stats.json:baseline.metricas.met06_cost_per_case_usd}} / {{PENDIENTE:MET-06 costo por resolución exitosa, baseline}} | {{eval/outputs/ds_stats.json:proposed.metricas.met06_cost_per_case_usd}} / {{PENDIENTE:MET-06 costo por resolución exitosa, propuesto}} |
 
-n = {{eval/outputs/ds_stats.json:n.total}} casos (ES {{eval/outputs/ds_stats.json:n.es}}, PT {{eval/outputs/ds_stats.json:n.pt}}).
+n = {{eval/outputs/ds_stats.json:proposed.n}} casos (ES {{eval/outputs/ds_stats.json:desglose.idioma.es.n}}, PT {{eval/outputs/ds_stats.json:desglose.idioma.pt.n}}).
 Router aprendido vs reglas (REQ-13): macro-F1 {{ml/reports/router_eval.json:systems.rules-ds-0.1.macro_f1}} →
 {{ml/reports/router_eval.json:systems.tfidf-lr-0.1.macro_f1}}. El baseline de negocio del call center es una
 **proyección**, no una mejora medida (CON-07).
