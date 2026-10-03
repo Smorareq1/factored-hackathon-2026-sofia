@@ -41,6 +41,11 @@ for target in sofia-build sofia-agent sofia-runtime; do
   echo "  serviceAccountUser en $target"
 done
 
+# Cloud Run valida que quien despliega pueda leer la imagen del registry.
+"${GC[@]}" artifacts repositories add-iam-policy-binding sofia --location "${GCP_REGION:-us-central1}" \
+  --member "serviceAccount:$SA" --role roles/artifactregistry.reader >/dev/null
+echo "  artifactregistry.reader en sofia"
+
 log "Workload Identity Pool ($POOL / $PROVIDER)"
 "${GC[@]}" iam workload-identity-pools describe "$POOL" --location global >/dev/null 2>&1 ||
   "${GC[@]}" iam workload-identity-pools create "$POOL" --location global --display-name "GitHub Actions"
