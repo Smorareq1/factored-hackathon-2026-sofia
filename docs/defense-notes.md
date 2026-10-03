@@ -46,23 +46,23 @@ REQ-13 ("labels válidos"). Es una limitación declarada: el router no está val
 Tres capas. (1) Split por grupo: en el corpus del equipo, el grupo es la familia de paráfrasis (todas las
 variantes de una misma frase caen del mismo lado); en datos del dataset, el cliente. (2) Temporal cuando hay
 fechas: test = los últimos días, y se sacan de train los grupos que aparecen en test. (3) Un `assert` que falla si
-hay un grupo **o un texto idéntico** en ambos lados. Tamaño del test: `{{eval/outputs/ds_stats.json:router.split.n_test}}`.
+hay un grupo **o un texto idéntico** en ambos lados. Tamaño del test: `{{ml/reports/router_eval.json:split.n_test}}`.
 *Evidencia:* `ml/src/sofia_ml/split.py` (`assert_no_leakage`), `ml/reports/router_eval.json`.
 
 **Repregunta: si el corpus lo escribieron ustedes, ¿no es fácil?**
 Es un riesgo real: quien escribe train y test comparte estilo. Lo mitigamos con el split por familia de
-paráfrasis y lo medimos por idioma (macro-F1 PT `{{eval/outputs/ds_stats.json:router.proposed.by_language.pt.macro_f1}}`).
+paráfrasis y lo medimos por idioma (macro-F1 PT `{{ml/reports/router_eval.json:systems.tfidf-lr-0.1.by_language.pt.macro_f1}}`).
 Pero el número del router es optimista frente a clientes reales, y lo decimos; el siguiente paso es etiquetar
 mensajes reales en modo sombra.
 
 **¿Por qué macro-F1 y recall de `needs_human`?**
 Macro-F1 porque las clases están desbalanceadas y `out_of_scope` o `needs_human` importan tanto como la mayoritaria.
 Recall de `needs_human` porque dejar pasar un caso que debía ir a un humano es el error más caro; uno innecesario
-cuesta minutos de un agente. Resultado: `{{eval/outputs/ds_stats.json:router.baseline_rules.needs_human_recall}}` (reglas)
-→ `{{eval/outputs/ds_stats.json:router.proposed.needs_human_recall}}` (aprendido).
+cuesta minutos de un agente. Resultado: `{{ml/reports/router_eval.json:systems.rules-ds-0.1.needs_human_recall}}` (reglas)
+→ `{{ml/reports/router_eval.json:systems.tfidf-lr-0.1.needs_human_recall}}` (aprendido).
 
 **¿Y si el router se equivoca?**
-No decide nada sensible. Por debajo del umbral de confianza (`{{eval/outputs/ds_stats.json:router.threshold}}`) Sofía
+No decide nada sensible. Por debajo del umbral de confianza (`{{ml/reports/router_eval.json:confidence_threshold}}`) Sofía
 pregunta; y aunque clasifique mal, la elegibilidad y los permisos los vuelve a decidir la API. El peor caso de un
 error del router es una pregunta de más o un handoff, no una acción indebida.
 
@@ -89,20 +89,20 @@ lo confirma; si la tool falla, reintenta de forma acotada y, si sigue fallando, 
 **¿Qué ve el humano en el handoff?**
 Una ficha JSON: hechos verificados con su fuente, acciones ejecutadas, preguntas abiertas, banderas de riesgo y la
 regla que motivó el handoff. Nunca el transcript (REQ-05). La completitud de campos se mide (MET-03:
-`{{eval/outputs/ds_stats.json:proposed.all.met03_handoff_completeness}}`).
+`{{eval/outputs/ds_stats.json:proposed.metricas.met03_handoff_completeness}}`).
 
 ## 4. Evaluación y estadística
 
 **Reportan cero (o pocos) unsafe outcomes. Con ese n, ¿qué significa?**
-Poco, y lo decimos. Con `{{eval/outputs/ds_stats.json:n_cases.total}}` casos y
-`{{eval/outputs/ds_stats.json:proposed.all.met04_count}}` resultados inseguros, la cota superior al 95 % es
-`{{eval/outputs/ds_stats.json:proposed.all.met04_upper95}}` (con cero eventos, regla de tres: ≈ 3/n). Cero en una muestra
+Poco, y lo decimos. Con `{{eval/outputs/ds_stats.json:proposed.n}}` casos y
+`{{eval/outputs/ds_stats.json:proposed.metricas.met04_unsafe_outcomes.k}}` resultados inseguros, la cota superior al 95 % es
+`{{eval/outputs/ds_stats.json:proposed.metricas.met04_unsafe_outcomes.ci[1]}}` (con cero eventos, regla de tres: ≈ 3/n). Cero en una muestra
 chica no es riesgo cero. Lo que sí es fuerte es la evidencia estructural: los tests que muestran que la API niega
 acciones no autorizadas no dependen del tamaño de la muestra.
 
 **¿Cómo construyeron los intervalos?**
-`{{eval/outputs/ds_stats.json:ci_method}}`. El principio: se remuestrean casos, no turnos (los turnos de una
-conversación no son independientes), por idioma, y `{{eval/outputs/ds_stats.json:n_runs}}` corridas repetidas miden la
+`{{eval/outputs/ds_stats.json:meta.metodos}}`. El principio: se remuestrean casos, no turnos (los turnos de una
+conversación no son independientes), por idioma, y `{{PENDIENTE:corridas repetidas por sistema}}` corridas repetidas miden la
 variabilidad del LLM. Baseline y Sofía corren sobre los **mismos** casos, así que la diferencia se puede comparar
 caso a caso. *(Confirmar con el método real de `ds_stats.json` antes de la defensa.)*
 
@@ -113,7 +113,7 @@ reportan por separado, junto con el % de casos donde se intentó automatizar.
 **¿Usaron LLM-as-judge?**
 Las métricas MET-01..05 son determinísticas (ruta, tool calls, fugas, verificación). Los evaluadores de Langfuse solo
 puntúan calidad de redacción y se validaron contra una muestra etiquetada por humanos
-(`{{eval/outputs/ds_stats.json:judge_agreement}}` de acuerdo). No usamos el juez para nada que afecte seguridad.
+(`{{eval/outputs/judge_validation.json:evaluators[0].agreement}}` de acuerdo). No usamos el juez para nada que afecte seguridad.
 
 **¿Hay disparidades por idioma o segmento? (REQ-18)**
 Las reportamos por celda con su n: `{{results/fairness.json:summary}}`. Donde la celda es chica no concluimos; lo
@@ -123,8 +123,8 @@ decimos así en el reporte.
 
 **El dataset es todo en español. ¿Qué tan bueno es su portugués?**
 Es nuestra mayor limitación y la declaramos. Los casos PT son generados por el equipo: traducidos con LLM y
-revisados por humanos, y etiquetados `team_generated` (CON-02). Revisamos `{{eval/outputs/ds_stats.json:pt_review.n_reviewed}}`
-de `{{eval/outputs/ds_stats.json:pt_review.n_total}}` casos y corregimos `{{eval/outputs/ds_stats.json:pt_review.n_corrected}}`.
+revisados por humanos, y etiquetados `team_generated` (CON-02). Revisamos `{{PENDIENTE:casos PT revisados por humanos}}`
+de `{{PENDIENTE:casos PT totales en la revisión}}` casos y corregimos `{{PENDIENTE:casos PT corregidos en la revisión}}`.
 Riesgo conocido: un PT traducido es más "limpio" que el de un cliente real de Brasil (menos jerga, menos errores de
 tipeo), así que el resultado PT probablemente es optimista. En producción: un set PT real etiquetado por hablantes
 nativos antes de abrir el canal.
@@ -137,14 +137,14 @@ la intención no queda clara, pregunta.
 
 **¿Qué supuestos tiene el costo por caso?**
 Tokens reales medidos por Langfuse en cada llamada × precio público de Gemini por token en la fecha de la corrida
-(`{{eval/outputs/ds_stats.json:pricing.model}}`, `{{eval/outputs/ds_stats.json:pricing.usd_per_1m_input}}` USD por millón
-de tokens de entrada, `{{eval/outputs/ds_stats.json:pricing.usd_per_1m_output}}` de salida). No incluye infraestructura
+(`{{agent/evals/reference.rules.json:context."Modelo (cadena)"}}`, `{{agent/src/sofia_agent/config.py:GEMINI_PRICE_INPUT_PER_MTOK}}` USD por millón
+de tokens de entrada, `{{agent/src/sofia_agent/config.py:GEMINI_PRICE_OUTPUT_PER_MTOK}}` de salida). No incluye infraestructura
 (Cloud Run escala a cero) ni el costo del agente humano en los handoffs. El costo por resolución exitosa se reporta
 como "not defined" si no hay éxitos (MET-06).
 
 **¿Por qué Sofía es más lenta/cara que el baseline (si lo es)?**
 Porque verifica: relee la disputa después de crearla y consulta la política. Es un costo deliberado: p95
-`{{eval/outputs/ds_stats.json:proposed.all.met05_p95_s}}` s contra `{{eval/outputs/ds_stats.json:baseline.all.met05_p95_s}}` s
+`{{eval/outputs/ds_stats.json:proposed.metricas.met05_latency_p95_ms.value}}` ms contra `{{eval/outputs/ds_stats.json:baseline.metricas.met05_latency_p95_ms.value}}` ms
 del baseline. Además Sofía no manda los datos de las tools al LLM para decidir, el baseline sí.
 
 **¿Cuánto ahorraría al banco?**
