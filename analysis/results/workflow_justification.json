@@ -1,0 +1,104 @@
+{
+  "generated_at": "2026-10-03T23:06:15+00:00",
+  "reason_categories": [
+    {
+      "reason_category": "Transaccional",
+      "n": 240056,
+      "pct": 35.0,
+      "p_escalado": 0.099,
+      "p_resuelto": 0.915,
+      "dur_p50_s": 205.0
+    },
+    {
+      "reason_category": "Producto",
+      "n": 150863,
+      "pct": 22.0,
+      "p_escalado": 0.1,
+      "p_resuelto": 0.896,
+      "dur_p50_s": 263.0
+    },
+    {
+      "reason_category": "Queja",
+      "n": 117021,
+      "pct": 17.1,
+      "p_escalado": 0.1,
+      "p_resuelto": 0.436,
+      "dur_p50_s": 431.0
+    },
+    {
+      "reason_category": "Técnico",
+      "n": 102899,
+      "pct": 15.0,
+      "p_escalado": 0.101,
+      "p_resuelto": 0.699,
+      "dur_p50_s": 360.0
+    },
+    {
+      "reason_category": "Comercial",
+      "n": 54879,
+      "pct": 8.0,
+      "p_escalado": 0.098,
+      "p_resuelto": 0.652,
+      "dur_p50_s": 540.0
+    },
+    {
+      "reason_category": "Retención",
+      "n": 20578,
+      "pct": 3.0,
+      "p_escalado": 0.098,
+      "p_resuelto": 0.602,
+      "dur_p50_s": 478.0
+    }
+  ],
+  "complaint_subcategories": [
+    {
+      "subcategory": "Cargo no reconocido",
+      "n": 12297,
+      "pct": 18.3,
+      "p_sla_roto": 0.204,
+      "p_reincidente": 0.147,
+      "dias_p50": 15.0
+    },
+    {
+      "subcategory": "Cobro indebido",
+      "n": 12194,
+      "pct": 18.2,
+      "p_sla_roto": 0.199,
+      "p_reincidente": 0.153,
+      "dias_p50": 16.0
+    },
+    {
+      "subcategory": "Problema con app",
+      "n": 12128,
+      "pct": 18.1,
+      "p_sla_roto": 0.2,
+      "p_reincidente": 0.154,
+      "dias_p50": 16.0
+    },
+    {
+      "subcategory": "Atención en sucursal",
+      "n": 11892,
+      "pct": 17.7,
+      "p_sla_roto": 0.204,
+      "p_reincidente": 0.152,
+      "dias_p50": 16.0
+    },
+    {
+      "subcategory": "Calidad de servicio",
+      "n": 11886,
+      "pct": 17.7,
+      "p_sla_roto": 0.203,
+      "p_reincidente": 0.15,
+      "dias_p50": 16.0
+    },
+    {
+      "subcategory": null,
+      "n": 6698,
+      "pct": 10.0,
+      "p_sla_roto": 0.193,
+      "p_reincidente": 0.143,
+      "dias_p50": 16.0
+    }
+  ],
+  "decision": "TODO: disputas de transacciones / criterio de salida"
+}
