@@ -56,6 +56,7 @@ flowchart LR
 | Datos | DuckDB + Parquet, contratos por tabla, cuarentena, lineage y freshness | REQ-12; repetible e incremental |
 | Observabilidad | **Langfuse Cloud** (plan Hobby): 1 traza por conversación, 1 span por capa y por tool call | REQ-16; latencia y costo por caso para MET-05/06 |
 | CI | ruff + pytest, eslint + build, gitleaks sobre todo el historial en cada PR | Ningún merge con tests rojos ni secretos |
+| CD | GitHub Actions despliega en Cloud Run en cada merge a `develop`, con Workload Identity Federation | Demo siempre al día sin llaves de GCP en GitHub |
 | Costos | Presupuesto con alertas al 25/50/90/100% de los créditos | Sin sorpresas de facturación |
 
 Despliegue y operación en detalle: [infra/README.md](infra/README.md).
@@ -71,7 +72,7 @@ Despliegue y operación en detalle: [infra/README.md](infra/README.md).
 | Dataset estático (termina el 2026-06-17); freshness solo se reporta | SLA de freshness que bloquea la publicación de gold si se incumple |
 | Labels de intención provisionales en `gold_intent_training` | Mapeo de DS versionado + etiquetado humano |
 | Langfuse Hobby: 50k unidades/mes, 30 días de retención | Plan pago o self-hosted, con retención según política del banco |
-| Deploy con `deploy.sh` manual | Deploy desde CI al mergear a `main`, con entornos staging / prod |
+| CD a un solo entorno: cada merge a `develop` despliega la demo | Entornos staging / prod separados, con promoción y rollback |
 
 Checklist de entrega: [DEFINITION_OF_DONE.md](DEFINITION_OF_DONE.md).
 

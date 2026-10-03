@@ -20,6 +20,7 @@ Un servicio por imagen `runtime`:
 
 ```bash
 infra/cloudrun/deploy.sh             # primera vez: APIs, Artifact Registry, cuentas de servicio, secretos, build y deploy
+infra/cloudrun/deploy.sh release     # imágenes + servicios, sin tocar IAM ni secretos (lo que corre el CD)
 infra/cloudrun/deploy.sh services    # re-desplegar con el código actual (reconstruye el frontend)
 MIN_INSTANCES=1 infra/cloudrun/deploy.sh services   # ventana con jueces (DEL-02); volver a 0 después
 ```
@@ -55,3 +56,16 @@ la demo.
 ## CI
 
 `.github/workflows/ci.yml`: ruff + pytest, eslint + build del frontend y gitleaks en cada PR.
+
+## CD
+
+`.github/workflows/deploy.yml`: cada push a `develop` (merge de PR) corre `deploy.sh release` y deja las URLs en el
+resumen del run. También se puede lanzar a mano desde Actions sobre `develop`.
+
+- Autenticación por Workload Identity Federation: GitHub entrega un token OIDC y GCP lo cambia por la cuenta
+  `sofia-deployer`. No hay llaves JSON ni secretos de GitHub (CON-03).
+- El provider solo acepta tokens de `Smorareq1/factored-hackathon-2026-sofia` en `refs/heads/develop`; otras ramas
+  o forks no pueden desplegar.
+- `sofia-deployer` puede construir imágenes, desplegar Cloud Run y ver qué secretos existen, pero no leer su valor
+  ni cambiar IAM. Cambios de plataforma o de secretos siguen siendo `deploy.sh` (modo `all`) con una cuenta Owner.
+- Se configura una sola vez con `infra/cloudrun/setup-github-deploy.sh` (Owner, idempotente).

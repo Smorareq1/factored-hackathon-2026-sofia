@@ -3,8 +3,10 @@
 #
 #   infra/cloudrun/deploy.sh            # todo: APIs, registry, cuentas de servicio, secretos, imágenes, servicios
 #   infra/cloudrun/deploy.sh services   # solo re-despliega con las imágenes ya construidas
+#   infra/cloudrun/deploy.sh release    # imágenes + servicios, sin tocar APIs, IAM ni secretos (CD desde develop)
 #
-# Requisitos: gcloud autenticado con permisos de Owner/Editor en el proyecto.
+# Requisitos: gcloud autenticado con permisos de Owner/Editor en el proyecto (`release` basta con sofia-deployer,
+# ver setup-github-deploy.sh).
 # Secretos: se leen de .env (LANGFUSE_PUBLIC_KEY, LANGFUSE_SECRET_KEY, DATABASE_URL opcional) y se suben a
 # Secret Manager; nunca se imprimen ni se pasan como variables de entorno en texto plano (CON-03).
 set -euo pipefail
@@ -153,12 +155,17 @@ main() {
       deploy_services
       deploy_frontend
       ;;
+    release)
+      build backend
+      deploy_services
+      deploy_frontend
+      ;;
     services)
       deploy_services
       deploy_frontend
       ;;
     *)
-      echo "uso: $0 [all|services]" >&2
+      echo "uso: $0 [all|release|services]" >&2
       exit 2
       ;;
   esac
