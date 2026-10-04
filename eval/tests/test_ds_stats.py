@@ -162,3 +162,26 @@ def test_build_ds_stats_without_baseline_or_segments() -> None:
     assert stats["baseline"] is None and stats["comparacion"] is None
     assert "segmento" not in stats["desglose"]
     assert "baseline" not in stats["desglose"]["idioma"]["es"]
+
+
+def test_cost_per_safe_resolution_defined_and_not_defined() -> None:
+    """MET-06 por resolución segura: con éxitos tiene valor e IC; sin éxitos queda "not defined" sin romper."""
+    cases, proposed, baseline = _dataset()
+    name = "met06_cost_per_safe_resolution_usd"
+
+    prop = system_stats(cases, proposed, n_boot=200)["metricas"][name]
+    assert prop["value"] is not None and prop["value"] > 0
+    assert prop["ci"] is not None and prop["ci"][0] <= prop["value"] <= prop["ci"][1]
+    assert prop["n"] == 16  # resoluciones seguras (los casos auto)
+    assert "nota" not in prop
+
+    base = system_stats(cases, baseline, n_boot=200)["metricas"][name]
+    assert base["value"] is None
+    assert base["ci"] is None
+    assert base["n"] == 0
+    assert base["nota"].startswith("not defined")
+
+    cmp = build_ds_stats(cases, proposed, baseline, n_boot=200)["comparacion"][name]
+    assert cmp["diff"] is None
+    assert cmp["conclusion"] == INSUFFICIENT
+    json.dumps(cmp)
