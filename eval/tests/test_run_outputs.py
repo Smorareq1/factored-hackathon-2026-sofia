@@ -12,9 +12,7 @@ from sofia_eval.run import load_segments, run_evaluation
 def test_run_writes_per_case_results_and_ds_stats(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("SOFIA_LLM_MODE", "rules")
     monkeypatch.setenv("GOLD_DIR", str(tmp_path / "no-gold"))
-    code = asyncio.run(
-        run_evaluation(output_dir=str(tmp_path), versions=["proposed", "baseline"], level=1, limit=2)
-    )
+    code = asyncio.run(run_evaluation(output_dir=str(tmp_path), versions=["proposed", "baseline"], level=1, limit=2))
     assert code == 0
     for name in ("results_proposed.jsonl", "results_baseline.jsonl", "ds_stats.json", "summary.json"):
         assert (tmp_path / name).exists(), name

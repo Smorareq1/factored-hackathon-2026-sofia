@@ -15,11 +15,7 @@ def build_evaluation_report(
 ) -> tuple[str, dict[str, Any]]:
     """Construye el reporte de evaluación comparativo baseline vs propuesto y por idioma."""
     prop = calculate_metrics(cases, proposed_results, metadata={"system": "proposed"})
-    base = (
-        calculate_metrics(cases, baseline_results, metadata={"system": "baseline"})
-        if baseline_results
-        else None
-    )
+    base = calculate_metrics(cases, baseline_results, metadata={"system": "baseline"}) if baseline_results else None
 
     # Desglose por idioma (REQ-18 Fairness)
     cases_es = [c for c in cases if c.language == "es"]
@@ -43,23 +39,48 @@ def build_evaluation_report(
     prop_cost = f"${prop.cost_per_case_attempted_usd:.4f}"
 
     table_rows = [
-        ("MET-01", "Safe Auto Resolution", _fmt_pct(base.safe_auto_resolution_rate if base else 0),
-         _fmt_pct(prop.safe_auto_resolution_rate),
-         _delta_pct(base.safe_auto_resolution_rate if base else 0, prop.safe_auto_resolution_rate)),
-        ("MET-02", "Containment", _fmt_pct(base.containment_rate if base else 0),
-         _fmt_pct(prop.containment_rate),
-         _delta_pct(base.containment_rate if base else 0, prop.containment_rate)),
-        ("MET-03", "Escalation Precision", _fmt_pct(base.escalation_precision if base else 0),
-         _fmt_pct(prop.escalation_precision),
-         _delta_pct(base.escalation_precision if base else 0, prop.escalation_precision)),
-        ("MET-03", "Escalation Recall", _fmt_pct(base.escalation_recall if base else 0),
-         _fmt_pct(prop.escalation_recall),
-         _delta_pct(base.escalation_recall if base else 0, prop.escalation_recall)),
-        ("MET-03", "Handoff Completeness", _fmt_pct(base.handoff_field_completeness if base else 0),
-         _fmt_pct(prop.handoff_field_completeness),
-         _delta_pct(base.handoff_field_completeness if base else 0, prop.handoff_field_completeness)),
-        ("MET-04", "Unsafe Outcomes", str(base.unsafe_outcomes_total if base else 0),
-         str(prop.unsafe_outcomes_total), "0"),
+        (
+            "MET-01",
+            "Safe Auto Resolution",
+            _fmt_pct(base.safe_auto_resolution_rate if base else 0),
+            _fmt_pct(prop.safe_auto_resolution_rate),
+            _delta_pct(base.safe_auto_resolution_rate if base else 0, prop.safe_auto_resolution_rate),
+        ),
+        (
+            "MET-02",
+            "Containment",
+            _fmt_pct(base.containment_rate if base else 0),
+            _fmt_pct(prop.containment_rate),
+            _delta_pct(base.containment_rate if base else 0, prop.containment_rate),
+        ),
+        (
+            "MET-03",
+            "Escalation Precision",
+            _fmt_pct(base.escalation_precision if base else 0),
+            _fmt_pct(prop.escalation_precision),
+            _delta_pct(base.escalation_precision if base else 0, prop.escalation_precision),
+        ),
+        (
+            "MET-03",
+            "Escalation Recall",
+            _fmt_pct(base.escalation_recall if base else 0),
+            _fmt_pct(prop.escalation_recall),
+            _delta_pct(base.escalation_recall if base else 0, prop.escalation_recall),
+        ),
+        (
+            "MET-03",
+            "Handoff Completeness",
+            _fmt_pct(base.handoff_field_completeness if base else 0),
+            _fmt_pct(prop.handoff_field_completeness),
+            _delta_pct(base.handoff_field_completeness if base else 0, prop.handoff_field_completeness),
+        ),
+        (
+            "MET-04",
+            "Unsafe Outcomes",
+            str(base.unsafe_outcomes_total if base else 0),
+            str(prop.unsafe_outcomes_total),
+            "0",
+        ),
         ("MET-05", "Latencia p50 (ms)", base_lat50, prop_lat50, "—"),
         ("MET-05", "Latencia p95 (ms)", base_lat95, prop_lat95, "—"),
         ("MET-06", "Costo / caso", base_cost, prop_cost, "—"),
@@ -78,50 +99,52 @@ def build_evaluation_report(
     for mid, desc, b_val, p_val, d_val in table_rows:
         md_lines.append(f"| **{mid}** {desc} | {desc} | {b_val} | **{p_val}** | {d_val} |")
 
-    md_lines.extend([
-        "",
-        "## 2. Paridad Lingüística (Español vs Portugués — REQ-18)",
-        "",
-        "| Idioma | Casos | Safe Auto Res | Containment | Recall | Fallas | Latencia p50 |",
-        "|---|---|---|---|---|---|---|",
-        (
-            f"| **Español (ES)** | {prop_es.total_cases} | {_fmt_pct(prop_es.safe_auto_resolution_rate)} | "
-            f"{_fmt_pct(prop_es.containment_rate)} | {_fmt_pct(prop_es.escalation_recall)} | "
-            f"{prop_es.unsafe_outcomes_total} | {prop_es.latency_p50_ms:.0f} ms |"
-        ),
-        (
-            f"| **Portugués (PT)** | {prop_pt.total_cases} | {_fmt_pct(prop_pt.safe_auto_resolution_rate)} | "
-            f"{_fmt_pct(prop_pt.containment_rate)} | {_fmt_pt_or_na(prop_pt.escalation_recall)} | "
-            f"{prop_pt.unsafe_outcomes_total} | {prop_pt.latency_p50_ms:.0f} ms |"
-        ),
-        "",
-        "> [!NOTE]",
-        "> Los casos en portugués fueron generados y revisados por el equipo (`origin: team_generated`) "
-        "debido a que el LATAM Bank Dataset crudo incluye únicamente registros en español.",
-        "",
-        "## 3. Desglose por Nivel de Dificultad",
-        "",
-        "| Nivel | Descripción | n | Safe Auto | Esc Precision | Esc Recall | Fallas |",
-        "|---|---|---|---|---|---|---|",
-        f"| **Nivel 1** | Normal (Auto) | {lvl_sums[1].total_cases} | "
-        f"{_fmt_pct(lvl_sums[1].safe_auto_resolution_rate)} | — | — | {lvl_sums[1].unsafe_outcomes_total} |",
-        f"| **Nivel 2** | Ambiguo (Clarificar) | {lvl_sums[2].total_cases} | — | — | — | "
-        f"{lvl_sums[2].unsafe_outcomes_total} |",
-        f"| **Nivel 3** | Humano (POL-6) | {lvl_sums[3].total_cases} | — | "
-        f"{_fmt_pct(lvl_sums[3].escalation_precision)} | {_fmt_pct(lvl_sums[3].escalation_recall)} | "
-        f"{lvl_sums[3].unsafe_outcomes_total} |",
-        f"| **Nivel 4** | Fuera de alcance / Adv | {lvl_sums[4].total_cases} | — | — | — | "
-        f"{lvl_sums[4].unsafe_outcomes_total} |",
-        f"| **Nivel 5** | Fallas sistema (Injected) | {lvl_sums[5].total_cases} | — | "
-        f"{_fmt_pct(lvl_sums[5].escalation_precision)} | {_fmt_pct(lvl_sums[5].escalation_recall)} | "
-        f"{lvl_sums[5].unsafe_outcomes_total} |",
-        "",
-        "## 4. Auditoría de Seguridad y Resultados Inseguros (MET-04)",
-        f"- **Divulgaciones no autorizadas detectadas (IDs ajenos):** {prop.foreign_references_count}",
-        f"- **Afirmaciones falsas / no verificadas por la API:** {prop.unverified_claims_count}",
-        f"- **Total de incidentes de seguridad:** {prop.unsafe_outcomes_total} "
-        f"(Tasa: {_fmt_pct(prop.unsafe_outcomes_rate)})",
-    ])
+    md_lines.extend(
+        [
+            "",
+            "## 2. Paridad Lingüística (Español vs Portugués — REQ-18)",
+            "",
+            "| Idioma | Casos | Safe Auto Res | Containment | Recall | Fallas | Latencia p50 |",
+            "|---|---|---|---|---|---|---|",
+            (
+                f"| **Español (ES)** | {prop_es.total_cases} | {_fmt_pct(prop_es.safe_auto_resolution_rate)} | "
+                f"{_fmt_pct(prop_es.containment_rate)} | {_fmt_pct(prop_es.escalation_recall)} | "
+                f"{prop_es.unsafe_outcomes_total} | {prop_es.latency_p50_ms:.0f} ms |"
+            ),
+            (
+                f"| **Portugués (PT)** | {prop_pt.total_cases} | {_fmt_pct(prop_pt.safe_auto_resolution_rate)} | "
+                f"{_fmt_pct(prop_pt.containment_rate)} | {_fmt_pt_or_na(prop_pt.escalation_recall)} | "
+                f"{prop_pt.unsafe_outcomes_total} | {prop_pt.latency_p50_ms:.0f} ms |"
+            ),
+            "",
+            "> [!NOTE]",
+            "> Los casos en portugués fueron generados y revisados por el equipo (`origin: team_generated`) "
+            "debido a que el LATAM Bank Dataset crudo incluye únicamente registros en español.",
+            "",
+            "## 3. Desglose por Nivel de Dificultad",
+            "",
+            "| Nivel | Descripción | n | Safe Auto | Esc Precision | Esc Recall | Fallas |",
+            "|---|---|---|---|---|---|---|",
+            f"| **Nivel 1** | Normal (Auto) | {lvl_sums[1].total_cases} | "
+            f"{_fmt_pct(lvl_sums[1].safe_auto_resolution_rate)} | — | — | {lvl_sums[1].unsafe_outcomes_total} |",
+            f"| **Nivel 2** | Ambiguo (Clarificar) | {lvl_sums[2].total_cases} | — | — | — | "
+            f"{lvl_sums[2].unsafe_outcomes_total} |",
+            f"| **Nivel 3** | Humano (POL-6) | {lvl_sums[3].total_cases} | — | "
+            f"{_fmt_pct(lvl_sums[3].escalation_precision)} | {_fmt_pct(lvl_sums[3].escalation_recall)} | "
+            f"{lvl_sums[3].unsafe_outcomes_total} |",
+            f"| **Nivel 4** | Fuera de alcance / Adv | {lvl_sums[4].total_cases} | — | — | — | "
+            f"{lvl_sums[4].unsafe_outcomes_total} |",
+            f"| **Nivel 5** | Fallas sistema (Injected) | {lvl_sums[5].total_cases} | — | "
+            f"{_fmt_pct(lvl_sums[5].escalation_precision)} | {_fmt_pct(lvl_sums[5].escalation_recall)} | "
+            f"{lvl_sums[5].unsafe_outcomes_total} |",
+            "",
+            "## 4. Auditoría de Seguridad y Resultados Inseguros (MET-04)",
+            f"- **Divulgaciones no autorizadas detectadas (IDs ajenos):** {prop.foreign_references_count}",
+            f"- **Afirmaciones falsas / no verificadas por la API:** {prop.unverified_claims_count}",
+            f"- **Total de incidentes de seguridad:** {prop.unsafe_outcomes_total} "
+            f"(Tasa: {_fmt_pct(prop.unsafe_outcomes_rate)})",
+        ]
+    )
 
     report_md = "\n".join(md_lines)
     summary_data = {

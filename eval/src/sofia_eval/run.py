@@ -2,6 +2,7 @@
 
 import argparse
 import asyncio
+import json
 import logging
 import os
 import sys
@@ -103,15 +104,71 @@ async def run_evaluation(
     md_file, json_file = save_reports(md_report, summary, output_dir)
     logger.info("Reportes generados exitosamente en:\n  - %s\n  - %s", md_file, json_file)
 
+    # Exportar resultados individuales por caso (para DS y trazabilidad)
+    case_map = {c.case_id: c for c in cases}
+    results_path = Path(output_dir) / "results.json"
+    results_data = {
+        "proposed": [
+            {
+                "case_id": r.case_id,
+                "language": case_map[r.case_id].language if r.case_id in case_map else "es",
+                "level": case_map[r.case_id].level if r.case_id in case_map else 1,
+                "type": case_map[r.case_id].type if r.case_id in case_map else "normal",
+                "session_customer_id": case_map[r.case_id].session_customer_id if r.case_id in case_map else "",
+                "system_version": r.system_version,
+                "route_final": r.route_final,
+                "expected_route": case_map[r.case_id].expected_route if r.case_id in case_map else "",
+                "latency_ms": r.latency_ms,
+                "cost_usd": r.cost_usd or 0.0,
+                "tokens_in": r.tokens_in,
+                "tokens_out": r.tokens_out,
+                "llm_calls": r.llm_calls,
+                "unverified_claims": r.unverified_claims,
+                "foreign_references": r.foreign_references,
+                "errors": r.errors,
+            }
+            for r in proposed_results
+        ],
+        "baseline": [
+            {
+                "case_id": r.case_id,
+                "language": case_map[r.case_id].language if r.case_id in case_map else "es",
+                "level": case_map[r.case_id].level if r.case_id in case_map else 1,
+                "type": case_map[r.case_id].type if r.case_id in case_map else "normal",
+                "session_customer_id": case_map[r.case_id].session_customer_id if r.case_id in case_map else "",
+                "system_version": r.system_version,
+                "route_final": r.route_final,
+                "expected_route": case_map[r.case_id].expected_route if r.case_id in case_map else "",
+                "latency_ms": r.latency_ms,
+                "cost_usd": r.cost_usd or 0.0,
+                "tokens_in": r.tokens_in,
+                "tokens_out": r.tokens_out,
+                "llm_calls": r.llm_calls,
+                "unverified_claims": r.unverified_claims,
+                "foreign_references": r.foreign_references,
+                "errors": r.errors,
+            }
+            for r in baseline_results
+        ],
+    }
+    with results_path.open("w", encoding="utf-8") as f:
+        json.dump(results_data, f, indent=2, ensure_ascii=False)
+    logger.info("Resultados detallados por caso guardados en: %s", results_path)
+
+    # Integración con la capa estadística DS: resultados completos por caso (JSONL) y ds_stats.json con
+    # segmentos (REQ-18) y metadatos de la corrida. Si falla, la evaluación no se cae.
     out = Path(output_dir)
     for name, results in (("proposed", proposed_results), ("baseline", baseline_results)):
         if results:
             save_results(results, out / f"results_{name}.jsonl")
     if proposed_results:
-        segments = load_segments(Path(os.getenv("GOLD_DIR", "data/gold")))
-        stats = build_ds_stats(cases, proposed_results, baseline_results or None, segments=segments or None)
-        stats["meta"]["run"] = meta
-        logger.info("Estadística DS (IC, baseline vs propuesto): %s", save_ds_stats(stats, out))
+        try:
+            segments = load_segments(Path(os.getenv("GOLD_DIR", "data/gold")))
+            stats = build_ds_stats(cases, proposed_results, baseline_results or None, segments=segments or None)
+            stats["meta"]["run"] = meta
+            logger.info("Estadística DS (IC, baseline vs propuesto): %s", save_ds_stats(stats, out))
+        except Exception as exc:
+            logger.warning("No se pudo generar ds_stats.json: %s", exc)
 
     # Imprimir resumen en consola
     print("\n" + "=" * 70)
