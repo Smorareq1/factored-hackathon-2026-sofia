@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-04T03:04:09+00:00",
+  "generated_at": "2026-10-04T03:38:47+00:00",
   "dispute_transaction_link": {
     "product": {
       "disputas": 24491,
@@ -13,8 +13,9 @@
     }
   },
   "N_days": {
-    "value": null,
+    "value": 90,
     "current": 90,
+    "basis": "MX 90 días naturales (Condusef/LTOSF art. 23); Visa/MC 120 días",
     "proxy_lag_days": {
       "n": 21134,
       "p50_75_90_95": [
@@ -27,7 +28,7 @@
     "rationale": "No calibrable: el dataset no liga disputas con transacciones. Supuesto de política."
   },
   "U_usd": {
-    "value": null,
+    "value": 500,
     "current": 500,
     "approved_purchases": {
       "n": 973662,
@@ -54,8 +55,9 @@
     }
   },
   "fraud_score_threshold": {
-    "value": null,
-    "current": 0.8,
+    "value": 30,
+    "policy_value_unit_scale": 0.3,
+    "previous": 0.8,
     "scale": "0-100",
     "tradeoff": [
       {
@@ -94,7 +96,140 @@
         "rec": 0.196,
         "pct_marcada": 0.02
       }
-    ]
+    ],
+    "cost_curve": [
+      {
+        "th": 20,
+        "tp": "2729",
+        "fp": "1178427",
+        "fn": "696",
+        "prec": 0.002,
+        "rec": 0.797,
+        "costo_50_1": "1213227",
+        "costo_40_1": "1206267"
+      },
+      {
+        "th": 22,
+        "tp": "2656",
+        "fp": "943064",
+        "fn": "769",
+        "prec": 0.003,
+        "rec": 0.775,
+        "costo_50_1": "981514",
+        "costo_40_1": "973824"
+      },
+      {
+        "th": 24,
+        "tp": "2575",
+        "fp": "707724",
+        "fn": "850",
+        "prec": 0.004,
+        "rec": 0.752,
+        "costo_50_1": "750224",
+        "costo_40_1": "741724"
+      },
+      {
+        "th": 26,
+        "tp": "2513",
+        "fp": "472766",
+        "fn": "912",
+        "prec": 0.005,
+        "rec": 0.734,
+        "costo_50_1": "518366",
+        "costo_40_1": "509246"
+      },
+      {
+        "th": 28,
+        "tp": "2449",
+        "fp": "236823",
+        "fn": "976",
+        "prec": 0.01,
+        "rec": 0.715,
+        "costo_50_1": "285623",
+        "costo_40_1": "275863"
+      },
+      {
+        "th": 30,
+        "tp": "2373",
+        "fp": "609",
+        "fn": "1052",
+        "prec": 0.796,
+        "rec": 0.693,
+        "costo_50_1": "53209",
+        "costo_40_1": "42689"
+      },
+      {
+        "th": 32,
+        "tp": "2287",
+        "fp": "0",
+        "fn": "1138",
+        "prec": 1.0,
+        "rec": 0.668,
+        "costo_50_1": "56900",
+        "costo_40_1": "45520"
+      },
+      {
+        "th": 34,
+        "tp": "2232",
+        "fp": "0",
+        "fn": "1193",
+        "prec": 1.0,
+        "rec": 0.652,
+        "costo_50_1": "59650",
+        "costo_40_1": "47720"
+      },
+      {
+        "th": 36,
+        "tp": "2159",
+        "fp": "0",
+        "fn": "1266",
+        "prec": 1.0,
+        "rec": 0.63,
+        "costo_50_1": "63300",
+        "costo_40_1": "50640"
+      },
+      {
+        "th": 38,
+        "tp": "2084",
+        "fp": "0",
+        "fn": "1341",
+        "prec": 1.0,
+        "rec": 0.608,
+        "costo_50_1": "67050",
+        "costo_40_1": "53640"
+      },
+      {
+        "th": 40,
+        "tp": "2013",
+        "fp": "0",
+        "fn": "1412",
+        "prec": 1.0,
+        "rec": 0.588,
+        "costo_50_1": "70600",
+        "costo_40_1": "56480"
+      },
+      {
+        "th": 42,
+        "tp": "1941",
+        "fp": "0",
+        "fn": "1484",
+        "prec": 1.0,
+        "rec": 0.567,
+        "costo_50_1": "74200",
+        "costo_40_1": "59360"
+      },
+      {
+        "th": 44,
+        "tp": "1872",
+        "fp": "0",
+        "fn": "1553",
+        "prec": 1.0,
+        "rec": 0.547,
+        "costo_50_1": "77650",
+        "costo_40_1": "62120"
+      }
+    ],
+    "rationale": "mínimo costo esperado con c_FN/c_FP = 40–50"
   },
   "data_quality_notes": {
     "amount_usd": "vacío en filas USD; usar coalesce(amount_usd, amount si USD)"

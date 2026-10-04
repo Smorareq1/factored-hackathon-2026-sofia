@@ -41,7 +41,7 @@ from sofia_contracts.handoff import Handoff, HandoffDraft, HandoffFeedback, Hand
 
 DISPUTE_WINDOW_DAYS = 90  # N calibrado por DS (§8.3)
 AMOUNT_THRESHOLD_USD = Decimal("500")  # U calibrado por DS (§8.3)
-FRAUD_SCORE_THRESHOLD = 0.8
+FRAUD_SCORE_THRESHOLD = 0.30  # mismo valor que services/settings.py (escala 0–1; ver calibración DS)
 SESSION_TTL = timedelta(minutes=30)
 ELIGIBILITY_TTL = timedelta(minutes=15)
 USD_RATE = {"MXN": Decimal("18.5"), "COP": Decimal("4000"), "ARS": Decimal("1000"), "USD": Decimal("1")}

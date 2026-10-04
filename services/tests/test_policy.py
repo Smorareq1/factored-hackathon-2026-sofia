@@ -1,5 +1,7 @@
 """Tests exhaustivos del motor de política POL-1..POL-7 (REQ-10)."""
 
+import pytest
+
 from sofia_services.policy.engine import evaluate_dispute_policy
 from sofia_services.store import reset_store
 
@@ -66,7 +68,7 @@ def test_pol6_high_amount() -> None:
 
 
 def test_pol6_fraud_suspected() -> None:
-    """POL-6: Sospecha de fraude (score >= 0.8 o is_fraud=True)."""
+    """POL-6: Sospecha de fraude (score >= 0.30 o is_fraud=True)."""
     # TX-MX-0008 tiene fraud_score 0.91 y is_fraud=True
     result = evaluate_dispute_policy("C90000001", "TX-MX-0008")
     assert result.eligible
@@ -97,3 +99,25 @@ def test_pol5_low_amount_no_risk() -> None:
     assert result.eligibility_id is not None
     assert result.eligibility_id.startswith("ELG-")
     assert result.expires_at is not None
+
+
+def test_pol6_fraud_score_alone_routes_to_human() -> None:
+    """POL-6 por score, sin is_fraud: 0.30 escala, 0.20 (el máximo de la semilla) no."""
+    store = reset_store()
+    store.transactions["TX-MX-0001"].fraud_score = 0.35
+    result = evaluate_dispute_policy("C90000001", "TX-MX-0001", store=store)
+    assert result.route == "human"
+    assert "fraud_suspected" in result.risk_flags
+
+    store.transactions["TX-MX-0001"].fraud_score = 0.20
+    assert "fraud_suspected" not in evaluate_dispute_policy("C90000001", "TX-MX-0001", store=store).risk_flags
+
+
+def test_gold_fraud_score_is_converted_from_0_100_scale() -> None:
+    """gold siempre viene en 0–100: 30 → 0.30 (escala), 0.5 → 0.005 (no escala), sin score → 0.05."""
+    from sofia_services.store import gold_fraud_score
+
+    assert gold_fraud_score(30) == pytest.approx(0.30)
+    assert gold_fraud_score(0.5) == pytest.approx(0.005)
+    assert gold_fraud_score(99.99) == pytest.approx(0.9999)
+    assert gold_fraud_score(None) == 0.05
