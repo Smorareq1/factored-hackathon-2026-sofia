@@ -2,6 +2,7 @@
 
 import argparse
 import asyncio
+import json
 import logging
 import sys
 from pathlib import Path
@@ -65,6 +66,71 @@ async def run_evaluation(
 
     md_file, json_file = save_reports(md_report, summary, output_dir)
     logger.info("Reportes generados exitosamente en:\n  - %s\n  - %s", md_file, json_file)
+
+    # Exportar resultados individuales por caso (para DS y trazabilidad)
+    case_map = {c.case_id: c for c in cases}
+    results_path = Path(output_dir) / "results.json"
+    results_data = {
+        "proposed": [
+            {
+                "case_id": r.case_id,
+                "language": case_map[r.case_id].language if r.case_id in case_map else "es",
+                "level": case_map[r.case_id].level if r.case_id in case_map else 1,
+                "type": case_map[r.case_id].type if r.case_id in case_map else "normal",
+                "session_customer_id": case_map[r.case_id].session_customer_id if r.case_id in case_map else "",
+                "system_version": r.system_version,
+                "route_final": r.route_final,
+                "expected_route": case_map[r.case_id].expected_route if r.case_id in case_map else "",
+                "latency_ms": r.latency_ms,
+                "cost_usd": r.cost_usd or 0.0,
+                "tokens_in": r.tokens_in,
+                "tokens_out": r.tokens_out,
+                "llm_calls": r.llm_calls,
+                "unverified_claims": r.unverified_claims,
+                "foreign_references": r.foreign_references,
+                "errors": r.errors,
+            }
+            for r in proposed_results
+        ],
+        "baseline": [
+            {
+                "case_id": r.case_id,
+                "language": case_map[r.case_id].language if r.case_id in case_map else "es",
+                "level": case_map[r.case_id].level if r.case_id in case_map else 1,
+                "type": case_map[r.case_id].type if r.case_id in case_map else "normal",
+                "session_customer_id": case_map[r.case_id].session_customer_id if r.case_id in case_map else "",
+                "system_version": r.system_version,
+                "route_final": r.route_final,
+                "expected_route": case_map[r.case_id].expected_route if r.case_id in case_map else "",
+                "latency_ms": r.latency_ms,
+                "cost_usd": r.cost_usd or 0.0,
+                "tokens_in": r.tokens_in,
+                "tokens_out": r.tokens_out,
+                "llm_calls": r.llm_calls,
+                "unverified_claims": r.unverified_claims,
+                "foreign_references": r.foreign_references,
+                "errors": r.errors,
+            }
+            for r in baseline_results
+        ],
+    }
+    with results_path.open("w", encoding="utf-8") as f:
+        json.dump(results_data, f, indent=2, ensure_ascii=False)
+    logger.info("Resultados detallados por caso guardados en: %s", results_path)
+
+    # Integración con capa estadística DS (ds_stats.json)
+    try:
+        from sofia_eval.ds_stats import build_ds_stats, save_ds_stats
+
+        stats = build_ds_stats(
+            cases,
+            proposed_results,
+            baseline_results if baseline_results else None,
+        )
+        ds_stats_file = save_ds_stats(stats, output_dir)
+        logger.info("Estadísticas DS (ds_stats.json) guardadas en: %s", ds_stats_file)
+    except Exception as exc:
+        logger.warning("No se pudo generar ds_stats.json: %s", exc)
 
     # Imprimir resumen en consola
     print("\n" + "=" * 70)
