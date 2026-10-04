@@ -28,9 +28,9 @@
   },
   "groups": 109,
   "flags": {
-    "modelo": 91,
-    "reglas": 14,
-    "adjudicar": 8
+    "model": 91,
+    "rules": 14,
+    "adjudicate": 8
   },
   "model_confusions_cv": {
     "transaction_inquiry->dispute_new": 14,
@@ -86,11 +86,11 @@
       "transaction_inquiry",
       11
     ],
-    "mis": [
+    "movimientos": [
       "transaction_inquiry",
       5
     ],
-    "movimientos": [
+    "mis": [
       "transaction_inquiry",
       5
     ]

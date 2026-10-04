@@ -1,148 +1,147 @@
 # Slides 4–6 (DS) · DEL-03
 
-Deck de 4–6 slides (DEL-03: problema, solución, arquitectura, resultados, limitaciones). DS es dueño de las slides
-4–6; las 1–3 (problema, workflow elegido, demo) las arma el equipo. Cada slide: título, máximo 5 bullets, **un solo
-gráfico** (con el JSON del que sale) y notas del orador.
+A 4–6 slide deck (DEL-03: problem, solution, architecture, results, limitations). DS owns slides 4–6; slides 1–3
+(problem, chosen workflow, demo) are built by the team. Each slide: title, at most 5 bullets, **a single chart** (with
+the JSON it comes from) and speaker notes. The slides are in English; the demo itself speaks Spanish and Portuguese.
 
-> **Regla de cifras:** ninguna cifra se escribe a mano. Cada número es un placeholder `{{archivo:clave}}` que se
-> reemplaza con el valor del JSON versionado justo antes de exportar el deck. Si un JSON no tiene la clave, el bullet
-> se reescribe sin la cifra; nunca se estima. Lo simulado y lo proyectado se etiqueta como tal (CON-07).
-
----
-
-## Slide 4 · Los datos eligieron el workflow
-
-**Título:** *Las disputas de transacciones: volumen alto, SLA roto y una acción segura*
-
-- Las interacciones **Transaccionales** son `{{results/workflow_justification.json:reason_categories[Transaccional].pct}}`%
-  del call center, con escalación de `{{results/workflow_justification.json:reason_categories[Transaccional].p_escalado}}`.
-- "Cargo no reconocido" + "Cobro indebido" = `{{results/workflow_justification.json:dispute_share_pct}}`% de las quejas;
-  SLA incumplido en `{{results/workflow_justification.json:complaint_subcategories[Cargo no reconocido].p_sla_roto}}`.
-- `complaints` no trae `transaction_id`: el vínculo producto + ventana de fechas cubre
-  `{{results/workflow_justification.json:link_coverage_pct}}`% de las disputas (riesgo §14, medido, no supuesto).
-- Política calibrada con datos, no por intuición: ventana **N = `{{results/policy_calibration.json:N_days.value}}` días**,
-  umbral **U = `{{results/policy_calibration.json:U_usd.value}}` USD** (`{{results/policy_calibration.json:U_usd.pct_auto}}`%
-  de disputas quedan en ruta auto), fraude ≥ `{{results/policy_calibration.json:fraud_score_threshold.value}}`.
-- Acción segura: **registrar** la disputa; nunca se mueve dinero (CON-05).
-
-**Gráfico único:** barras horizontales "Interacciones por categoría de contacto" con la tasa de escalación como
-etiqueta, resaltando Transaccional. Fuente: `analysis/results/workflow_justification.json` → `reason_categories`
-(figura en `analysis/figures/`). Como inserto pequeño opcional: CDF de `claimed_amount` en USD con la línea de U,
-de `analysis/results/policy_calibration.json` (solo si cabe sin recargar; si no, va al README).
-
-**Notas del orador (~35 s):**
-No elegimos el workflow por gusto: lo elegimos porque es donde el dataset tiene más evidencia conectable.
-Transacciones, quejas e interacciones se unen por llaves, así que podemos medir volumen, SLA roto y escalación
-del mismo fenómeno. Teníamos un criterio de salida escrito antes del EDA: si las disputas resultaban marginales,
-cambiábamos a soporte de tarjetas. No se activó: `{{results/workflow_justification.json:decision}}`.
-N y U no son números redondos elegidos a ojo: N es el percentil que cubre la mayoría de las disputas legítimas y U
-deja en automático solo la parte de bajo monto donde un error es barato. La justificación completa está en el
-notebook 02: `{{results/policy_calibration.json:U_usd.rationale}}`.
+> **Figures rule:** no figure is typed by hand. Each number is a `{{file:key}}` placeholder replaced with the value from
+> the versioned JSON right before exporting the deck. If a JSON lacks the key, the bullet is rewritten without the
+> figure; it is never estimated. Simulated and projected results are labeled as such (CON-07). Exception: the router
+> figures (slide 5) are copied from the generated `ml/reports/router_eval.md`.
 
 ---
 
-## Slide 5 · Arquitectura: el LLM entiende y redacta; la política decide
+## Slide 4 · The data chose the workflow
 
-**Título:** *7 capas: la seguridad vive fuera del prompt*
+**Title:** *Transaction disputes: high volume, broken SLAs and a safe action*
 
-- **PURPOSE → SENSE → INTERPRET → DECIDE → ORCHESTRATE (act · verify · escalate) → GOVERN → LEARN**, como grafo
-  LangGraph explícito; cada capa deja un evento auditable (caja de cristal, REQ-19).
-- **Auditamos los labels antes de entrenar:** `call_transcripts` son `{{results/label_audit.json:transcript_templates[0].plantillas}}`
-  plantillas de consulta de saldo repartidas por igual entre las categorías, y `detected_intents` es siempre
-  `consulta_general` → el dataset **no tiene labels de intención válidos**. *Propuesta (pendiente de aprobación):*
-  entrenar el router con un corpus ES/PT generado por el equipo (`team_generated`), con split por grupo.
-- **Router aprendido vs reglas** en el mismo test held-out (split por familia de paráfrasis, sin textos repetidos):
-  macro-F1 `{{ml/reports/router_eval.json:systems.rules-ds-0.1.macro_f1}}` → `{{ml/reports/router_eval.json:systems.tfidf-lr-0.1.macro_f1}}`;
-  recall de `needs_human` `{{ml/reports/router_eval.json:systems.rules-ds-0.1.needs_human_recall}}` →
-  `{{ml/reports/router_eval.json:systems.tfidf-lr-0.1.needs_human_recall}}` (n = `{{ml/reports/router_eval.json:split.n_test}}`).
-- **Política POL-1..7 en la API (FastAPI)**, no en el prompt: permisos por `customer_id` del token, elegibilidad
-  determinística, confirmación explícita antes de actuar y relectura para verificar (REQ-09/10).
-- Gemini solo extrae slots y redacta (si falla, reglas y plantillas, REQ-16); todo trazado en **Langfuse**: 1 traza
-  por conversación, 1 span por capa y por tool call → latencia y costo reales.
+- **Transactional** interactions are `{{results/workflow_justification.json:reason_categories[Transaccional].pct}}`%
+  of the call center, with an escalation rate of `{{results/workflow_justification.json:reason_categories[Transaccional].p_escalado}}`.
+- "Unrecognized charge" + "improper charge" = `{{results/workflow_justification.json:dispute_share_pct}}`% of complaints;
+  SLA breached in `{{results/workflow_justification.json:complaint_subcategories[Cargo no reconocido].p_sla_roto}}`.
+- We measured the §14 risk instead of assuming it away: complaints **do not link** to their transactions in this dataset
+  (the affected product never belongs to the complainant), so a dispute is anchored to the transaction the customer
+  identifies in the conversation and the API verifies as theirs (POL-1).
+- Policy with stated grounds: window **N = `{{results/policy_calibration.json:N_days.value}}` days** (Mexico's legal
+  window for unrecognized charges), threshold **U = `{{results/policy_calibration.json:U_usd.value}}` USD**, fraud score
+  ≥ `{{results/policy_calibration.json:fraud_score_threshold.value}}` (minimum expected cost).
+- Safe action: **register** the dispute; money never moves (CON-05).
 
-**Gráfico único:** diagrama de las 7 capas (izquierda) contra la capa determinística de la API (derecha), con una
-línea punteada roja "frontera de confianza" entre ambas. Al pie, mini-tabla de 2 filas del router (reglas vs
-aprendido: macro-F1, recall `needs_human`, n). Fuente del diagrama: §8.4 del brief + `agent/README.md`; fuente de la
-mini-tabla: `ml/reports/router_eval.json` → `systems`.
+**Single chart:** horizontal bars "Interactions by contact category" with the escalation rate as a label, highlighting
+Transactional. Source: `analysis/results/workflow_justification.json` → `reason_categories` (figure in
+`analysis/figures/`). Optional small inset: the fraud-threshold cost curve with the minimum at 30, from
+`analysis/results/policy_calibration.json` → `fraud_score_threshold.cost_curve` (only if it fits; otherwise it goes in the README).
 
-**Notas del orador (~40 s):**
-La decisión de arquitectura más importante es dónde NO está el LLM. Gemini entiende lo que el cliente dice y
-redacta la respuesta; nunca decide quién puede ver qué, ni si una disputa es elegible. Eso lo decide la API con
-el token de la sesión y las reglas POL-1 a POL-7. Por eso un prompt malicioso no puede saltarse la política: no hay
-nada que convencer, la regla no está en el texto. El componente aprendido es el router de intención, y antes de
-entrenarlo auditamos los labels: los transcripts del dataset son plantillas de consulta de saldo repartidas por
-igual entre categorías, y la intención detectada es siempre la misma. Entrenar con eso habría dado un número alto y
-vacío. Por eso proponemos entrenar con un corpus ES/PT generado por el equipo, etiquetado como tal, y usar la
-auditoría como evidencia (REQ-13); esa decisión está pendiente de aprobación del equipo. Lo comparamos contra el
-baseline de palabras clave en el mismo test, separado por grupo para que no haya leakage. La métrica que más nos importa es el recall de `needs_human`: dejar pasar un caso que debía ir a un humano
-es el error más caro. Por debajo del umbral de confianza `{{ml/reports/router_eval.json:confidence_threshold}}`,
-Sofía no adivina: pregunta.
+**Speaker notes (~35 s):**
+We did not pick the workflow by taste: we picked it because it is where the dataset has the most connected evidence.
+Transactions, complaints and interactions join by keys, so we can measure volume, broken SLAs and escalation of the
+same phenomenon. We had an exit criterion written before the EDA: if disputes turned out marginal, we would switch to
+card support. It did not fire: `{{results/workflow_justification.json:decision}}`.
+We also checked what the data cannot do: complaints do not point to their transactions, so the dispute window could
+not be fitted from data. We took it from regulation instead: Mexico gives 90 days to object to an unrecognized charge,
+inside the card networks' 120-day chargeback window. The fraud threshold is the point of lowest expected cost: a missed
+fraud costs far more than one extra human review.
 
 ---
 
-## Slide 6 · Resultados: baseline vs Sofía, por idioma
+## Slide 5 · Architecture: the LLM understands and writes; the policy decides
 
-**Título:** *Medido, no prometido: MET-01..06 en el set held-out*
+**Title:** *7 layers: safety lives outside the prompt*
 
-- Mismo set y misma carga para los dos sistemas: n = `{{eval/outputs/ds_stats.json:desglose.idioma.es.n}}` casos ES y
-  `{{eval/outputs/ds_stats.json:desglose.idioma.pt.n}}` PT, `{{PENDIENTE:corridas repetidas por sistema}}` corridas repetidas; IC 95 %
+- **PURPOSE → SENSE → INTERPRET → DECIDE → ORCHESTRATE (act · verify · escalate) → GOVERN → LEARN**, as an explicit
+  LangGraph graph; each layer leaves an auditable event (glass box, REQ-19).
+- **We audited the labels before training:** `call_transcripts` are `{{results/label_audit.json:transcript_templates[0].plantillas}}`
+  balance-inquiry templates spread evenly across categories, and `detected_intents` is always `consulta_general` → the
+  dataset **has no valid intent labels**. The router is trained on a team-generated ES/PT corpus (`team_generated`),
+  with a group split.
+- **Served router = rules first, learned model for the rest**, on the same held-out test (split by paraphrase family,
+  no repeated texts, n = 56): macro-F1 0.377 (rules) → 0.641 (model) → **0.728 (hybrid)**; `needs_human` recall
+  0.0 → 0.7.
+- **Policy POL-1..7 in the API (FastAPI)**, not in the prompt: permissions by the token's `customer_id`, deterministic
+  eligibility, explicit confirmation before acting and a re-read to verify (REQ-09/10).
+- Gemini only extracts slots and writes (if it fails, rules and templates, REQ-16); everything traced in **Langfuse**:
+  1 trace per conversation, 1 span per layer and per tool call → real latency and cost.
+
+**Single chart:** diagram of the 7 layers (left) against the API's deterministic layer (right), with a dashed red
+"trust boundary" line between them. Below, a 3-row router mini-table (rules vs model vs hybrid: macro-F1, `needs_human`
+recall, n). Diagram source: brief §8.4 + `agent/README.md`; mini-table source: `ml/reports/router_eval.md`.
+
+**Speaker notes (~40 s):**
+The most important architecture decision is where the LLM is NOT. Gemini understands what the customer says and writes
+the reply; it never decides who can see what, or whether a dispute is eligible. The API decides that, with the session
+token and rules POL-1 to POL-7. That is why a malicious prompt cannot get around the policy: there is nothing to
+persuade, the rule is not in the text. The learned component is the intent router, and before training it we audited
+the labels: the dataset's transcripts are balance-inquiry templates spread evenly across categories, and the detected
+intent is always the same. Training on that would have produced a high, empty number. So we trained on a team-generated
+ES/PT corpus, labeled as such, and used the audit as evidence (REQ-13). The served router uses the keyword rules when
+they match and the model for everything else: it beats both on the same test, split by group so there is no leakage.
+The metric we care about most is `needs_human` recall: letting through a case that should go to a human is the most
+expensive error. Below a confidence of `{{ml/reports/router_eval.json:confidence_threshold}}`, Sofía does not guess:
+she asks.
+
+---
+
+## Slide 6 · Results: baseline vs Sofía, by language
+
+**Title:** *Measured, not promised: MET-01..06 on the held-out set*
+
+- Same set and same load for both systems: n = `{{eval/outputs/ds_stats.json:desglose.idioma.es.n}}` ES cases and
+  `{{eval/outputs/ds_stats.json:desglose.idioma.pt.n}}` PT, `{{PENDIENTE:repeated runs per system}}` repeated runs; 95% CI
   (`{{eval/outputs/ds_stats.json:meta.metodos}}`).
-- **Resolución automatizada segura (MET-01):** `{{eval/outputs/ds_stats.json:baseline.metricas.met01_safe_auto_resolution}}` →
+- **Safe automated resolution (MET-01):** `{{eval/outputs/ds_stats.json:baseline.metricas.met01_safe_auto_resolution}}` →
   `{{eval/outputs/ds_stats.json:proposed.metricas.met01_safe_auto_resolution}}`; **unsafe outcomes (MET-04):**
   `{{eval/outputs/ds_stats.json:baseline.metricas.met04_unsafe_outcomes.k}}` → `{{eval/outputs/ds_stats.json:proposed.metricas.met04_unsafe_outcomes.k}}`
-  de `{{eval/outputs/ds_stats.json:proposed.n}}` casos.
-- **Escalación (MET-03):** recall `{{eval/outputs/ds_stats.json:proposed.metricas.met03_escalation_recall}}`, precisión
-  `{{eval/outputs/ds_stats.json:proposed.metricas.met03_escalation_precision}}`, campos de handoff completos
+  out of `{{eval/outputs/ds_stats.json:proposed.n}}` cases.
+- **Escalation (MET-03):** recall `{{eval/outputs/ds_stats.json:proposed.metricas.met03_escalation_recall}}`, precision
+  `{{eval/outputs/ds_stats.json:proposed.metricas.met03_escalation_precision}}`, complete handoff fields
   `{{eval/outputs/ds_stats.json:proposed.metricas.met03_handoff_completeness}}`.
-- **Costo y latencia (MET-05/06):** p95 `{{eval/outputs/ds_stats.json:proposed.metricas.met05_latency_p95_ms.value}}` ms;
-  `{{eval/outputs/ds_stats.json:proposed.metricas.met06_cost_per_safe_resolution_usd}}` USD por resolución exitosa
-  (precio público de Gemini, supuestos en el README).
-- **Límites honestos:** PT es traducido por el equipo (no hay PT en el dataset); 0 unsafe en n casos ≠ riesgo cero
-  (cota superior 95 % ≈ `{{eval/outputs/ds_stats.json:proposed.metricas.met04_unsafe_outcomes.rule_of_three_upper}}`); resultados offline, no producción (CON-07).
+- **Cost and latency (MET-05/06):** p95 `{{eval/outputs/ds_stats.json:proposed.metricas.met05_latency_p95_ms.value}}` ms;
+  `{{eval/outputs/ds_stats.json:proposed.metricas.met06_cost_per_safe_resolution_usd}}` USD per successful resolution
+  (Gemini public price, assumptions in the README).
+- **Honest limits:** PT is team-generated (the dataset has no PT); 0 unsafe in n cases ≠ zero risk
+  (95% upper bound ≈ `{{eval/outputs/ds_stats.json:proposed.metricas.met04_unsafe_outcomes.rule_of_three_upper}}`); offline results, not production (CON-07).
 
-**Tabla de respaldo (va en el reporte DEL-06; en la slide solo si cabe).** Convención: cada placeholder de
-`ds_stats.json` en esta tabla apunta a un objeto de métrica y se muestra como `rate` o `value` [IC95 bajo–alto], n.
+**Backup table (goes in the DEL-06 report; on the slide only if it fits).** Convention: every `ds_stats.json`
+placeholder in this table points to a metric object and is shown as `rate` or `value` [95% CI low–high], n.
 
-| Métrica | Baseline ES | Sofía ES | Baseline PT | Sofía PT |
+| Metric | Baseline ES | Sofía ES | Baseline PT | Sofía PT |
 |---|---|---|---|---|
-| MET-01 resolución auto segura | `{{eval/outputs/ds_stats.json:desglose.idioma.es.baseline.metricas.met01_safe_auto_resolution}}` | `{{eval/outputs/ds_stats.json:desglose.idioma.es.proposed.metricas.met01_safe_auto_resolution}}` | `{{eval/outputs/ds_stats.json:desglose.idioma.pt.baseline.metricas.met01_safe_auto_resolution}}` | `{{eval/outputs/ds_stats.json:desglose.idioma.pt.proposed.metricas.met01_safe_auto_resolution}}` |
+| MET-01 safe auto resolution | `{{eval/outputs/ds_stats.json:desglose.idioma.es.baseline.metricas.met01_safe_auto_resolution}}` | `{{eval/outputs/ds_stats.json:desglose.idioma.es.proposed.metricas.met01_safe_auto_resolution}}` | `{{eval/outputs/ds_stats.json:desglose.idioma.pt.baseline.metricas.met01_safe_auto_resolution}}` | `{{eval/outputs/ds_stats.json:desglose.idioma.pt.proposed.metricas.met01_safe_auto_resolution}}` |
 | MET-02 containment | `{{eval/outputs/ds_stats.json:desglose.idioma.es.baseline.metricas.met02_containment}}` | `{{eval/outputs/ds_stats.json:desglose.idioma.es.proposed.metricas.met02_containment}}` | `{{eval/outputs/ds_stats.json:desglose.idioma.pt.baseline.metricas.met02_containment}}` | `{{eval/outputs/ds_stats.json:desglose.idioma.pt.proposed.metricas.met02_containment}}` |
-| MET-03 recall escalación | `{{eval/outputs/ds_stats.json:desglose.idioma.es.baseline.metricas.met03_escalation_recall}}` | `{{eval/outputs/ds_stats.json:desglose.idioma.es.proposed.metricas.met03_escalation_recall}}` | `{{eval/outputs/ds_stats.json:desglose.idioma.pt.baseline.metricas.met03_escalation_recall}}` | `{{eval/outputs/ds_stats.json:desglose.idioma.pt.proposed.metricas.met03_escalation_recall}}` |
-| MET-04 unsafe (conteo / n) | `{{eval/outputs/ds_stats.json:desglose.idioma.es.baseline.metricas.met04_unsafe_outcomes}}` | `{{eval/outputs/ds_stats.json:desglose.idioma.es.proposed.metricas.met04_unsafe_outcomes}}` | `{{eval/outputs/ds_stats.json:desglose.idioma.pt.baseline.metricas.met04_unsafe_outcomes}}` | `{{eval/outputs/ds_stats.json:desglose.idioma.pt.proposed.metricas.met04_unsafe_outcomes}}` |
-| MET-05 latencia p50 / p95 (ms) | `{{eval/outputs/ds_stats.json:desglose.idioma.es.baseline.metricas.met05_latency_p50_ms}}` / `{{eval/outputs/ds_stats.json:desglose.idioma.es.baseline.metricas.met05_latency_p95_ms}}` | `{{eval/outputs/ds_stats.json:desglose.idioma.es.proposed.metricas.met05_latency_p50_ms}}` / `{{eval/outputs/ds_stats.json:desglose.idioma.es.proposed.metricas.met05_latency_p95_ms}}` | `{{eval/outputs/ds_stats.json:desglose.idioma.pt.baseline.metricas.met05_latency_p50_ms}}` / `{{eval/outputs/ds_stats.json:desglose.idioma.pt.baseline.metricas.met05_latency_p95_ms}}` | `{{eval/outputs/ds_stats.json:desglose.idioma.pt.proposed.metricas.met05_latency_p50_ms}}` / `{{eval/outputs/ds_stats.json:desglose.idioma.pt.proposed.metricas.met05_latency_p95_ms}}` |
-| MET-06 USD / caso intentado | `{{eval/outputs/ds_stats.json:desglose.idioma.es.baseline.metricas.met06_cost_per_case_usd}}` | `{{eval/outputs/ds_stats.json:desglose.idioma.es.proposed.metricas.met06_cost_per_case_usd}}` | `{{eval/outputs/ds_stats.json:desglose.idioma.pt.baseline.metricas.met06_cost_per_case_usd}}` | `{{eval/outputs/ds_stats.json:desglose.idioma.pt.proposed.metricas.met06_cost_per_case_usd}}` |
+| MET-03 escalation recall | `{{eval/outputs/ds_stats.json:desglose.idioma.es.baseline.metricas.met03_escalation_recall}}` | `{{eval/outputs/ds_stats.json:desglose.idioma.es.proposed.metricas.met03_escalation_recall}}` | `{{eval/outputs/ds_stats.json:desglose.idioma.pt.baseline.metricas.met03_escalation_recall}}` | `{{eval/outputs/ds_stats.json:desglose.idioma.pt.proposed.metricas.met03_escalation_recall}}` |
+| MET-04 unsafe (count / n) | `{{eval/outputs/ds_stats.json:desglose.idioma.es.baseline.metricas.met04_unsafe_outcomes}}` | `{{eval/outputs/ds_stats.json:desglose.idioma.es.proposed.metricas.met04_unsafe_outcomes}}` | `{{eval/outputs/ds_stats.json:desglose.idioma.pt.baseline.metricas.met04_unsafe_outcomes}}` | `{{eval/outputs/ds_stats.json:desglose.idioma.pt.proposed.metricas.met04_unsafe_outcomes}}` |
+| MET-05 latency p50 / p95 (ms) | `{{eval/outputs/ds_stats.json:desglose.idioma.es.baseline.metricas.met05_latency_p50_ms}}` / `{{eval/outputs/ds_stats.json:desglose.idioma.es.baseline.metricas.met05_latency_p95_ms}}` | `{{eval/outputs/ds_stats.json:desglose.idioma.es.proposed.metricas.met05_latency_p50_ms}}` / `{{eval/outputs/ds_stats.json:desglose.idioma.es.proposed.metricas.met05_latency_p95_ms}}` | `{{eval/outputs/ds_stats.json:desglose.idioma.pt.baseline.metricas.met05_latency_p50_ms}}` / `{{eval/outputs/ds_stats.json:desglose.idioma.pt.baseline.metricas.met05_latency_p95_ms}}` | `{{eval/outputs/ds_stats.json:desglose.idioma.pt.proposed.metricas.met05_latency_p50_ms}}` / `{{eval/outputs/ds_stats.json:desglose.idioma.pt.proposed.metricas.met05_latency_p95_ms}}` |
+| MET-06 USD / attempted case | `{{eval/outputs/ds_stats.json:desglose.idioma.es.baseline.metricas.met06_cost_per_case_usd}}` | `{{eval/outputs/ds_stats.json:desglose.idioma.es.proposed.metricas.met06_cost_per_case_usd}}` | `{{eval/outputs/ds_stats.json:desglose.idioma.pt.baseline.metricas.met06_cost_per_case_usd}}` | `{{eval/outputs/ds_stats.json:desglose.idioma.pt.proposed.metricas.met06_cost_per_case_usd}}` |
 
-**Gráfico único:** dot plot con barras de error (IC 95 %): una fila por métrica (MET-01..04), dos puntos por idioma
-(baseline gris, Sofía color), ES y PT en paneles lado a lado. Latencia y costo van como texto en los bullets, no en
-el gráfico (otra escala). Fuente: `eval/outputs/ds_stats.json` (agregado por DS a partir de `eval/outputs/summary.json`
-del harness de SIM). Fairness por segmento (REQ-18): `analysis/results/fairness.json`, solo en el reporte.
+**Single chart:** dot plot with error bars (95% CI): one row per metric (MET-01..04), two dots per language
+(baseline grey, Sofía in color), ES and PT in side-by-side panels. Latency and cost go as text in the bullets, not in
+the chart (different scale). Source: `eval/outputs/ds_stats.json` (aggregated by DS from SIM's harness output).
+Fairness by segment (REQ-18): `analysis/results/fairness.json`, report only.
 
-**Notas del orador (~40 s):**
-Todo lo que mostramos es offline, sobre el set held-out, con el mismo set para el baseline y para Sofía. El baseline
-es un LLM con las mismas tools pero sin capas: sin router, sin política propia y sin verificación. Reportamos por
-idioma porque es un requisito, y porque el portugués es nuestra mayor debilidad: el dataset no trae portugués,
-así que los casos PT los tradujimos y revisamos nosotros. Fíjense en los intervalos, no solo en los puntos: con
-`{{eval/outputs/ds_stats.json:proposed.n}}` casos, cero resultados inseguros no significa riesgo cero; significa
-que el riesgo está por debajo de `{{eval/outputs/ds_stats.json:proposed.metricas.met04_unsafe_outcomes.rule_of_three_upper}}` con 95 % de confianza.
-Y containment no es resolución: contamos aparte los casos que Sofía resolvió bien sin humano.
+**Speaker notes (~40 s):**
+Everything we show is offline, on the held-out set, with the same set for the baseline and for Sofía. The baseline is
+an LLM with the same tools but no layers: no router, no policy of its own and no verification. We report by language
+because it is a requirement, and because Portuguese is our biggest weakness: the dataset has no Portuguese, so we wrote
+the PT cases ourselves. Look at the intervals, not just the dots: with `{{eval/outputs/ds_stats.json:proposed.n}}`
+cases, zero unsafe outcomes does not mean zero risk; it means the risk is below
+`{{eval/outputs/ds_stats.json:proposed.metricas.met04_unsafe_outcomes.rule_of_three_upper}}` with 95% confidence.
+And containment is not resolution: we count separately the cases Sofía resolved correctly without a human.
 
 ---
 
-## Claves de placeholders que este archivo espera
+## Placeholder keys this file expects
 
-Para la sesión que escribe los JSON. Notación: `a.b` = clave anidada; `lista[X]` = el elemento de la lista cuyo
-primer campo vale `X` (p. ej. `reason_category = "Transaccional"`); `lista[0]` = el primer elemento.
+For whoever writes the JSONs. Notation: `a.b` = nested key; `list[X]` = the list element whose first field equals `X`
+(e.g. `reason_category = "Transaccional"`); `list[0]` = the first element.
 
-| Archivo | Claves | Estado |
+| File | Keys | Status |
 |---|---|---|
-| `analysis/results/workflow_justification.json` | `reason_categories[...]` (`pct`, `p_escalado`), `complaint_subcategories[...]` (`p_sla_roto`), `decision` | existen en el notebook 01 |
-| `analysis/results/workflow_justification.json` | `dispute_share_pct`, `link_coverage_pct` | **por agregar** (notebook 01 §3–§4) |
-| `analysis/results/policy_calibration.json` | `N_days.value`, `N_days.rationale`, `U_usd.value`, `U_usd.rationale`, `fraud_score_threshold.value` | definidas en el notebook 02, **bloqueado** (sin JSON aún) |
-| `analysis/results/policy_calibration.json` | `U_usd.pct_auto` | **por agregar** (notebook 02 bloqueado) |
-| `analysis/results/label_audit.json` | `transcript_templates[0].{filas,plantillas}` | existe |
-| `ml/reports/router_eval.json` | `systems.{rules-ds-0.1,tfidf-lr-0.1}.{macro_f1,needs_human_recall}`, `split.n_test`, `confidence_threshold` | `systems` y `split` los escribe `ml/src/sofia_ml/evaluate.py`; `confidence_threshold` **por agregar** |
-| `eval/outputs/ds_stats.json` | `proposed.n`, `desglose.idioma.{es,pt}.n`, `meta.metodos`; objetos de métrica `{baseline,proposed}.metricas.<met>` y `desglose.idioma.{es,pt}.{baseline,proposed}.metricas.<met>` (se muestran como `rate` o `value` [IC95 bajo–alto], n); campos sueltos `.k`, `.value`, `.rule_of_three_upper` (solo existe si k = 0) | esquema de `eval/src/sofia_eval/ds_stats.py` (`build_ds_stats`) |
-| Solo en `docs/defense-notes.md` | `router_eval.json`: `systems.tfidf-lr-0.1.by_language.pt.macro_f1`; `judge_validation.json`: `evaluators[0].agreement`; `ds_stats.json`: `proposed.metricas.met04_unsafe_outcomes.ci[1]`; `fairness.json`: `summary` | `fairness` **bloqueado** |
-| `eval/outputs/ds_stats.json` | `proposed.metricas.met06_cost_per_safe_resolution_usd` | **W1 debe agregarla** (existe como `cost_per_safe_resolution_usd` en `MetricSummary`) |
-| `agent/evals/reference.rules.json` · `agent/src/sofia_agent/config.py` | `context."Modelo (cadena)"`; `GEMINI_PRICE_INPUT_PER_MTOK`, `GEMINI_PRICE_OUTPUT_PER_MTOK` | existen (gate de AG: set de desarrollo, 30 casos, no held-out) |
-| Ningún JSON todavía | `{{PENDIENTE:…}}`: corridas repetidas, revisión PT (`n_reviewed`, `n_total`, `n_corrected`) | **pendiente**: sin fuente; no se estima |
+| `analysis/results/workflow_justification.json` | `reason_categories[...]` (`pct`, `p_escalado`), `complaint_subcategories[...]` (`p_sla_roto`), `decision` | exist in notebook 01 |
+| `analysis/results/workflow_justification.json` | `dispute_share_pct` | **to add** (notebook 01 §3) |
+| `analysis/results/policy_calibration.json` | `N_days.value`, `U_usd.value`, `fraud_score_threshold.value`, `fraud_score_threshold.cost_curve` | exist (notebook 02) |
+| `analysis/results/label_audit.json` | `transcript_templates[0].{filas,plantillas}` | exist |
+| `ml/reports/router_eval.json` | `split.n_test`, `confidence_threshold`, `served_version`; per-system figures are copied from `router_eval.md` | exist (`ml/src/sofia_ml/train.py`) |
+| `eval/outputs/ds_stats.json` | `proposed.n`, `desglose.idioma.{es,pt}.n`, `meta.metodos`; metric objects `{baseline,proposed}.metricas.<met>` and `desglose.idioma.{es,pt}.{baseline,proposed}.metricas.<met>` (shown as `rate` or `value` [95% CI low–high], n); single fields `.k`, `.value`, `.rule_of_three_upper` (only present when k = 0) | schema of `eval/src/sofia_eval/ds_stats.py` (`build_ds_stats`) |
+| Only in `docs/defense-notes.md` | `judge_validation.json`: `evaluators[0].agreement`; `ds_stats.json`: `proposed.metricas.met04_unsafe_outcomes.ci[1]`; `fairness.json`: `summary` | `fairness` **blocked** until the evaluation run |
+| `agent/evals/reference.rules.json` · `agent/src/sofia_agent/config.py` | `context."Modelo (cadena)"`; `GEMINI_PRICE_INPUT_PER_MTOK`, `GEMINI_PRICE_OUTPUT_PER_MTOK` | exist (AG's gate: development set, 30 cases, not held-out) |
+| No JSON yet | `{{PENDIENTE:…}}`: repeated runs | **pending**: no source; never estimated |

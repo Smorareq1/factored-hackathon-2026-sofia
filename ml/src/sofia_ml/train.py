@@ -1,10 +1,11 @@
-"""Entrenamiento del router con split sin leakage y comparación contra el baseline de reglas (§8.6, §8.7).
+"""Router training with a leakage-free split and comparison against the rules baseline (§8.6, §8.7).
 
-    python -m sofia_ml.train                      # corpus del equipo (ml/data/intent_corpus.jsonl)
-    python -m sofia_ml.train --holdout-days 90    # temporal + grupo, si todos los ejemplos traen fecha
+    python -m sofia_ml.train                      # team corpus (ml/data/intent_corpus.jsonl)
+    python -m sofia_ml.train --holdout-days 90    # temporal + group, when every example has a date
 
-Candidato v1: TF-IDF de n-gramas de caracteres + regresión logística (segundo baseline del brief, robusto a
-tildes y a ES/PT). El artefacto va a MODEL_DIR (gitignored); el reporte agregado a ml/reports/ (versionado).
+v1 model: character n-gram TF-IDF + logistic regression (the brief's second baseline, robust to accents and to ES/PT).
+The artifact goes to MODEL_DIR (gitignored); the aggregate report to ml/reports/ (versioned). The service does not use
+the artifact: it retrains from the corpus at startup (sofia_ml.router).
 """
 
 import argparse
@@ -82,8 +83,8 @@ def main() -> None:
     corpus = load_corpus(args.corpus)
     examples = trainable(corpus)
     if not examples:
-        raise SystemExit(f"corpus vacío o sin filas aprobadas: {args.corpus}")
-    log.info("corpus: %d filas, %d aprobadas (el resto espera adjudicación)", len(corpus), len(examples))
+        raise SystemExit(f"empty corpus or no approved rows: {args.corpus}")
+    log.info("corpus: %d rows, %d approved (the rest await adjudication)", len(corpus), len(examples))
     split = group_split(examples, args.test_size, args.holdout_days, args.seed)
     log.info("split %s: %s", split.strategy, split.info)
 
@@ -101,9 +102,9 @@ def main() -> None:
     )
     report["served_version"] = HYBRID_ROUTER_VERSION
     report["confidence_threshold"] = RECOMMENDED_CONFIDENCE_THRESHOLD
-    log.info("reporte: %s", write_report(report))
-    save(fit(examples), split.info)  # el modelo servido usa todo el corpus; las métricas son las del held-out
-    log.info("modelo en %s", MODEL_DIR)
+    log.info("report: %s", write_report(report))
+    save(fit(examples), split.info)  # the saved model uses the whole corpus; metrics are from the held-out split
+    log.info("model in %s", MODEL_DIR)
 
 
 if __name__ == "__main__":

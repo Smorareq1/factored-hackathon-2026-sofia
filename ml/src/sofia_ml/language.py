@@ -1,7 +1,7 @@
-"""Detector de idioma restringido a {es, pt}, determinístico y sin dependencias pesadas.
+"""Language detector restricted to {es, pt}, deterministic and without heavy dependencies.
 
-v0 = el mismo del agente (conteo de marcadores exclusivos). Es el primer candidato a reemplazar por un
-modelo de n-gramas de caracteres cuando haya datos: hoy solo decide con evidencia suficiente.
+v0 = the agent's detector (counting exclusive markers). It is the first candidate to replace with a character n-gram
+model once there is data: today it only decides when there is enough evidence.
 """
 
 from dataclasses import dataclass
@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from sofia_contracts.common import Language
 from sofia_ml.text import words
 
-# Palabras (ya sin tildes) que casi solo aparecen en uno de los dos idiomas.
+# Words (already without accents) that almost only appear in one of the two languages.
 _ES = frozenset(
     """
     si usted ustedes gracias hola estoy quiero tarjeta transaccion transacciones reconozco dos veces ayer
@@ -30,7 +30,7 @@ _PT = frozenset(
     tempo pela pelo tem estranha cancelei cobrado ignore suas instrucoes
     """.split()
 )
-# Marcadores ortográficos (antes de quitar tildes).
+# Spelling markers (before removing accents).
 _ES_CHARS = ("ñ", "¿", "¡")
 _PT_CHARS = ("ã", "õ", "ç", "ê", "ô", "lh", "nh")
 
@@ -41,8 +41,8 @@ class LanguageGuess:
     confidence: float
     es_score: float
     pt_score: float
-    decided: bool  # hubo evidencia suficiente
-    mixed: bool  # ambos idiomas con peso relevante
+    decided: bool  # there was enough evidence
+    mixed: bool  # both languages carry real weight
 
 
 def detect_language(text: str, fallback: Language = "es") -> LanguageGuess:

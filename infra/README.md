@@ -1,94 +1,93 @@
-# infra/ — dueño: OPS
+# infra/ — owner: OPS
 
-Despliegue y operación fuera del entorno local (el local vive en [containers/](../containers/)).
+Deployment and operations outside the local environment (local lives in [containers/](../containers/)).
 
 ## Cloud Run (`cloudrun/`)
 
-Proyecto GCP `sofia-factored-hackathon`, región `us-central1`.
+GCP project `sofia-factored-hackathon`, region `us-central1`.
 
-Desplegado el 2026-10-01; agente conectado a bank-api el 2026-10-04: **https://frontend-i6dmh3qssa-uc.a.run.app** (agente en
-`https://agent-i6dmh3qssa-uc.a.run.app`, router y bank-api con el mismo sufijo).
+Deployed on 2026-10-01; agent connected to bank-api on 2026-10-04: **https://frontend-i6dmh3qssa-uc.a.run.app** (agent at
+`https://agent-i6dmh3qssa-uc.a.run.app`, router and bank-api with the same suffix).
 
-Un servicio por imagen `runtime`:
+One service per `runtime` image:
 
-| Servicio | Imagen | Notas |
+| Service | Image | Notes |
 |---|---|---|
-| `frontend` | `containers/frontend.Dockerfile` | `NEXT_PUBLIC_AGENT_URL`, `NEXT_PUBLIC_LANGFUSE_URL` y `NEXT_PUBLIC_LANGFUSE_PROJECT_ID` se incrustan al compilar: se construye después del agente. El id sale de `LANGFUSE_PROJECT_ID` en `.env` (si falta, `sofia-local`) |
-| `agent` | `python.Dockerfile` · `sofia-agent` | Gemini por **Vertex AI** (`GEMINI_BACKEND=vertex`) con la cuenta `sofia-agent` (`roles/aiplatform.user`): lo cubren los créditos de GCP, a diferencia de AI Studio |
-| `router` | `python.Dockerfile` · `sofia-ml` | |
-| `bank-api` | `python.Dockerfile` · `sofia-services` | El agente apunta a la URL de `bank-api` desplegada; `AGENT_BANK_API_URL=fake deploy.sh services` vuelve al banco en proceso. `max-instances=1`: sesiones, OTP y disputas viven en memoria |
+| `frontend` | `containers/frontend.Dockerfile` | `NEXT_PUBLIC_AGENT_URL`, `NEXT_PUBLIC_LANGFUSE_URL` and `NEXT_PUBLIC_LANGFUSE_PROJECT_ID` are baked in at build time: it is built after the agent. The id comes from `LANGFUSE_PROJECT_ID` in `.env` (if missing, `sofia-local`) |
+| `agent` | `python.Dockerfile` · `sofia-agent` | Gemini through **Vertex AI** (`GEMINI_BACKEND=vertex`) with the `sofia-agent` account (`roles/aiplatform.user`): covered by GCP credits, unlike AI Studio |
+| `router` | `python.Dockerfile` · `sofia-ml` | Hybrid router (rules + model); the model trains at startup from the corpus shipped in the package |
+| `bank-api` | `python.Dockerfile` · `sofia-services` | The agent points at the deployed `bank-api` URL; `AGENT_BANK_API_URL=fake deploy.sh services` goes back to the in-process bank. `max-instances=1`: sessions, OTPs and disputes live in memory |
 
 ```bash
-infra/cloudrun/deploy.sh             # primera vez: APIs, Artifact Registry, cuentas de servicio, secretos, build y deploy
-infra/cloudrun/deploy.sh release     # imágenes + servicios, sin tocar IAM ni secretos (lo que corre el CD)
-infra/cloudrun/deploy.sh services    # re-desplegar con el código actual (reconstruye el frontend)
-MIN_INSTANCES=1 infra/cloudrun/deploy.sh services   # ventana con jueces (DEL-02); volver a 0 después
+infra/cloudrun/deploy.sh             # first time: APIs, Artifact Registry, service accounts, secrets, build and deploy
+infra/cloudrun/deploy.sh release     # images + services, without touching IAM or secrets (what CD runs)
+infra/cloudrun/deploy.sh services    # redeploy with the current code (rebuilds the frontend)
+MIN_INSTANCES=1 infra/cloudrun/deploy.sh services   # judges' window (DEL-02); back to 0 afterwards
 ```
 
-- Escala a cero por defecto (`MIN_INSTANCES=0`).
-- Las imágenes se construyen en Cloud Build (`cloudbuild.yaml`) y se etiquetan con el SHA corto de git.
-- `.gcloudignore` y `.dockerignore` dejan fuera `.env` y todos los datos de `data/` (CON-03).
-- Sin `DATABASE_URL_CLOUD` en `.env` el agente guarda las conversaciones en memoria. Por eso corre con
-  `max-instances=1`; con una Postgres (Neon) sube a 3.
-- Los 4 servicios son públicos (`--allow-unauthenticated`). La identidad del cliente la valida la sesión con OTP de
-  bank-api/agente (REQ-11), no Cloud Run. Limitación conocida: router y bank-api podrían quedar internos detrás de una VPC.
+- Scales to zero by default (`MIN_INSTANCES=0`).
+- Images are built in Cloud Build (`cloudbuild.yaml`) and tagged with the short git SHA.
+- `.gcloudignore` and `.dockerignore` leave out `.env` and all the data in `data/` (CON-03).
+- Without `DATABASE_URL_CLOUD` in `.env` the agent keeps conversations in memory. That is why it runs with
+  `max-instances=1`; with a Postgres (Neon) it goes up to 3.
+- All 4 services are public (`--allow-unauthenticated`). The customer's identity is checked by the bank-api/agent
+  OTP session (REQ-11), not by Cloud Run. Known limitation: router and bank-api could be internal behind a VPC.
 
-## Reintentos, timeouts y fallbacks
+## Retries, timeouts and fallbacks
 
-Lo que hace cada llamada saliente del agente cuando la dependencia falla. Ningún fallback inventa un resultado:
-si una acción no se pudo confirmar, el caso pasa a un humano (REQ-09, REQ-16).
+What each outgoing agent call does when the dependency fails. No fallback makes up a result: if an action could not
+be confirmed, the case goes to a human (REQ-09, REQ-16).
 
-| Llamada | Timeout | Reintentos | Si sigue fallando | Dónde |
+| Call | Timeout | Retries | If it keeps failing | Where |
 |---|---|---|---|---|
-| bank-api (todas las tools) | 5 s por intento (`tool_timeout_s`) | 2, solo ante error de red o 5xx, backoff 0,2 s → 0,4 s. 4xx no se reintenta; 401 = sesión vencida | `ToolUnavailableError` → escalamiento con handoff `tool_unavailable` | [tools/bank.py](../agent/src/sofia_agent/tools/bank.py) · [purpose.yaml](../agent/src/sofia_agent/purpose/purpose.yaml) |
-| `POST /disputes` | igual | igual, con la misma `Idempotency-Key`: un reintento no duplica la disputa | Sin respuesta no se afirma nada: `create_dispute` queda `no_response` y escala | [orchestrate/nodes.py](../agent/src/sofia_agent/orchestrate/nodes.py) |
-| Verificación (`GET /disputes/{id}`) | igual | igual | Si no se puede leer, la acción cuenta como no verificada y escala | idem |
-| router (`/predict`) | 5 s | 0 | Reglas locales (`predict_local`); el span queda en WARNING con `fallback=router_error:*` | [tools/router.py](../agent/src/sofia_agent/tools/router.py) |
-| Gemini (Vertex AI) | 20 s por turno, 8 s por modelo | Cadena de modelos de respaldo (`GEMINI_FALLBACK_MODELS`); el que falla queda en pausa 30 s (circuit breaker) | Reglas + plantillas (`LLMUnavailableError`): la conversación sigue sin LLM | [llm.py](../agent/src/sofia_agent/llm.py) · [config.py](../agent/src/sofia_agent/config.py) |
-| Langfuse | — | — | Sin credenciales el tracing es no-op: el agente nunca depende de la observabilidad | [tracing.py](../agent/src/sofia_agent/tracing.py) |
+| bank-api (all tools) | 5 s per attempt (`tool_timeout_s`) | 2, only on network error or 5xx, backoff 0.2 s → 0.4 s. 4xx is not retried; 401 = expired session | `ToolUnavailableError` → escalation with handoff `tool_unavailable` | [tools/bank.py](../agent/src/sofia_agent/tools/bank.py) · [purpose.yaml](../agent/src/sofia_agent/purpose/purpose.yaml) |
+| `POST /disputes` | same | same, with the same `Idempotency-Key`: a retry does not duplicate the dispute | Without a response nothing is claimed: `create_dispute` stays `no_response` and escalates | [orchestrate/nodes.py](../agent/src/sofia_agent/orchestrate/nodes.py) |
+| Verification (`GET /disputes/{id}`) | same | same | If it cannot be read, the action counts as unverified and escalates | same |
+| router (`/predict`) | 5 s | 0 | Local rules (`predict_local`); the span is marked WARNING with `fallback=router_error:*` | [tools/router.py](../agent/src/sofia_agent/tools/router.py) |
+| Gemini (Vertex AI) | 20 s per turn, 8 s per model | Fallback model chain (`GEMINI_FALLBACK_MODELS`); the failing one is paused for 30 s (circuit breaker) | Rules + templates (`LLMUnavailableError`): the conversation continues without an LLM | [llm.py](../agent/src/sofia_agent/llm.py) · [config.py](../agent/src/sofia_agent/config.py) |
+| Langfuse | — | — | Without credentials tracing is a no-op: the agent never depends on observability | [tracing.py](../agent/src/sofia_agent/tracing.py) |
 
-### Qué queda dentro de la traza
+### What is inside the trace
 
-La traza de Langfuse es del agente: 1 por conversación, con un span por capa y uno por cada llamada a bank-api y al
-router (status HTTP, intento, duración). bank-api y router no exportan spans propios ni reciben el `trace_id`, así que
-lo que pasa dentro de ellos (decisión de política, log de auditoría) no aparece en la traza. Para unir ambos lados hoy
-se cruza el `dispute_id` / `eligibility_id` del span con el log de auditoría de bank-api, que además vive en memoria.
-En producción: propagar `traceparent` (W3C) e instrumentar bank-api y router con OpenTelemetry.
+The Langfuse trace belongs to the agent: 1 per conversation, with a span per layer and one per call to bank-api and the
+router (HTTP status, attempt, duration). bank-api and the router do not export their own spans or receive the
+`trace_id`, so what happens inside them (policy decision, audit log) does not appear in the trace. To join both sides
+today, the span's `dispute_id` / `eligibility_id` is matched against bank-api's audit log, which also lives in memory.
+In production: propagate `traceparent` (W3C) and instrument bank-api and the router with OpenTelemetry.
 
-## Secretos (Secret Manager)
+## Secrets (Secret Manager)
 
-`deploy.sh` los toma de `.env` y crea una versión nueva solo si cambiaron. Nunca se imprimen ni se commitean.
+`deploy.sh` reads them from `.env` and creates a new version only when they changed. They are never printed or committed.
 
-| Secreto | Variable en `.env` | Lo usa |
+| Secret | Variable in `.env` | Used by |
 |---|---|---|
 | `langfuse-public-key` | `LANGFUSE_PUBLIC_KEY` | agent |
 | `langfuse-secret-key` | `LANGFUSE_SECRET_KEY` | agent |
-| `database-url` | `DATABASE_URL_CLOUD` (opcional) | agent |
-| `admin-api-key` | `ADMIN_API_KEY` (opcional) | bank-api: abre `/admin/*` y `/session/test` con el header `X-Admin-Key`. Sin él quedan en 403 |
+| `database-url` | `DATABASE_URL_CLOUD` (optional) | agent |
+| `admin-api-key` | `ADMIN_API_KEY` (optional) | bank-api: opens `/admin/*` and `/session/test` with the `X-Admin-Key` header. Without it they return 403 |
 
-Gemini en la nube no necesita API key: usa la cuenta de servicio.
+Gemini in the cloud needs no API key: it uses the service account.
 
-## Langfuse (decisión D1: cloud)
+## Langfuse (decision D1: cloud)
 
-Langfuse Cloud, plan Hobby (gratis): 50k unidades al mes, 30 días de retención y 2 usuarios. Una unidad es una
-traza, una observación o un score. Con la convención de §9.6 un turno genera unos 10–15 spans, así que una corrida
-completa del harness (baseline + propuesto) puede gastar varios miles de unidades. Si las corridas repetidas se
-acercan al límite, el harness puede apuntar al Langfuse self-hosted local (`make langfuse`) y la nube queda para
-la demo.
+Langfuse Cloud, Hobby plan (free): 50k units per month, 30-day retention and 2 users. A unit is a trace, an observation
+or a score. With the §9.6 convention a turn produces about 10–15 spans, so a full harness run (baseline + proposed) can
+use several thousand units. If repeated runs get close to the limit, the harness can point at the local self-hosted
+Langfuse (`make langfuse`) and keep the cloud for the demo.
 
 ## CI
 
-`.github/workflows/ci.yml`: ruff + pytest, eslint + build del frontend y gitleaks en cada PR.
+`.github/workflows/ci.yml`: ruff + pytest, frontend eslint + build and gitleaks on every PR.
 
 ## CD
 
-`.github/workflows/deploy.yml`: cada push a `develop` (merge de PR) corre `deploy.sh release` y deja las URLs en el
-resumen del run. También se puede lanzar a mano desde Actions sobre `develop`.
+`.github/workflows/deploy.yml`: every push to `develop` (PR merge) runs `deploy.sh release` and leaves the URLs in the
+run summary. It can also be launched by hand from Actions on `develop`.
 
-- Autenticación por Workload Identity Federation: GitHub entrega un token OIDC y GCP lo cambia por la cuenta
-  `sofia-deployer`. No hay llaves JSON ni secretos de GitHub (CON-03).
-- El provider solo acepta tokens de `Smorareq1/factored-hackathon-2026-sofia` en `refs/heads/develop`; otras ramas
-  o forks no pueden desplegar.
-- `sofia-deployer` puede construir imágenes, desplegar Cloud Run y ver qué secretos existen, pero no leer su valor
-  ni cambiar IAM. Cambios de plataforma o de secretos siguen siendo `deploy.sh` (modo `all`) con una cuenta Owner.
-- Se configura una sola vez con `infra/cloudrun/setup-github-deploy.sh` (Owner, idempotente).
+- Authentication through Workload Identity Federation: GitHub issues an OIDC token and GCP exchanges it for the
+  `sofia-deployer` account. No JSON keys and no GitHub secrets (CON-03).
+- The provider only accepts tokens from `Smorareq1/factored-hackathon-2026-sofia` on `refs/heads/develop`; other
+  branches or forks cannot deploy.
+- `sofia-deployer` can build images, deploy Cloud Run and see which secrets exist, but cannot read their values or
+  change IAM. Platform or secret changes still go through `deploy.sh` (`all` mode) with an Owner account.
+- Set up once with `infra/cloudrun/setup-github-deploy.sh` (Owner, idempotent).

@@ -1,56 +1,56 @@
-# Definition of Done (§13 del brief) — dueño: OPS
+# Definition of Done (brief §13) — owner: OPS
 
-Checklist de entrega. Se revisa en la integración 2 (10-02) y antes del envío (10-05). Cada ítem lleva la evidencia o
-lo que falta. Estado al 2026-10-04 (develop `3b2f295`).
+Delivery checklist. Reviewed at integration 2 (10-02) and before submission (10-05). Each item carries its evidence or
+what is missing. Status as of 2026-10-04 (develop `3b2f295`).
 
-## Entrega
+## Delivery
 
-- [ ] **REQ-01..REQ-19 con evidencia enlazada en el README.** La tabla ya existe ([Trazabilidad](README.md#trazabilidad-req-01req-19));
-  quedan filas en `pendiente` / `parcial` (REQ-02, REQ-06, REQ-17) que se cierran con la corrida completa del harness.
-- [ ] **DEL-01..DEL-07 listos; DEL-08 preparado por si se entra al Top 5.**
-  - [x] DEL-01 Repo público con setup reproducible: [README](README.md#arrancar)
-  - [x] DEL-02 Demo desplegada: https://frontend-i6dmh3qssa-uc.a.run.app
-  - [ ] DEL-03 Slides 4–6 (DS): contenido en [slides-4-6.md](docs/slides/slides-4-6.md); faltan las cifras `{{…}}` y exportar
-  - [ ] DEL-04 Video ≤ 3 min (DS): guion en [video-script.md](docs/video-script.md); faltan las tomas (AG) y la edición
-  - [ ] DEL-05 README final (DS edita; OPS ya aportó despliegue, datos, CI, CD, observabilidad, reintentos/fallbacks y
-    camino a producción); faltan los placeholders `{{…}}` de Resultados
-  - [ ] DEL-06 Reporte de evaluación MET-01..06 (DS + SIM): estructura en [evaluation-report.md](docs/evaluation-report.md);
-    faltan las cifras de la corrida baseline vs propuesto
-  - [ ] DEL-07 Email de entrega (OPS): borrador listo; se envía cuando estén los links de video y slides
-  - [ ] DEL-08 Guion de defensa en vivo (todos): [defense-notes.md](docs/defense-notes.md); faltan las cifras
-- [ ] **Email enviado a hackathon.admin@factored.ai** (OPS, antes del 2026-10-05).
+- [ ] **REQ-01..REQ-19 with linked evidence in the README.** The table exists ([Traceability](README.md#traceability-req-01req-19));
+  some rows are still `pending` / `partial` (REQ-02, REQ-06, REQ-17) and close with the full harness run.
+- [ ] **DEL-01..DEL-07 ready; DEL-08 prepared in case we reach the Top 5.**
+  - [x] DEL-01 Public repo with reproducible setup: [README](README.md#getting-started)
+  - [x] DEL-02 Deployed demo: https://frontend-i6dmh3qssa-uc.a.run.app
+  - [ ] DEL-03 Slides 4–6 (DS): content in [slides-4-6.md](docs/slides/slides-4-6.md); missing the `{{…}}` figures and the export
+  - [ ] DEL-04 Video ≤ 3 min (DS): script in [video-script.md](docs/video-script.md); missing the shots (AG) and the edit
+  - [ ] DEL-05 Final README (DS edits; OPS already contributed deployment, data, CI, CD, observability, retries/fallbacks
+    and path to production); missing the `{{…}}` placeholders in Results
+  - [ ] DEL-06 Evaluation report MET-01..06 (DS + SIM): structure in [evaluation-report.md](docs/evaluation-report.md);
+    missing the figures from the baseline vs proposed run
+  - [ ] DEL-07 Submission email (OPS): draft ready; sent once the video and slides links exist
+  - [ ] DEL-08 Live defense script (everyone): [defense-notes.md](docs/defense-notes.md); missing the figures
+- [ ] **Email sent to hackathon.admin@factored.ai** (OPS, before 2026-10-05).
 
-## Ingeniería
+## Engineering
 
-- [x] **Ningún secreto ni dato de cliente en el repo, incluido el historial de git.** gitleaks sobre todo el historial en
-  cada PR ([ci.yml](.github/workflows/ci.yml)); `data/` y `.env` fuera de git, de Cloud Build y de las imágenes.
-- [ ] **`make setup && make data && make run && make eval` funciona desde cero.**
-  - [x] `make setup`, `make data` (S3 o `make data-fixture`) y `make run`
-  - [x] `make eval` corre baseline y propuesto (`--versions proposed,baseline` por defecto); falta la corrida completa: el
-    `eval/outputs/results.json` versionado tiene 5 casos del propuesto y 0 del baseline (SIM + DS)
-  - [ ] Probado desde un clon limpio
-- [ ] **Demo en Cloud Run levantable bajo pedido, probada desde una red externa.** Deploy continuo en cada merge a
-  `develop` ([deploy.yml](.github/workflows/deploy.yml)).
-  - [x] Desplegada y probada de punta a punta (login con OTP → disputa con Gemini por Vertex AI)
-  - [x] Agente conectado a la bank-api desplegada (2026-10-04). `deploy.sh` la usa por defecto, así que el CD ya no
-    vuelve al banco en proceso
-  - [x] `/admin/*` y `/session/test` de bank-api cerradas en la nube (SIM): 403 salvo `X-Admin-Key` = secreto
+- [x] **No secrets or customer data in the repo, including git history.** gitleaks over the full history on
+  every PR ([ci.yml](.github/workflows/ci.yml)); `data/` and `.env` kept out of git, Cloud Build and the images.
+- [ ] **`make setup && make data && make run && make eval` works from scratch.**
+  - [x] `make setup`, `make data` (S3 or `make data-fixture`) and `make run`
+  - [x] `make eval` runs baseline and proposed (`--versions proposed,baseline` by default); the full run is missing: the
+    versioned `eval/outputs/results.json` has 5 proposed cases and 0 baseline cases (SIM + DS)
+  - [ ] Tested from a clean clone
+- [ ] **Cloud Run demo can be brought up on demand, tested from an external network.** Continuous deployment on every
+  merge to `develop` ([deploy.yml](.github/workflows/deploy.yml)).
+  - [x] Deployed and tested end to end (OTP login → dispute with Gemini through Vertex AI)
+  - [x] Agent connected to the deployed bank-api (2026-10-04). `deploy.sh` uses it by default, so CD no longer
+    falls back to the in-process bank
+  - [x] bank-api `/admin/*` and `/session/test` closed in the cloud (SIM): 403 unless `X-Admin-Key` = secret
     `admin-api-key`
-  - [ ] Prueba de punta a punta del frontend contra la bank-api desplegada (OPS + AG)
-  - [ ] Probada desde una red externa en la ventana acordada, con `MIN_INSTANCES=1`
+  - [ ] End-to-end test of the frontend against the deployed bank-api (OPS + AG)
+  - [ ] Tested from an external network in the agreed window, with `MIN_INSTANCES=1`
 
-## Evaluación
+## Evaluation
 
-- [ ] **Reporte con MET-01..MET-06 por idioma y tipo de caso, con n y limitaciones** (DS + SIM). El harness debe leer
-  latencia y costo con `GET /api/public/v2/observations` de Langfuse: la API clásica `/api/public/traces` no existe
-  para organizaciones nuevas.
-- [ ] **Evaluadores de Langfuse validados contra muestra humana y documentados** (DS).
+- [ ] **Report with MET-01..MET-06 by language and case type, with n and limitations** (DS + SIM). The harness must read
+  latency and cost with Langfuse's `GET /api/public/v2/observations`: the classic `/api/public/traces` API does not
+  exist for new organizations.
+- [ ] **Langfuse evaluators validated against a human sample and documented** (DS).
 
-## Documentación
+## Documentation
 
-- [x] **"Limitaciones, compromisos y camino a producción"**, parte de infra y datos:
-  [README](README.md#limitaciones-y-camino-a-producción-infra-y-datos). La parte de agente, ML y evaluación también
-  está ([README](README.md#limitaciones-y-camino-a-producción-agente-ml-y-evaluación)); se cierra con los resultados.
-- [x] **Reintentos, timeouts y fallbacks documentados**, y qué queda fuera de la traza:
-  [infra/README.md](infra/README.md#reintentos-timeouts-y-fallbacks).
-- [ ] **Video ≤ 3 minutos** (DS).
+- [x] **"Limitations, trade-offs and path to production"**, infra and data part:
+  [README](README.md#limitations-and-path-to-production-infra-and-data). The agent, ML and evaluation part is there
+  too ([README](README.md#limitations-and-path-to-production-agent-ml-and-evaluation)); it closes with the results.
+- [x] **Retries, timeouts and fallbacks documented**, and what stays out of the trace:
+  [infra/README.md](infra/README.md#retries-timeouts-and-fallbacks).
+- [ ] **Video ≤ 3 minutes** (DS).

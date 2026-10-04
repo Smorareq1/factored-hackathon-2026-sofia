@@ -1,4 +1,4 @@
-"""Tests de la capa estadística DS (IC, baseline vs propuesto, desgloses) con resultados sintéticos."""
+"""Tests for the DS statistics layer (CIs, baseline vs proposed, breakdowns) on synthetic results."""
 
 import json
 from pathlib import Path
@@ -48,7 +48,7 @@ def _result(case: EvalCase, version: str, route: str, latency: int, unsafe: bool
 
 
 def _dataset() -> tuple[list[EvalCase], list[ConversationResult], list[ConversationResult]]:
-    """24 casos (16 ES, 8 PT); el baseline escala todo, el propuesto resuelve lo auto y es más rápido."""
+    """24 cases (16 ES, 8 PT); the baseline escalates everything, the proposed resolves the auto ones, faster."""
     cases = [_case(i, "es" if i < 16 else "pt", "auto" if i % 3 else "escalate", 1 if i % 3 else 3) for i in range(24)]
     proposed = [_result(c, "proposed", c.expected_route, 200 + 10 * i) for i, c in enumerate(cases)]
     baseline = [_result(c, "baseline", "escalate", 900 + 10 * i) for i, c in enumerate(cases)]
@@ -66,7 +66,7 @@ def test_wilson_interval_known_values() -> None:
 
 
 def test_proportion_stat_zero_events_rule_of_three() -> None:
-    """Cero en muestra chica ≠ riesgo cero: se reporta cota 3/n y n insuficiente."""
+    """Zero in a small sample ≠ zero risk: the 3/n bound and insufficient n are reported."""
     stat = proportion_stat(0, 6)
     assert stat["rate"] == 0.0
     assert stat["rule_of_three_upper"] == 0.5
@@ -76,7 +76,7 @@ def test_proportion_stat_zero_events_rule_of_three() -> None:
 
 
 def test_fisher_exact_and_z_test() -> None:
-    # Tabla [[8, 2], [1, 5]]: p bilateral conocido ≈ 0.0350.
+    # Table [[8, 2], [1, 5]]: known two-sided p ≈ 0.0350.
     assert fisher_exact(8, 10, 1, 6) == pytest.approx(0.03497, abs=1e-4)
     assert fisher_exact(3, 10, 3, 10) == pytest.approx(1.0)
     assert two_proportion_z(50, 100, 50, 100) == pytest.approx(1.0)
@@ -94,7 +94,7 @@ def test_compare_proportions_picks_test_and_flags_small_n() -> None:
     assert big["diff"] == pytest.approx(0.3)
     assert big["ci"][0] < 0.3 < big["ci"][1]
     assert big["ci"][0] > 0
-    assert big["conclusion"] == "diferencia significativa"
+    assert big["conclusion"] == "significant difference"
 
     assert compare_proportions(0, 0, 1, 5)["conclusion"] == INSUFFICIENT
 
@@ -115,7 +115,7 @@ def test_system_stats_reuses_metrics_and_bootstrap_is_deterministic() -> None:
 
 
 def test_subset_ignores_results_of_other_cases() -> None:
-    """calculate_metrics cuenta resultados sin caso: el subconjunto debe filtrarlos."""
+    """calculate_metrics counts results without a case: the subset must filter them out."""
     cases, proposed, _ = _dataset()
     es = [c for c in cases if c.language == "es"]
     assert system_stats(es, proposed, n_boot=10)["n"] == 16
@@ -126,7 +126,7 @@ def test_build_ds_stats_full_report(tmp_path: Path) -> None:
     segments = {c.case_id: ("premium" if i < 12 else "masivo") for i, c in enumerate(cases)}
     stats = build_ds_stats(cases, proposed, baseline, segments=segments, n_boot=100, seed=1)
 
-    # Serializable a JSON y determinista.
+    # JSON-serializable and deterministic.
     json.dumps(stats)
     assert stats == build_ds_stats(cases, proposed, baseline, segments=segments, n_boot=100, seed=1)
 
@@ -134,10 +134,10 @@ def test_build_ds_stats_full_report(tmp_path: Path) -> None:
     containment = cmp["met02_containment"]
     assert containment["n_ref"] == 24 and containment["n_test"] == 24
     assert containment["diff"] > 0
-    assert containment["conclusion"] == "diferencia significativa"
+    assert containment["conclusion"] == "significant difference"
     lat = cmp["met05_latency_p50_ms"]
     assert lat["diff"] < 0
-    assert lat["ci_method"] == "bootstrap_percentil_pareado"
+    assert lat["ci_method"] == "bootstrap_percentile_paired"
     assert lat["ci"][1] < 0
 
     lang = stats["desglose"]["idioma"]
@@ -165,14 +165,14 @@ def test_build_ds_stats_without_baseline_or_segments() -> None:
 
 
 def test_cost_per_safe_resolution_defined_and_not_defined() -> None:
-    """MET-06 por resolución segura: con éxitos tiene valor e IC; sin éxitos queda "not defined" sin romper."""
+    """MET-06 per safe resolution: value and CI with successes; "not defined" without them, nothing breaks."""
     cases, proposed, baseline = _dataset()
     name = "met06_cost_per_safe_resolution_usd"
 
     prop = system_stats(cases, proposed, n_boot=200)["metricas"][name]
     assert prop["value"] is not None and prop["value"] > 0
     assert prop["ci"] is not None and prop["ci"][0] <= prop["value"] <= prop["ci"][1]
-    assert prop["n"] == 16  # resoluciones seguras (los casos auto)
+    assert prop["n"] == 16  # safe resolutions (the auto cases)
     assert "nota" not in prop
 
     base = system_stats(cases, baseline, n_boot=200)["metricas"][name]

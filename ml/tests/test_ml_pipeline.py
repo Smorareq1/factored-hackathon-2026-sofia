@@ -1,4 +1,4 @@
-"""Labels, split sin leakage, métricas y entrenamiento del router (REQ-13). Datos sintéticos en memoria."""
+"""Router labels, leakage-free split, metrics and training (REQ-13). Synthetic in-memory data."""
 
 from datetime import date, timedelta
 

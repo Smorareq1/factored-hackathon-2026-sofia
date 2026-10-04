@@ -1,7 +1,7 @@
 [project]
 name = "sofia-analysis"
 version = "0.1.0"
-description = "EDA, justificación del workflow (REQ-02), baseline de negocio, calibración de N y U. Dueño: DS."
+description = "EDA, workflow justification (REQ-02), business baseline, N/U calibration. Owner: DS."
 requires-python = ">=3.12"
 dependencies = [
     "sofia-contracts",
@@ -12,6 +12,6 @@ dependencies = [
     "matplotlib>=3.9",
 ]
 
-# Solo notebooks: entorno de dependencias, no se empaqueta
+# Notebooks only: a dependency environment, not packaged
 [tool.uv]
 package = false

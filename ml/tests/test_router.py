@@ -1,5 +1,5 @@
-"""Tests del contrato §9.3 y del comportamiento v0 (reglas). Son la red de seguridad que el modelo entrenado
-tiene que seguir cumpliendo: cambia `router_version`, no la forma de la respuesta."""
+"""Tests for the §9.3 contract and the rules' behavior. They are the safety net the served router must keep meeting:
+`router_version` changes, the shape of the response does not."""
 
 import pytest
 from fastapi.testclient import TestClient
@@ -12,7 +12,7 @@ from sofia_ml.serve import app
 client = TestClient(app)
 
 CASES = [
-    # (texto, intención esperada, idioma esperado)
+    # (text, expected intent, expected language)
     ("No reconozco un cargo de Rappi", "dispute_new", "es"),
     ("Me cobraron dos veces en Éxito", "dispute_new", "es"),
     ("Não reconheço essa cobrança da loja", "dispute_new", "pt"),
@@ -28,12 +28,12 @@ CASES = [
 ]
 
 
-# Fallos conocidos de las reglas v0 (strict: si alguien las mejora, este test avisa y se mueve a CASES).
-# Son exactamente lo que el modelo entrenado tiene que resolver; ver docs/evaluation-report.md cuando exista.
+# Known misses of the v0 rules (strict: if someone improves them, this test says so and they move to CASES).
+# They are exactly what the trained model has to solve; see docs/evaluation-report.md §6.
 KNOWN_MISSES = [
-    # DEV-ES-002 del set dev: "no hice" sin demostrativo y "reclamarlo" (clítico) no matchean ninguna regla.
+    # DEV-ES-002 from the dev set: "no hice" without a demonstrative and "reclamarlo" (clitic) match no rule.
     ("Hay un cobro de Spotify que no hice, quiero reclamarlo", "dispute_new"),
-    # "foram" entre el interrogativo y el sustantivo rompe la regla de transaction_inquiry.
+    # "foram" between the interrogative and the noun breaks the transaction_inquiry rule.
     ("Quais foram as minhas compras de ontem?", "transaction_inquiry"),
 ]
 
@@ -54,7 +54,7 @@ def test_predict_rules(text: str, intent: str, language: str) -> None:
 
 
 def test_needs_human_wins_over_other_intents() -> None:
-    # Regla de costo (§8.6): si el cliente pide una persona, se respeta aunque también describa una disputa.
+    # Cost rule (§8.6): in the rules, asking for a person wins even when the message also describes a dispute.
     prediction = predict_rules("No reconozco un cargo y quiero hablar con un agente humano")
     assert prediction.intent == "needs_human"
 
@@ -62,7 +62,7 @@ def test_needs_human_wins_over_other_intents() -> None:
 def test_unknown_text_is_low_confidence() -> None:
     prediction = predict_rules("asdf qwerty")
     assert prediction.intent == "out_of_scope"
-    assert prediction.confidence < 0.35  # umbral de purpose.yaml: el agente debe aclarar, no abstenerse
+    assert prediction.confidence < 0.35  # purpose.yaml threshold: the agent must clarify, not abstain
 
 
 def test_language_hint_is_the_fallback_when_there_is_no_evidence() -> None:
@@ -74,7 +74,7 @@ def test_predict_endpoint_matches_contract() -> None:
     response = client.post("/predict", json={"text": "No reconozco un cargo de Rappi", "language_hint": "es"})
     assert response.status_code == 200
     body = response.json()
-    prediction = IntentPrediction.model_validate(body)  # valida tipos y rangos del contrato
+    prediction = IntentPrediction.model_validate(body)  # validates the contract's types and ranges
     assert prediction.intent in IN_SCOPE_INTENTS
     assert prediction.router_version.startswith(HYBRID_ROUTER_VERSION)
     assert prediction.language_confidence is not None

@@ -1,8 +1,9 @@
-# docs/ — dueño: DS
+# docs/ — owner: DS
 
-- `evaluation-report.md`: MET-01..MET-06 por idioma y tipo de caso, con n, variabilidad y limitaciones (DEL-06)
-- `slides/`: presentación de 4–6 slides (DEL-03)
-- `video-script.md`: guion del pitch de ≤ 3 minutos (DEL-04)
-- `architecture/`: diagramas para el README final
+- `evaluation-report.md`: MET-01..MET-06 by language and case type, with n, variability and limitations (DEL-06)
+- `slides/`: 4–6 slide presentation (DEL-03)
+- `video-script.md`: script for the ≤ 3-minute pitch (DEL-04)
+- `defense-notes.md`: notes for the live defense (DEL-08)
+- `architecture/`: diagrams for the final README
 
-No se versionan: `requirements/` (brief interno) ni `plans/<persona>/` (planes personales).
+Not versioned: `requirements/` (internal brief) and `plans/<person>/` (personal plans).
