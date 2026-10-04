@@ -280,7 +280,7 @@ def _bootstrap_p(diffs: list[float]) -> float | None:
 
 
 def _only_known(cases: list[EvalCase], results: list[ConversationResult]) -> list[ConversationResult]:
-    # calculate_metrics cuenta en total_cases resultados sin caso conocido: filtrar antes de cada subconjunto.
+    # calculate_metrics ya ignora resultados sin caso conocido (#17); se filtra igual para que n y bootstrap coincidan.
     known = {c.case_id for c in cases}
     return [r for r in results if r.case_id in known]
 
