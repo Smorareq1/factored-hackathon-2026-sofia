@@ -37,6 +37,8 @@ data/cache
 **/*.duckdb
 **/*.csv
 **/*.jsonl
+!ml/data/intent_corpus.jsonl
+!ml/src/sofia_ml/data/intent_corpus.jsonl
 # Si el router se hornea en la imagen para Cloud Run, DS quita esta línea
 ml/artifacts
 ml/models
