@@ -15,14 +15,11 @@ import { ColumnChart } from "@/components/molecules/charts/column-chart";
 import { JsonView, PolicyLadder } from "@/components/molecules/evidence";
 import { LayerTile, type LayerState } from "@/components/molecules/layer-tile";
 import { TurnWaterfall } from "@/components/organisms/turn-waterfall";
-import { LANGFUSE_URL } from "@/lib/api";
+import { LANGFUSE_TRACE_BASE } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import { describeEvent, LAYER_BLURB, ROUTE_LABEL, t } from "@/lib/i18n";
 import { LAYERS, ROUTE_ICON, ROUTE_TONE, STATUS_TONE, worstStatus } from "@/lib/layers";
 import type { AgentMeta, Language, Layer, LayerEvent, TurnDone } from "@/lib/types";
-
-// Proyecto local de Langfuse (containers/local): sofia-local. En cloud, OPS define la URL del proyecto.
-export const LANGFUSE_TRACE_BASE = LANGFUSE_URL ? `${LANGFUSE_URL}/project/sofia-local/traces` : null;
 
 export interface TurnTrace {
   turn: number;

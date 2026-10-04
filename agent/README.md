@@ -57,6 +57,27 @@ El gate promueve un cambio de prompt o de PURPOSE solo si MET-01 no baja y MET-0
 modo (`evals/reference.rules.json`, `evals/reference.gemini.json`) y los reportes quedan en `evals/reports/`
 (ignorado por git). Para corridas reproducibles con LLM: `GEMINI_FALLBACK_MODELS=none`.
 
+## Handoff (§9.4)
+
+El ensamblador (`orchestrate/handoff.py`) arma la ficha solo con estado verificado. No copia el transcript (REQ-05).
+
+Respecto al JSON del brief, la ficha suma cuatro campos (propuesta AG #9, contrato en `contracts/.../handoff.py`):
+
+| Campo | Quién lo pone | Para qué |
+|---|---|---|
+| `schema_version` | agente (`1.0`) | versión del JSON |
+| `customer_claim` | agente | motivo estructurado, además del resumen |
+| `system_version` | agente | `proposed` o `baseline` |
+| `created_at` | SIM, al guardar | no viaja en el borrador |
+
+`request_summary` y `open_questions` salen en el idioma de la conversación (es o pt). Los `verified_facts` siguen en español: es la lengua del back office. En el baseline el resumen lo redacta el modelo, en ese mismo idioma; `open_questions` queda vacío porque el baseline no tiene el catálogo de preguntas.
+
+## Casos en portugués
+
+El catálogo del harness (`eval/src/sofia_eval/generator.py`) está balanceado: 100 ES y 100 PT, todos `origin: team_generated`. No hay portugués nativo en el dataset. `scripts/translate_cases.py` traduce con los identificadores enmascarados; ese texto se revisa a mano antes de usarlo en el reporte (§8.5). Las correcciones ya hechas sobre el corpus del router están en `ml/reports/corpus_audit.md` (dueño DS). No publicamos un conteo de "casos corregidos" del catálogo de evaluación porque esa revisión no quedó medida caso por caso.
+
+El set de desarrollo del agente (`evals/dev_cases.jsonl`, 23 ES y 7 PT) alimenta el gate de regresión. No es la muestra del reporte, y por eso no se rebalanceó: cambiarlo invalida `evals/reference.*.json` sin una corrida nueva.
+
 ## Trazas (§9.6)
 
 1 conversación = 1 trace (`trace_id` determinístico por hilo o por caso). El turno es una observación `agent` con

@@ -13,7 +13,7 @@ Un servicio por imagen `runtime`:
 
 | Servicio | Imagen | Notas |
 |---|---|---|
-| `frontend` | `containers/frontend.Dockerfile` | `NEXT_PUBLIC_AGENT_URL` se incrusta al compilar: se construye después del agente |
+| `frontend` | `containers/frontend.Dockerfile` | `NEXT_PUBLIC_AGENT_URL`, `NEXT_PUBLIC_LANGFUSE_URL` y `NEXT_PUBLIC_LANGFUSE_PROJECT_ID` se incrustan al compilar: se construye después del agente. El id sale de `LANGFUSE_PROJECT_ID` en `.env` (si falta, `sofia-local`) |
 | `agent` | `python.Dockerfile` · `sofia-agent` | Gemini por **Vertex AI** (`GEMINI_BACKEND=vertex`) con la cuenta `sofia-agent` (`roles/aiplatform.user`): lo cubren los créditos de GCP, a diferencia de AI Studio |
 | `router` | `python.Dockerfile` · `sofia-ml` | |
 | `bank-api` | `python.Dockerfile` · `sofia-services` | El agente apunta a la URL de `bank-api` desplegada; `AGENT_BANK_API_URL=fake deploy.sh services` vuelve al banco en proceso. `max-instances=1`: sesiones, OTP y disputas viven en memoria |

@@ -13,6 +13,11 @@ import type {
 
 export const AGENT_URL = process.env.NEXT_PUBLIC_AGENT_URL ?? "http://localhost:8001";
 export const LANGFUSE_URL = process.env.NEXT_PUBLIC_LANGFUSE_URL ?? null;
+/** Local (`make langfuse`): `sofia-local`. En cloud, el id real del proyecto de Langfuse. */
+export const LANGFUSE_PROJECT_ID = process.env.NEXT_PUBLIC_LANGFUSE_PROJECT_ID || "sofia-local";
+export const LANGFUSE_TRACE_BASE = LANGFUSE_URL
+  ? `${LANGFUSE_URL.replace(/\/$/, "")}/project/${LANGFUSE_PROJECT_ID}/traces`
+  : null;
 
 export class ApiError extends Error {
   constructor(

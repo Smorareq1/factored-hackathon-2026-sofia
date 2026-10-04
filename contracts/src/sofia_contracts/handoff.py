@@ -1,7 +1,14 @@
 """§9.4 Handoff JSON: AG produce, SIM almacena, frontend muestra. Nunca incluye el transcript (REQ-05).
 
-Propuesta AG #9 para el D1: se suman `schema_version`, `created_at`, `system_version` y `customer_claim`.
+Campos de más respecto al §9.4 del brief (propuesta AG #9):
+
+- `schema_version`: versión del JSON (`1.0`). La manda el agente.
+- `customer_claim`: motivo estructurado (`not_recognized`, `duplicate`, `wrong_amount`, `not_received`, `other`).
+- `system_version`: `proposed` o `baseline`, para no mezclar fichas de las dos arquitecturas.
+- `created_at`: lo asigna SIM al guardar. No va en `HandoffDraft`.
+
 `HandoffDraft` es lo que el agente envía a `POST /handoff`; SIM asigna `handoff_id` y `created_at`.
+`request_summary` y `open_questions` van en el idioma de la conversación. `verified_facts` queda en español.
 """
 
 from datetime import datetime

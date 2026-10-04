@@ -32,6 +32,9 @@ env_value() { # lee una variable de .env sin exportar el archivo entero
 
 LANGFUSE_HOST_CLOUD="${LANGFUSE_HOST_CLOUD:-$(env_value LANGFUSE_HOST)}"
 LANGFUSE_HOST_CLOUD="${LANGFUSE_HOST_CLOUD:-https://us.cloud.langfuse.com}"
+# El frontend hornea este id en el link /project/<id>/traces. Local queda en sofia-local.
+LANGFUSE_PROJECT_ID="${LANGFUSE_PROJECT_ID:-$(env_value LANGFUSE_PROJECT_ID)}"
+LANGFUSE_PROJECT_ID="${LANGFUSE_PROJECT_ID:-sofia-local}"
 
 ensure_platform() {
   log "APIs"
@@ -84,7 +87,7 @@ build() { # build backend|frontend [agent_url]
   log "Cloud Build: $1 ($TAG)"
   "${GC[@]}" builds submit "$ROOT" --config "$ROOT/infra/cloudrun/cloudbuild.yaml" --region "$REGION" \
     --service-account "projects/$PROJECT/serviceAccounts/sofia-build@$PROJECT.iam.gserviceaccount.com" \
-    --substitutions "_REGION=$REGION,_REPO=$REPO,_TAG=$TAG,_TARGETS=$1,_AGENT_URL=${2:-},_LANGFUSE_URL=${3:-}"
+    --substitutions "_REGION=$REGION,_REPO=$REPO,_TAG=$TAG,_TARGETS=$1,_AGENT_URL=${2:-},_LANGFUSE_URL=${3:-},_LANGFUSE_PROJECT_ID=$LANGFUSE_PROJECT_ID"
 }
 
 url_of() { "${GC[@]}" run services describe "$1" --region "$REGION" --format 'value(status.url)' 2>/dev/null || true; }
