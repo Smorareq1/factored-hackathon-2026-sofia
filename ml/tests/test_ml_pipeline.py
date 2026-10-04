@@ -96,3 +96,33 @@ def test_manual_sample_is_stratified_and_roundtrips(tmp_path):
     agreement = label_agreement(examples, manual)
     assert agreement["agreement"] == 0.0
     assert sample_id(" a ") == sample_id("a")
+
+
+def test_placeholders_render_deterministically_per_language():
+    from sofia_ml.labeling import render
+
+    row = LabeledExample(text="No reconozco <AMOUNT> en <MERCHANT>, caso <CASE_ID>", label="dispute_new",
+                         language="es", group_id="g", origin="team_generated", source="test")
+    a, b = render(row), render(row)
+    assert a.text == b.text
+    assert "<" not in a.text and "DSP-2026-" in a.text
+
+
+def test_rows_awaiting_adjudication_are_not_trained_on():
+    from sofia_ml.labeling import trainable
+
+    rows = corpus()[:2]
+    rows[1] = rows[1].model_copy(update={"review_status": "needs_adjudication"})
+    assert trainable(rows) == rows[:1]
+
+
+def test_shipped_corpus_is_valid_and_leak_free():
+    from sofia_ml.labeling import load_corpus
+
+    rows = load_corpus()
+    if not rows:
+        pytest.skip("sin corpus")
+    assert all("<" not in e.text for e in rows)
+    assert len({e.text for e in rows}) == len(rows)
+    group_split(trainable_rows := [e for e in rows if e.review_status == "approved"], test_size=0.2)
+    assert {e.label for e in trainable_rows} == set(INTENTS)
