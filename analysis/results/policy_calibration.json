@@ -1,0 +1,102 @@
+{
+  "generated_at": "2026-10-04T03:04:09+00:00",
+  "dispute_transaction_link": {
+    "product": {
+      "disputas": 24491,
+      "con_producto": 16257,
+      "producto_existe": 16257,
+      "producto_del_cliente": 0
+    },
+    "amount": {
+      "con_monto": 6987,
+      "con_match": 37
+    }
+  },
+  "N_days": {
+    "value": null,
+    "current": 90,
+    "proxy_lag_days": {
+      "n": 21134,
+      "p50_75_90_95": [
+        24.0,
+        52.0,
+        99.0,
+        140.0
+      ]
+    },
+    "rationale": "No calibrable: el dataset no liga disputas con transacciones. Supuesto de política."
+  },
+  "U_usd": {
+    "value": null,
+    "current": 500,
+    "approved_purchases": {
+      "n": 973662,
+      "p50_75_80_90_95": [
+        252.38,
+        376.55,
+        401.1,
+        450.34,
+        475.23
+      ],
+      "share_sobre_250": 0.505,
+      "share_sobre_500": 0.0
+    },
+    "claimed_amounts": {
+      "n": 7729,
+      "p50_75_80_90_95": [
+        14.200459949999999,
+        287.13628536,
+        1239.3160000000003,
+        3168.256,
+        4118.185999999999
+      ],
+      "share_sobre_500": 0.233
+    }
+  },
+  "fraud_score_threshold": {
+    "value": null,
+    "current": 0.8,
+    "scale": "0-100",
+    "tradeoff": [
+      {
+        "th": "0.8",
+        "prec": 0.001,
+        "rec": 0.992,
+        "pct_marcada": 97.35
+      },
+      {
+        "th": "30.0",
+        "prec": 0.796,
+        "rec": 0.693,
+        "pct_marcada": 0.08
+      },
+      {
+        "th": "40.0",
+        "prec": 1.0,
+        "rec": 0.588,
+        "pct_marcada": 0.06
+      },
+      {
+        "th": "50.0",
+        "prec": 1.0,
+        "rec": 0.488,
+        "pct_marcada": 0.05
+      },
+      {
+        "th": "70.0",
+        "prec": 1.0,
+        "rec": 0.292,
+        "pct_marcada": 0.03
+      },
+      {
+        "th": "80.0",
+        "prec": 1.0,
+        "rec": 0.196,
+        "pct_marcada": 0.02
+      }
+    ]
+  },
+  "data_quality_notes": {
+    "amount_usd": "vacío en filas USD; usar coalesce(amount_usd, amount si USD)"
+  }
+}
