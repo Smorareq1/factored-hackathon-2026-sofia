@@ -23,7 +23,7 @@ from sofia_contracts.common import Language
 from sofia_contracts.router import IntentPrediction
 from sofia_ml.baseline_rules import RULES_ROUTER_VERSION, predict_rules
 from sofia_ml.evaluate import compare, write_report
-from sofia_ml.labeling import CORPUS_PATH, ML_DIR, LabeledExample, load_corpus
+from sofia_ml.labeling import CORPUS_PATH, ML_DIR, LabeledExample, load_corpus, trainable
 from sofia_ml.language import detect_language
 from sofia_ml.split import group_split
 from sofia_ml.text import fold
@@ -79,9 +79,11 @@ def main() -> None:
     args = parser.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
 
-    examples = load_corpus(args.corpus)
+    corpus = load_corpus(args.corpus)
+    examples = trainable(corpus)
     if not examples:
-        raise SystemExit(f"corpus vacío: {args.corpus}")
+        raise SystemExit(f"corpus vacío o sin filas aprobadas: {args.corpus}")
+    log.info("corpus: %d filas, %d aprobadas (el resto espera adjudicación)", len(corpus), len(examples))
     split = group_split(examples, args.test_size, args.holdout_days, args.seed)
     log.info("split %s: %s", split.strategy, split.info)
 
