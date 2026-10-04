@@ -46,7 +46,11 @@ CONTINUOUS: dict[str, tuple[str, str]] = {
     "met05_latency_p50_ms": ("latency_p50_ms", "menor"),
     "met05_latency_p95_ms": ("latency_p95_ms", "menor"),
     "met06_cost_per_case_usd": ("cost_per_case_attempted_usd", "menor"),
+    # None si no hay resoluciones seguras (§6: "not defined"); n = resoluciones seguras.
+    "met06_cost_per_safe_resolution_usd": ("cost_per_safe_resolution_usd", "menor"),
 }
+
+NOT_DEFINED = "not defined (sin resoluciones seguras)"
 
 
 # ---------------------------------------------------------------------------
@@ -198,8 +202,11 @@ def _resample(groups: dict[str, list[ConversationResult]], ids: list[str], rng: 
     return [r for cid in rng.choices(ids, k=len(ids)) for r in groups[cid]]
 
 
-def _fields(summary: MetricSummary) -> dict[str, float]:
-    return {name: float(getattr(summary, field)) for name, (field, _) in CONTINUOUS.items()}
+def _fields(summary: MetricSummary) -> dict[str, float | None]:
+    # None = métrica no definida en esa réplica (p. ej. costo por resolución sin resoluciones): se descarta.
+    return {
+        name: None if (v := getattr(summary, field)) is None else float(v) for name, (field, _) in CONTINUOUS.items()
+    }
 
 
 def bootstrap_metrics(
@@ -219,7 +226,8 @@ def bootstrap_metrics(
     for _ in range(n_boot):
         vals = _fields(calculate_metrics(cases, _resample(groups, ids, rng)))
         for name, v in vals.items():
-            reps[name].append(v)
+            if v is not None:
+                reps[name].append(v)
     return reps
 
 
@@ -252,7 +260,8 @@ def bootstrap_diff(
         v_ref = _fields(calculate_metrics(cases, res_ref))
         v_test = _fields(calculate_metrics(cases, res_test))
         for name in CONTINUOUS:
-            reps[name].append(v_test[name] - v_ref[name])
+            if v_test[name] is not None and v_ref[name] is not None:
+                reps[name].append(v_test[name] - v_ref[name])
     return reps, paired
 
 
@@ -309,6 +318,7 @@ def system_stats(
     n_by_metric = {
         "met03_handoff_completeness": _handoff_n(cases, results),
         "met06_cost_per_case_usd": summary.total_cases,
+        "met06_cost_per_safe_resolution_usd": summary.safe_automated_resolutions,
     }
     for name, (field, better) in CONTINUOUS.items():
         ci = percentile_ci(reps[name], alpha)
@@ -321,6 +331,8 @@ def system_stats(
             "n_insuficiente": n < min_n,
             "mejor_si": better,
         }
+        if metrics[name]["value"] is None:
+            metrics[name]["nota"] = NOT_DEFINED
     metrics["met06_cost_per_case_usd"]["n_con_costo"] = _cost_n(cases, results)
     out["metricas"] = metrics
     return out
@@ -351,10 +363,11 @@ def compare(
     for name, (field, better) in CONTINUOUS.items():
         ci = percentile_ci(reps[name], alpha)
         p = _bootstrap_p(reps[name])
+        v_ref, v_test = getattr(s_ref, field), getattr(s_test, field)
         out[name] = {
             "n_ref": n_ref,
             "n_test": n_test,
-            "diff": round(getattr(s_test, field) - getattr(s_ref, field), 6),
+            "diff": round(v_test - v_ref, 6) if v_ref is not None and v_test is not None else None,
             "ci": [round(x, 6) for x in ci] if ci else None,
             "ci_method": "bootstrap_percentil_pareado" if paired else "bootstrap_percentil",
             "p_value": round(p, 4) if p is not None else None,
