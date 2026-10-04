@@ -1,0 +1,54 @@
+{
+  "generated_at": "2026-10-03T23:08:09+00:00",
+  "by_reason": [
+    {
+      "reason_category": "Transaccional",
+      "n": 240056,
+      "fcr": 0.779,
+      "escalacion": 0.099,
+      "dur_p50_s": 205.0,
+      "espera_p50_s": 119.0
+    },
+    {
+      "reason_category": "Producto",
+      "n": 150863,
+      "fcr": 0.762,
+      "escalacion": 0.1,
+      "dur_p50_s": 263.0,
+      "espera_p50_s": 119.0
+    },
+    {
+      "reason_category": "Queja",
+      "n": 117021,
+      "fcr": 0.37,
+      "escalacion": 0.1,
+      "dur_p50_s": 431.0,
+      "espera_p50_s": 120.0
+    },
+    {
+      "reason_category": "Técnico",
+      "n": 102899,
+      "fcr": 0.594,
+      "escalacion": 0.101,
+      "dur_p50_s": 360.0,
+      "espera_p50_s": 119.0
+    },
+    {
+      "reason_category": "Comercial",
+      "n": 54879,
+      "fcr": 0.555,
+      "escalacion": 0.098,
+      "dur_p50_s": 540.0,
+      "espera_p50_s": 120.0
+    },
+    {
+      "reason_category": "Retención",
+      "n": 20578,
+      "fcr": 0.509,
+      "escalacion": 0.098,
+      "dur_p50_s": 478.0,
+      "espera_p50_s": 120.0
+    }
+  ],
+  "label": "histórico"
+}
