@@ -17,8 +17,9 @@ limits:
   tool_timeout_s: 5
   max_message_chars: 2000
 interpret:
-  # Umbral del router por debajo del cual se aclara. Lo define DS (pendiente D4).
-  router_confidence_threshold: 0.55
+  # Router confidence below which the agent clarifies. Set by DS for the hybrid router (rules + model):
+  # at 0.35 it passes 60% of messages with 0.89 accuracy (ml/src/sofia_ml/router.py, ml/reports/router_eval.md).
+  router_confidence_threshold: 0.35
   # Ventana por defecto para buscar la transacción cuando el cliente no da fechas. Es MÁS amplia que la
   # ventana de disputa (N): el agente no esconde transacciones viejas; POL-3 la decide SIM.
   default_lookback_days: 180

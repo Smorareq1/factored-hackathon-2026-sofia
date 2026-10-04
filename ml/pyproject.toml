@@ -20,3 +20,7 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/sofia_ml"]
+
+# The router trains at startup from the corpus, so it ships inside the package (Cloud Run has no repo checkout).
+[tool.hatch.build.targets.wheel.force-include]
+"data/intent_corpus.jsonl" = "sofia_ml/data/intent_corpus.jsonl"

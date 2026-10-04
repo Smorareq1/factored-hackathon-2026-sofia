@@ -366,6 +366,188 @@
           }
         }
       }
+    },
+    "hybrid-0.1[rules-ds-0.1+tfidf-lr-0.1]": {
+      "n": 56,
+      "accuracy": 0.75,
+      "macro_f1": 0.728,
+      "needs_human_recall": 0.7,
+      "f1_per_class": {
+        "dispute_new": 0.609,
+        "dispute_status": 0.8,
+        "transaction_inquiry": 0.526,
+        "out_of_scope": 0.968,
+        "needs_human": 0.737
+      },
+      "confusion": {
+        "labels": [
+          "dispute_new",
+          "dispute_status",
+          "transaction_inquiry",
+          "out_of_scope",
+          "needs_human"
+        ],
+        "matrix": [
+          [
+            7,
+            1,
+            0,
+            0,
+            0
+          ],
+          [
+            2,
+            8,
+            0,
+            0,
+            0
+          ],
+          [
+            4,
+            1,
+            5,
+            0,
+            2
+          ],
+          [
+            0,
+            0,
+            1,
+            15,
+            0
+          ],
+          [
+            2,
+            0,
+            1,
+            0,
+            7
+          ]
+        ]
+      },
+      "language_accuracy": 0.946,
+      "by_language": {
+        "es": {
+          "n": 28,
+          "accuracy": 0.714,
+          "macro_f1": 0.677,
+          "needs_human_recall": 0.6,
+          "f1_per_class": {
+            "dispute_new": 0.545,
+            "dispute_status": 0.727,
+            "transaction_inquiry": 0.444,
+            "out_of_scope": 1.0,
+            "needs_human": 0.667
+          },
+          "confusion": {
+            "labels": [
+              "dispute_new",
+              "dispute_status",
+              "transaction_inquiry",
+              "out_of_scope",
+              "needs_human"
+            ],
+            "matrix": [
+              [
+                3,
+                1,
+                0,
+                0,
+                0
+              ],
+              [
+                1,
+                4,
+                0,
+                0,
+                0
+              ],
+              [
+                2,
+                1,
+                2,
+                0,
+                1
+              ],
+              [
+                0,
+                0,
+                0,
+                8,
+                0
+              ],
+              [
+                1,
+                0,
+                1,
+                0,
+                3
+              ]
+            ]
+          }
+        },
+        "pt": {
+          "n": 28,
+          "accuracy": 0.786,
+          "macro_f1": 0.778,
+          "needs_human_recall": 0.8,
+          "f1_per_class": {
+            "dispute_new": 0.667,
+            "dispute_status": 0.889,
+            "transaction_inquiry": 0.6,
+            "out_of_scope": 0.933,
+            "needs_human": 0.8
+          },
+          "confusion": {
+            "labels": [
+              "dispute_new",
+              "dispute_status",
+              "transaction_inquiry",
+              "out_of_scope",
+              "needs_human"
+            ],
+            "matrix": [
+              [
+                4,
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                1,
+                4,
+                0,
+                0,
+                0
+              ],
+              [
+                2,
+                0,
+                3,
+                0,
+                1
+              ],
+              [
+                0,
+                0,
+                1,
+                7,
+                0
+              ],
+              [
+                1,
+                0,
+                0,
+                0,
+                4
+              ]
+            ]
+          }
+        }
+      }
     }
-  }
+  },
+  "served_version": "hybrid-0.1[rules-ds-0.1+tfidf-lr-0.1]",
+  "confidence_threshold": 0.35
 }

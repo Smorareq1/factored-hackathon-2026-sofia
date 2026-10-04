@@ -66,11 +66,14 @@ def write_report(report: dict, name: str = "router_eval", out_dir: Path = REPORT
 
 def to_markdown(report: dict) -> str:
     lines = [
-        "# Router: baseline vs propuesto (REQ-13)",
+        "# Router: baseline vs proposed (REQ-13)",
         "",
         f"Split: `{json.dumps(report['split'], ensure_ascii=False)}`",
         "",
-        "| Sistema | n | macro-F1 | recall needs_human | accuracy | acc. idioma | macro-F1 ES | macro-F1 PT |",
+        f"Served: `{report.get('served_version', '-')}` · "
+        f"agent clarifies below `{report.get('confidence_threshold', '-')}`",
+        "",
+        "| System | n | macro-F1 | needs_human recall | accuracy | language acc. | macro-F1 ES | macro-F1 PT |",
         "|---|---|---|---|---|---|---|---|",
     ]
     for name, r in report["systems"].items():
