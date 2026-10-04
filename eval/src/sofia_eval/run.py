@@ -4,16 +4,52 @@ import argparse
 import asyncio
 import json
 import logging
+import os
 import sys
+from datetime import UTC, datetime
 from pathlib import Path
 
 from sofia_agent.runner import Harness
 from sofia_contracts.eval_case import ConversationResult
+from sofia_eval.ds_stats import build_ds_stats, save_ds_stats
 from sofia_eval.levels import get_benchmark_cases, load_cases_from_dir, save_benchmark_cases
 from sofia_eval.report import build_evaluation_report, save_reports
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 logger = logging.getLogger("sofia_eval.run")
+
+
+def save_results(results: list[ConversationResult], path: Path) -> Path:
+    """Resultados por caso (JSONL): insumo de ds_stats y de cualquier re-análisis sin volver a correr."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8") as f:
+        for r in results:
+            f.write(r.model_dump_json() + "\n")
+    return path
+
+
+def load_segments(gold_dir: Path) -> dict[str, str]:
+    """customer_id -> segmento desde gold_customers (REQ-18). Vacío si no hay gold."""
+    path = gold_dir / "gold_customers.parquet"
+    if not path.exists():
+        return {}
+    import polars as pl
+
+    df = pl.read_parquet(path, columns=["customer_id", "segment"]).drop_nulls()
+    return dict(zip(df["customer_id"].to_list(), df["segment"].to_list(), strict=True))
+
+
+def run_metadata(versions: list[str], n_cases: int) -> dict[str, str | int | list[str]]:
+    """Qué se corrió (§6: variabilidad por versión de modelo/prompt). Sin secretos."""
+    return {
+        "started_at": datetime.now(UTC).isoformat(timespec="seconds"),
+        "versions": versions,
+        "n_cases": n_cases,
+        "llm_mode": os.getenv("SOFIA_LLM_MODE", "auto"),
+        "gemini_model": os.getenv("GEMINI_MODEL") or "default",
+        "gemini_fallback_models": os.getenv("GEMINI_FALLBACK_MODELS") or "default",
+        "git_sha": os.getenv("GIT_SHA", "unknown"),
+    }
 
 
 async def run_evaluation(
@@ -43,6 +79,7 @@ async def run_evaluation(
         cases = cases[:limit]
 
     logger.info("Cargados %d casos para evaluación. Versiones: %s", len(cases), versions)
+    meta = run_metadata(versions, len(cases))
 
     proposed_results: list[ConversationResult] = []
     baseline_results: list[ConversationResult] = []
@@ -118,19 +155,20 @@ async def run_evaluation(
         json.dump(results_data, f, indent=2, ensure_ascii=False)
     logger.info("Resultados detallados por caso guardados en: %s", results_path)
 
-    # Integración con capa estadística DS (ds_stats.json)
-    try:
-        from sofia_eval.ds_stats import build_ds_stats, save_ds_stats
-
-        stats = build_ds_stats(
-            cases,
-            proposed_results,
-            baseline_results if baseline_results else None,
-        )
-        ds_stats_file = save_ds_stats(stats, output_dir)
-        logger.info("Estadísticas DS (ds_stats.json) guardadas en: %s", ds_stats_file)
-    except Exception as exc:
-        logger.warning("No se pudo generar ds_stats.json: %s", exc)
+    # Integración con la capa estadística DS: resultados completos por caso (JSONL) y ds_stats.json con
+    # segmentos (REQ-18) y metadatos de la corrida. Si falla, la evaluación no se cae.
+    out = Path(output_dir)
+    for name, results in (("proposed", proposed_results), ("baseline", baseline_results)):
+        if results:
+            save_results(results, out / f"results_{name}.jsonl")
+    if proposed_results:
+        try:
+            segments = load_segments(Path(os.getenv("GOLD_DIR", "data/gold")))
+            stats = build_ds_stats(cases, proposed_results, baseline_results or None, segments=segments or None)
+            stats["meta"]["run"] = meta
+            logger.info("Estadística DS (IC, baseline vs propuesto): %s", save_ds_stats(stats, out))
+        except Exception as exc:
+            logger.warning("No se pudo generar ds_stats.json: %s", exc)
 
     # Imprimir resumen en consola
     print("\n" + "=" * 70)
