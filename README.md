@@ -129,7 +129,9 @@ Estado al 2026-10-03. "Parcial" y "pendiente" dicen qué falta.
 | Hoy (hackathon) | En producción |
 |---|---|
 | Conversaciones del agente en memoria (sin Postgres en la nube) → 1 instancia y se pierden al escalar a cero | Postgres administrado (Neon / Cloud SQL) como checkpointer; varias instancias |
-| El agente usa el banco simulado en proceso hasta integrar bank-api | bank-api real con su base y log de auditoría persistente |
+| bank-api en la nube con log de auditoría en memoria y solo los clientes demo (gold no viaja en la imagen) | bank-api con su base y log de auditoría persistente, gold servido desde GCS / BigQuery |
+| Rutas `/admin/*` y `/session/test` de bank-api pensadas para el harness | Fuera del despliegue público, o detrás de IAM |
+| Spans de bank-api y router no se unen a la traza del agente | Propagación `traceparent` + OpenTelemetry en todos los servicios |
 | Servicios públicos (`--allow-unauthenticated`); la identidad la valida la sesión con OTP | router y bank-api internos (VPC / IAM invoker); solo el frontend expuesto |
 | Gold se regenera a mano con `make data` | Pipeline programado (Cloud Run Jobs / Composer) con alertas de calidad y freshness |
 | Dataset estático (termina el 2026-06-17); freshness solo se reporta | SLA de freshness que bloquea la publicación de gold si se incumple |
