@@ -179,6 +179,7 @@ services:
       # El navegador habla solo con el agente (que hace de BFF hacia SIM) a través del puerto del host
       NEXT_PUBLIC_AGENT_URL: http://localhost:8001
       NEXT_PUBLIC_LANGFUSE_URL: http://localhost:3100
+      NEXT_PUBLIC_LANGFUSE_PROJECT_ID: ${LANGFUSE_PROJECT_ID:-sofia-local}
     ports:
       - 3000:3000
     depends_on:

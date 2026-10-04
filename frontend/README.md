@@ -6,7 +6,7 @@ Next.js 16 (App Router) + TypeScript + Tailwind v4. Sin librerías de UI ni de i
 | --- | --- |
 | `/` | Login demo con OTP simulado (REQ-11) |
 | `/chat` | Chat del cliente ES/PT + caja de cristal con los eventos de cada capa del agente (REQ-19). Selector Sofía / Baseline (§8.7) si el agente tiene LLM |
-| `/console` | Consola del agente humano: tablero de la cola, lista y ficha §9.4 (sin transcript, REQ-05) + feedback de la ficha (LEARN → score en la traza) |
+| `/console` | Consola del agente humano: tablero de la cola, lista y ficha §9.4 (sin transcript, REQ-05) + feedback de la ficha (LEARN → score en la traza). La ficha muestra también los campos extra del contrato: `schema_version`, `customer_claim`, `system_version` y `created_at` |
 | `/design` | Sofía DS en vivo: tokens, formas, iconos, átomos, moléculas, gráficas, organismos y movimiento |
 
 ## Sofía DS (diseño atómico)
@@ -45,6 +45,9 @@ Reglas:
 Con Docker, desde la raíz: `docker compose -f containers/local/compose.yaml --env-file .env up -d --build frontend` (http://localhost:3000). La imagen trae el código horneado: después de cambiar código hay que reconstruirla (o usar `compose watch`).
 
 Sin Docker: `cp .env.example .env.local && npm install && npm run dev`.
+
+El enlace "ver traza" arma `{NEXT_PUBLIC_LANGFUSE_URL}/project/{NEXT_PUBLIC_LANGFUSE_PROJECT_ID}/traces/{trace_id}`.
+En local el proyecto es `sofia-local`. En cloud hay que hornear el id real (`LANGFUSE_PROJECT_ID` en `.env`; `deploy.sh` lo pasa al build). Sin `NEXT_PUBLIC_LANGFUSE_URL` el enlace no se muestra.
 
 Chequeos: `npx tsc --noEmit && npx eslint . && npx next build`.
 

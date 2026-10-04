@@ -88,7 +88,10 @@ lo confirma; si la tool falla, reintenta de forma acotada y, si sigue fallando, 
 
 **¿Qué ve el humano en el handoff?**
 Una ficha JSON: hechos verificados con su fuente, acciones ejecutadas, preguntas abiertas, banderas de riesgo y la
-regla que motivó el handoff. Nunca el transcript (REQ-05). La completitud de campos se mide (MET-03:
+regla que motivó el handoff. Nunca el transcript (REQ-05). Además del §9.4 del brief, la ficha trae
+`schema_version`, `customer_claim`, `system_version` (los pone el agente) y `created_at` (lo pone SIM al guardar).
+El resumen y las preguntas abiertas van en el idioma de la conversación; los hechos verificados, en español.
+La completitud de campos se mide (MET-03:
 `{{eval/outputs/ds_stats.json:proposed.metricas.met03_handoff_completeness}}`).
 
 ## 4. Evaluación y estadística
@@ -123,8 +126,11 @@ decimos así en el reporte.
 
 **El dataset es todo en español. ¿Qué tan bueno es su portugués?**
 Es nuestra mayor limitación y la declaramos. Los casos PT son generados por el equipo: traducidos con LLM y
-revisados por humanos, y etiquetados `team_generated` (CON-02). Revisamos `{{PENDIENTE:casos PT revisados por humanos}}`
-de `{{PENDIENTE:casos PT totales en la revisión}}` casos y corregimos `{{PENDIENTE:casos PT corregidos en la revisión}}`.
+revisados por humanos, y etiquetados `team_generated` (CON-02). El catálogo del harness está balanceado (100 ES y
+100 PT). El script enmascara los identificadores antes de traducir y el texto se revisa a mano antes del reporte;
+no medimos cuántas frases se corrigieron en ese pase, así que no inventamos ese conteo. Las correcciones ya
+escritas del corpus del router están en `ml/reports/corpus_audit.md`. El set de desarrollo del agente (23 ES, 7 PT)
+solo alimenta el gate y no es esta muestra.
 Riesgo conocido: un PT traducido es más "limpio" que el de un cliente real de Brasil (menos jerga, menos errores de
 tipeo), así que el resultado PT probablemente es optimista. En producción: un set PT real etiquetado por hablantes
 nativos antes de abrir el canal.

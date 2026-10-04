@@ -8,6 +8,7 @@ substitutions:
   _TARGETS: backend # backend | frontend
   _AGENT_URL: ""
   _LANGFUSE_URL: ""
+  _LANGFUSE_PROJECT_ID: sofia-local
 
 options:
   logging: CLOUD_LOGGING_ONLY
@@ -32,6 +33,7 @@ steps:
         else
           docker build -f containers/frontend.Dockerfile --target runtime \
             --build-arg NEXT_PUBLIC_AGENT_URL="${_AGENT_URL}" --build-arg NEXT_PUBLIC_LANGFUSE_URL="${_LANGFUSE_URL}" \
+            --build-arg NEXT_PUBLIC_LANGFUSE_PROJECT_ID="${_LANGFUSE_PROJECT_ID}" \
             -t "$$IMG/frontend:${_TAG}" -t "$$IMG/frontend:latest" frontend
           docker push --all-tags "$$IMG/frontend"
         fi

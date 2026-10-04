@@ -95,7 +95,10 @@ mensaje) y datos incorrectos (monto o comercio que no coincide). Se prueban en
 [agent/tests/test_sense_interpret.py](../agent/tests/test_sense_interpret.py), no en el harness.
 
 Portugués: todos los casos PT son **generados por el equipo** (traducción + revisión humana, `origin: team_generated`);
-el dataset solo trae español.
+el dataset solo trae español. El catálogo del harness está balanceado (100 ES / 100 PT). `agent/scripts/translate_cases.py`
+enmascara los identificadores, traduce y deja el caso para revisión humana antes del reporte (§8.5). No hay un conteo
+de frases corregidas en ese pase. El set de desarrollo del agente (`agent/evals/dev_cases.jsonl`, 23 ES y 7 PT) no entra
+en esta muestra: solo corre el gate de regresión.
 
 ## 4. Métricas (definiciones de §6)
 
