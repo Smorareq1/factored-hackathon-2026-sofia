@@ -87,12 +87,20 @@ def main() -> None:
     split = group_split(examples, args.test_size, args.holdout_days, args.seed)
     log.info("split %s: %s", split.strategy, split.info)
 
+    from sofia_ml.router import HYBRID_ROUTER_VERSION, RECOMMENDED_CONFIDENCE_THRESHOLD, HybridRouter
+
     pipe = fit(split.train)
     report = compare(
         split.test,
-        {RULES_ROUTER_VERSION: predict_rules, MODEL_VERSION: as_predictor(pipe)},
+        {
+            RULES_ROUTER_VERSION: predict_rules,
+            MODEL_VERSION: as_predictor(pipe),
+            HYBRID_ROUTER_VERSION: HybridRouter(as_predictor(pipe)).predict,
+        },
         split_info={"strategy": split.strategy, **split.info},
     )
+    report["served_version"] = HYBRID_ROUTER_VERSION
+    report["confidence_threshold"] = RECOMMENDED_CONFIDENCE_THRESHOLD
     log.info("reporte: %s", write_report(report))
     save(fit(examples), split.info)  # el modelo servido usa todo el corpus; las métricas son las del held-out
     log.info("modelo en %s", MODEL_DIR)

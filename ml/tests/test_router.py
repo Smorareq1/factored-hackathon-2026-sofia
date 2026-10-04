@@ -5,7 +5,8 @@ import pytest
 from fastapi.testclient import TestClient
 
 from sofia_contracts.router import IN_SCOPE_INTENTS, IntentPrediction
-from sofia_ml.baseline_rules import RULES_ROUTER_VERSION, predict_rules
+from sofia_ml.baseline_rules import predict_rules
+from sofia_ml.router import HYBRID_ROUTER_VERSION
 from sofia_ml.serve import app
 
 client = TestClient(app)
@@ -61,7 +62,7 @@ def test_needs_human_wins_over_other_intents() -> None:
 def test_unknown_text_is_low_confidence() -> None:
     prediction = predict_rules("asdf qwerty")
     assert prediction.intent == "out_of_scope"
-    assert prediction.confidence < 0.55  # umbral de purpose.yaml: el agente debe aclarar, no abstenerse
+    assert prediction.confidence < 0.35  # umbral de purpose.yaml: el agente debe aclarar, no abstenerse
 
 
 def test_language_hint_is_the_fallback_when_there_is_no_evidence() -> None:
@@ -75,7 +76,7 @@ def test_predict_endpoint_matches_contract() -> None:
     body = response.json()
     prediction = IntentPrediction.model_validate(body)  # valida tipos y rangos del contrato
     assert prediction.intent in IN_SCOPE_INTENTS
-    assert prediction.router_version == RULES_ROUTER_VERSION
+    assert prediction.router_version.startswith(HYBRID_ROUTER_VERSION)
     assert prediction.language_confidence is not None
 
 

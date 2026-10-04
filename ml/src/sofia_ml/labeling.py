@@ -33,6 +33,8 @@ from sofia_contracts.router import Intent
 INTENTS: tuple[Intent, ...] = get_args(Intent)
 ML_DIR = Path(os.getenv("ML_DIR", Path(__file__).resolve().parents[2]))
 CORPUS_PATH = ML_DIR / "data" / "intent_corpus.jsonl"
+if not CORPUS_PATH.exists():  # installed wheel (Cloud Run): the corpus ships inside the package
+    CORPUS_PATH = Path(__file__).parent / "data" / "intent_corpus.jsonl"
 MANUAL_LABELS_PATH = ML_DIR / "labels" / "manual_labels.csv"
 
 
