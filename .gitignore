@@ -68,10 +68,12 @@ data/fixture/**
 !data/bronze/.gitkeep
 !data/silver/.gitkeep
 !data/gold/.gitkeep
-data/**/*.parquet
-data/**/*.csv
-data/**/*.tsv
-data/**/*.jsonl
+/data/**/*.parquet
+/data/**/*.csv
+/data/**/*.tsv
+/data/**/*.jsonl
+!ml/data/**
+!ml/data/intent_corpus.jsonl
 *.parquet
 *.duckdb
 *.duckdb.wal

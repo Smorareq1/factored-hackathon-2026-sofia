@@ -16,3 +16,5 @@ data/fixture
 data/cache
 frontend
 eval/reports
+!ml/data/**
+!ml/data/intent_corpus.jsonl
