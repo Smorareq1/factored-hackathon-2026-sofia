@@ -1,4 +1,8 @@
-"""Punto de entrada CLI para ejecutar la suite de evaluación (make eval, §6, §11 SIM)."""
+"""Punto de entrada CLI para ejecutar la suite de evaluación (make eval, §6, §11 SIM).
+
+Soporta ejecución por lotes (batches), control de rate-limiting (delay) y checkpoints
+para permitir evaluar sets grandes (100–200+ casos) de forma segura en free tier.
+"""
 
 import argparse
 import asyncio
@@ -10,7 +14,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from sofia_agent.runner import Harness
-from sofia_contracts.eval_case import ConversationResult
+from sofia_contracts.eval_case import ConversationResult, EvalCase
 from sofia_eval.ds_stats import build_ds_stats, save_ds_stats
 from sofia_eval.levels import get_benchmark_cases, load_cases_from_dir, save_benchmark_cases
 from sofia_eval.report import build_evaluation_report, save_reports
@@ -52,6 +56,49 @@ def run_metadata(versions: list[str], n_cases: int) -> dict[str, str | int | lis
     }
 
 
+async def _run_version_batched(
+    harness: Harness,
+    cases: list[EvalCase],
+    version: str,
+    output_dir: Path,
+    batch_size: int = 20,
+    delay_s: float = 0.0,
+    resume: bool = True,
+) -> list[ConversationResult]:
+    results_file = output_dir / f"results_{version}.jsonl"
+    results: list[ConversationResult] = []
+
+    if resume and results_file.exists():
+        try:
+            with results_file.open("r", encoding="utf-8") as f:
+                for line in f:
+                    if line.strip():
+                        results.append(ConversationResult.model_validate_json(line))
+            logger.info("Reanudando versión '%s': %d casos ya evaluados.", version, len(results))
+        except Exception as exc:
+            logger.warning("Error leyendo checkpoint previo de %s: %s", results_file, exc)
+            results = []
+
+    done_ids = {r.case_id for r in results}
+    pending = [c for c in cases if c.case_id not in done_ids]
+
+    logger.info("Ejecutando versión '%s': %d casos pendientes de %d.", version, len(pending), len(cases))
+
+    for i, case in enumerate(pending, 1):
+        res = await harness.run(case, version)
+        results.append(res)
+
+        if delay_s > 0 and i < len(pending):
+            await asyncio.sleep(delay_s)
+
+        if batch_size > 0 and (i % batch_size == 0 or i == len(pending)):
+            save_results(results, results_file)
+            logger.info("Checkpoint guardado (%d/%d casos) para %s.", len(results), len(cases), version)
+
+    save_results(results, results_file)
+    return results
+
+
 async def run_evaluation(
     cases_dir: str = "eval/cases",
     output_dir: str = "eval/outputs",
@@ -59,9 +106,14 @@ async def run_evaluation(
     language: str | None = None,
     level: int | None = None,
     limit: int | None = None,
+    batch_size: int = 20,
+    delay: float = 0.0,
+    resume: bool = True,
 ) -> int:
     versions = versions or ["proposed"]
     cases_path = Path(cases_dir)
+    out = Path(output_dir)
+    out.mkdir(parents=True, exist_ok=True)
 
     # Si no existen los casos en disco, guardarlos
     if not (cases_path / "es" / "cases.jsonl").exists():
@@ -78,7 +130,14 @@ async def run_evaluation(
     if limit:
         cases = cases[:limit]
 
-    logger.info("Cargados %d casos para evaluación. Versiones: %s", len(cases), versions)
+    logger.info(
+        "Cargados %d casos para evaluación. Versiones: %s | Batch size: %d | Delay: %.1fs | Resume: %s",
+        len(cases),
+        versions,
+        batch_size,
+        delay,
+        resume,
+    )
     meta = run_metadata(versions, len(cases))
 
     proposed_results: list[ConversationResult] = []
@@ -86,14 +145,14 @@ async def run_evaluation(
 
     async with Harness.open() as harness:
         if "proposed" in versions:
-            logger.info("Ejecutando sistema propuesto (S.O.F.I.A.)...")
-            for c in cases:
-                proposed_results.append(await harness.run(c, "proposed"))
+            proposed_results = await _run_version_batched(
+                harness, cases, "proposed", out, batch_size=batch_size, delay_s=delay, resume=resume
+            )
 
         if "baseline" in versions:
-            logger.info("Ejecutando sistema baseline...")
-            for c in cases:
-                baseline_results.append(await harness.run(c, "baseline"))
+            baseline_results = await _run_version_batched(
+                harness, cases, "baseline", out, batch_size=batch_size, delay_s=delay, resume=resume
+            )
 
     md_report, summary = build_evaluation_report(
         cases,
@@ -106,7 +165,7 @@ async def run_evaluation(
 
     # Exportar resultados individuales por caso (para DS y trazabilidad)
     case_map = {c.case_id: c for c in cases}
-    results_path = Path(output_dir) / "results.json"
+    results_path = out / "results.json"
     results_data = {
         "proposed": [
             {
@@ -157,10 +216,6 @@ async def run_evaluation(
 
     # Integración con la capa estadística DS: resultados completos por caso (JSONL) y ds_stats.json con
     # segmentos (REQ-18) y metadatos de la corrida. Si falla, la evaluación no se cae.
-    out = Path(output_dir)
-    for name, results in (("proposed", proposed_results), ("baseline", baseline_results)):
-        if results:
-            save_results(results, out / f"results_{name}.jsonl")
     if proposed_results:
         try:
             segments = load_segments(Path(os.getenv("GOLD_DIR", "data/gold")))
@@ -201,6 +256,9 @@ def main() -> None:
     parser.add_argument("--language", default=None, choices=["es", "pt"], help="Filtrar por idioma")
     parser.add_argument("--level", type=int, default=None, choices=[1, 2, 3, 4, 5], help="Filtrar por nivel")
     parser.add_argument("--limit", type=int, default=None, help="Límite máximo de casos")
+    parser.add_argument("--batch-size", type=int, default=20, help="Tamaño de lote para checkpoints")
+    parser.add_argument("--delay", type=float, default=0.0, help="Segundos de pausa entre casos (rate-limiting)")
+    parser.add_argument("--no-resume", action="store_true", help="No reanudar desde checkpoint existente")
 
     args = parser.parse_args()
     versions = [v.strip() for v in args.versions.split(",") if v.strip()]
@@ -213,6 +271,9 @@ def main() -> None:
             language=args.language,
             level=args.level,
             limit=args.limit,
+            batch_size=args.batch_size,
+            delay=args.delay,
+            resume=not args.no_resume,
         )
     )
     sys.exit(exit_code)
