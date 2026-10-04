@@ -1,7 +1,7 @@
 # Definition of Done (§13 del brief) — dueño: OPS
 
 Checklist de entrega. Se revisa en la integración 2 (10-02) y antes del envío (10-05). Cada ítem lleva la evidencia o
-lo que falta. Estado al 2026-10-04 (develop `d367776`).
+lo que falta. Estado al 2026-10-04 (develop `3b2f295`).
 
 ## Entrega
 
@@ -26,14 +26,16 @@ lo que falta. Estado al 2026-10-04 (develop `d367776`).
   cada PR ([ci.yml](.github/workflows/ci.yml)); `data/` y `.env` fuera de git, de Cloud Build y de las imágenes.
 - [ ] **`make setup && make data && make run && make eval` funciona desde cero.**
   - [x] `make setup`, `make data` (S3 o `make data-fixture`) y `make run`
-  - [ ] `make eval`: corre solo `proposed`; falta `--versions proposed,baseline` (SIM)
+  - [x] `make eval` corre baseline y propuesto (`--versions proposed,baseline` por defecto); falta la corrida completa: el
+    `eval/outputs/results.json` versionado tiene 5 casos del propuesto y 0 del baseline (SIM + DS)
   - [ ] Probado desde un clon limpio
 - [ ] **Demo en Cloud Run levantable bajo pedido, probada desde una red externa.** Deploy continuo en cada merge a
   `develop` ([deploy.yml](.github/workflows/deploy.yml)).
   - [x] Desplegada y probada de punta a punta (login con OTP → disputa con Gemini por Vertex AI)
   - [x] Agente conectado a la bank-api desplegada (2026-10-04). `deploy.sh` la usa por defecto, así que el CD ya no
     vuelve al banco en proceso
-  - [ ] Rutas `/admin/*` y `/session/test` de bank-api cerradas en la nube (SIM)
+  - [x] `/admin/*` y `/session/test` de bank-api cerradas en la nube (SIM): 403 salvo `X-Admin-Key` = secreto
+    `admin-api-key`
   - [ ] Prueba de punta a punta del frontend contra la bank-api desplegada (OPS + AG)
   - [ ] Probada desde una red externa en la ventana acordada, con `MIN_INSTANCES=1`
 

@@ -16,7 +16,7 @@ Un servicio por imagen `runtime`:
 | `frontend` | `containers/frontend.Dockerfile` | `NEXT_PUBLIC_AGENT_URL` se incrusta al compilar: se construye después del agente |
 | `agent` | `python.Dockerfile` · `sofia-agent` | Gemini por **Vertex AI** (`GEMINI_BACKEND=vertex`) con la cuenta `sofia-agent` (`roles/aiplatform.user`): lo cubren los créditos de GCP, a diferencia de AI Studio |
 | `router` | `python.Dockerfile` · `sofia-ml` | |
-| `bank-api` | `python.Dockerfile` · `sofia-services` | El agente apunta a la URL de `bank-api` desplegada; `AGENT_BANK_API_URL=fake deploy.sh services` vuelve al banco en proceso |
+| `bank-api` | `python.Dockerfile` · `sofia-services` | El agente apunta a la URL de `bank-api` desplegada; `AGENT_BANK_API_URL=fake deploy.sh services` vuelve al banco en proceso. `max-instances=1`: sesiones, OTP y disputas viven en memoria |
 
 ```bash
 infra/cloudrun/deploy.sh             # primera vez: APIs, Artifact Registry, cuentas de servicio, secretos, build y deploy
@@ -64,6 +64,7 @@ En producción: propagar `traceparent` (W3C) e instrumentar bank-api y router co
 | `langfuse-public-key` | `LANGFUSE_PUBLIC_KEY` | agent |
 | `langfuse-secret-key` | `LANGFUSE_SECRET_KEY` | agent |
 | `database-url` | `DATABASE_URL_CLOUD` (opcional) | agent |
+| `admin-api-key` | `ADMIN_API_KEY` (opcional) | bank-api: abre `/admin/*` y `/session/test` con el header `X-Admin-Key`. Sin él quedan en 403 |
 
 Gemini en la nube no necesita API key: usa la cuenta de servicio.
 

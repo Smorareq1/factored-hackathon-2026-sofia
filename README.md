@@ -130,7 +130,8 @@ Estado al 2026-10-03. "Parcial" y "pendiente" dicen qué falta.
 |---|---|
 | Conversaciones del agente en memoria (sin Postgres en la nube) → 1 instancia y se pierden al escalar a cero | Postgres administrado (Neon / Cloud SQL) como checkpointer; varias instancias |
 | bank-api en la nube con log de auditoría en memoria y solo los clientes demo (gold no viaja en la imagen) | bank-api con su base y log de auditoría persistente, gold servido desde GCS / BigQuery |
-| Rutas `/admin/*` y `/session/test` de bank-api pensadas para el harness | Fuera del despliegue público, o detrás de IAM |
+| `/admin/*` y `/session/test` de bank-api protegidas en la nube con una clave compartida (`X-Admin-Key`) | Fuera del despliegue público, detrás de IAM |
+| bank-api con estado en memoria → 1 instancia | Estado en Postgres; varias instancias |
 | Spans de bank-api y router no se unen a la traza del agente | Propagación `traceparent` + OpenTelemetry en todos los servicios |
 | Servicios públicos (`--allow-unauthenticated`); la identidad la valida la sesión con OTP | router y bank-api internos (VPC / IAM invoker); solo el frontend expuesto |
 | Gold se regenera a mano con `make data` | Pipeline programado (Cloud Run Jobs / Composer) con alertas de calidad y freshness |
