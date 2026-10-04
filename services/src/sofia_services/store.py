@@ -235,7 +235,7 @@ class BankStore:
                         tx=tx_obj,
                         customer_id=str(cid),
                         is_fraud=bool(is_fraud) if is_fraud is not None else False,
-                        fraud_score=float(score) if score is not None else 0.05,
+                        fraud_score=gold_fraud_score(score),
                     )
         except Exception as exc:
             logger.warning("No se pudieron cargar archivos parquet de GOLD_DIR: %s", exc)
@@ -247,6 +247,14 @@ class BankStore:
 
 
 _store_instance: BankStore | None = None
+
+
+def gold_fraud_score(score: float | None) -> float:
+    """gold trae fraud_score en 0–100 (siempre); la política trabaja en 0–1, como los datos semilla.
+
+    Se convierte por origen, no por valor: un 0.5 de gold es 0.5/100, no 0.5.
+    """
+    return float(score) / 100 if score is not None else 0.05
 
 
 def get_store() -> BankStore:
