@@ -109,8 +109,9 @@ deploy_services() {
   bank_url="$(url_of bank-api)"
   frontend_url="$(url_of frontend)"
 
-  # Hasta que SIM publique la API real, el agente usa el banco en proceso (BANK_API_URL=fake).
-  env="SOFIA_ENV=cloud,BANK_API_URL=${AGENT_BANK_API_URL:-fake},ROUTER_URL=$router_url"
+  # El agente usa el bank-api desplegado; AGENT_BANK_API_URL=fake vuelve al banco en proceso.
+  local agent_bank="${AGENT_BANK_API_URL:-${bank_url:-fake}}"
+  env="SOFIA_ENV=cloud,BANK_API_URL=$agent_bank,ROUTER_URL=$router_url"
   env+=",GEMINI_BACKEND=vertex,GOOGLE_CLOUD_PROJECT=$PROJECT,GOOGLE_CLOUD_LOCATION=$VERTEX_LOCATION"
   env+=",SOFIA_LLM_MODE=auto,CORS_ORIGINS=${frontend_url:-http://localhost:3000}"
   [ -n "$(env_value GEMINI_MODEL)" ] && env+=",GEMINI_MODEL=$(env_value GEMINI_MODEL)"
@@ -127,7 +128,7 @@ deploy_services() {
   secret_exists database-url && max=3
   deploy_python agent agent sofia_agent.api.main:app sofia-agent --max-instances "$max" --timeout 300 \
     --set-env-vars "$env" ${secret_flag[@]+"${secret_flag[@]}"}
-  echo "  bank-api: $bank_url (el agente lo usará cuando AGENT_BANK_API_URL=$bank_url)"
+  echo "  agente → BANK_API_URL=$agent_bank"
 }
 
 deploy_frontend() {

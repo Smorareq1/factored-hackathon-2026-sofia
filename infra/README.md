@@ -16,7 +16,7 @@ Un servicio por imagen `runtime`:
 | `frontend` | `containers/frontend.Dockerfile` | `NEXT_PUBLIC_AGENT_URL` se incrusta al compilar: se construye después del agente |
 | `agent` | `python.Dockerfile` · `sofia-agent` | Gemini por **Vertex AI** (`GEMINI_BACKEND=vertex`) con la cuenta `sofia-agent` (`roles/aiplatform.user`): lo cubren los créditos de GCP, a diferencia de AI Studio |
 | `router` | `python.Dockerfile` · `sofia-ml` | |
-| `bank-api` | `python.Dockerfile` · `sofia-services` | El agente usa `BANK_API_URL=fake` hasta que SIM publique la API; luego `AGENT_BANK_API_URL=<url> deploy.sh services` |
+| `bank-api` | `python.Dockerfile` · `sofia-services` | El agente apunta a la URL de `bank-api` desplegada; `AGENT_BANK_API_URL=fake deploy.sh services` vuelve al banco en proceso |
 
 ```bash
 infra/cloudrun/deploy.sh             # primera vez: APIs, Artifact Registry, cuentas de servicio, secretos, build y deploy
