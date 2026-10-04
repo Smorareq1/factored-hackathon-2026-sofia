@@ -131,3 +131,26 @@ def require_agent(session: Annotated[SessionRecord, Depends(get_current_session)
         )
         raise HTTPException(status_code=403, detail="agent_role_required")
     return session
+
+
+def require_admin_or_local(
+    x_admin_key: Annotated[str | None, Header(alias="X-Admin-Key")] = None,
+    store: Annotated[BankStore, Depends(get_store)] = None,  # type: ignore[assignment]
+) -> None:
+    """Protege rutas administrativas y sandbox en entornos cloud (SOFIA_ENV=cloud).
+
+    En cloud, sólo se permite acceso si ADMIN_API_KEY está configurada y coincide
+    con el header X-Admin-Key. En local/test, se permite acceso irrestricto salvo que
+    se configure explícitamente ADMIN_API_KEY y no coincida.
+    """
+    store = store or get_store()
+    settings = store.settings
+    is_cloud = settings.SOFIA_ENV.lower() in ("cloud", "production", "prod")
+    if is_cloud:
+        if not settings.ADMIN_API_KEY or x_admin_key != settings.ADMIN_API_KEY:
+            audit_trail.record("admin_access_forbidden", reason="cloud_restricted")
+            raise HTTPException(
+                status_code=403,
+                detail="Admin and test endpoints are restricted in cloud environment",
+            )
+

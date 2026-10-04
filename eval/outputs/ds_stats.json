@@ -1,0 +1,514 @@
+{
+  "meta": {
+    "alpha": 0.05,
+    "confianza": 0.95,
+    "n_boot": 1000,
+    "seed": 20260,
+    "min_n": 10,
+    "metodos": {
+      "proporciones": "IC de Wilson; regla de tres (3/n) si 0 eventos",
+      "continuas": "bootstrap percentil remuestreando casos (calculate_metrics por réplica)",
+      "diferencia_proporciones": "IC de Newcombe (Wilson); Fisher exacto si esperado < 5, si no z",
+      "diferencia_continuas": "bootstrap de la diferencia (pareado por case_id si aplica)",
+      "desglose": "celdas con n < 10 se marcan 'n insuficiente'"
+    }
+  },
+  "proposed": {
+    "n": 5,
+    "n_insuficiente": true,
+    "metricas": {
+      "met01_safe_auto_resolution": {
+        "k": 1,
+        "n": 5,
+        "rate": 0.2,
+        "ci": [
+          0.0362,
+          0.6245
+        ],
+        "ci_method": "wilson",
+        "n_insuficiente": true,
+        "mejor_si": "mayor"
+      },
+      "met01_auto_attempt": {
+        "k": 1,
+        "n": 5,
+        "rate": 0.2,
+        "ci": [
+          0.0362,
+          0.6245
+        ],
+        "ci_method": "wilson",
+        "n_insuficiente": true,
+        "mejor_si": "mayor"
+      },
+      "met02_containment": {
+        "k": 5,
+        "n": 5,
+        "rate": 1.0,
+        "ci": [
+          0.5655,
+          1.0
+        ],
+        "ci_method": "wilson",
+        "n_insuficiente": true,
+        "mejor_si": "mayor"
+      },
+      "met03_escalation_precision": {
+        "k": 0,
+        "n": 0,
+        "rate": null,
+        "ci": null,
+        "ci_method": "wilson",
+        "n_insuficiente": true,
+        "mejor_si": "mayor"
+      },
+      "met03_escalation_recall": {
+        "k": 0,
+        "n": 0,
+        "rate": null,
+        "ci": null,
+        "ci_method": "wilson",
+        "n_insuficiente": true,
+        "mejor_si": "mayor"
+      },
+      "met04_unsafe_outcomes": {
+        "k": 0,
+        "n": 5,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.4345
+        ],
+        "ci_method": "wilson",
+        "n_insuficiente": true,
+        "rule_of_three_upper": 0.6,
+        "mejor_si": "menor"
+      },
+      "met03_handoff_completeness": {
+        "value": 0.0,
+        "n": 0,
+        "ci": [
+          0.0,
+          0.0
+        ],
+        "ci_method": "bootstrap_percentil",
+        "n_insuficiente": true,
+        "mejor_si": "mayor"
+      },
+      "met05_latency_p50_ms": {
+        "value": 34.0,
+        "n": 5,
+        "ci": [
+          21.0,
+          53.0
+        ],
+        "ci_method": "bootstrap_percentil",
+        "n_insuficiente": true,
+        "mejor_si": "menor"
+      },
+      "met05_latency_p95_ms": {
+        "value": 52.6,
+        "n": 5,
+        "ci": [
+          34.0,
+          53.0
+        ],
+        "ci_method": "bootstrap_percentil",
+        "n_insuficiente": true,
+        "mejor_si": "menor"
+      },
+      "met06_cost_per_case_usd": {
+        "value": 0.0,
+        "n": 5,
+        "ci": [
+          0.0,
+          0.0
+        ],
+        "ci_method": "bootstrap_percentil",
+        "n_insuficiente": true,
+        "mejor_si": "menor",
+        "n_con_costo": 5
+      }
+    }
+  },
+  "baseline": null,
+  "comparacion": null,
+  "paridad_idioma": null,
+  "desglose": {
+    "idioma": {
+      "es": {
+        "n": 5,
+        "n_insuficiente": true,
+        "proposed": {
+          "n": 5,
+          "n_insuficiente": true,
+          "metricas": {
+            "met01_safe_auto_resolution": {
+              "k": 1,
+              "n": 5,
+              "rate": 0.2,
+              "ci": [
+                0.0362,
+                0.6245
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "mayor"
+            },
+            "met01_auto_attempt": {
+              "k": 1,
+              "n": 5,
+              "rate": 0.2,
+              "ci": [
+                0.0362,
+                0.6245
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "mayor"
+            },
+            "met02_containment": {
+              "k": 5,
+              "n": 5,
+              "rate": 1.0,
+              "ci": [
+                0.5655,
+                1.0
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "mayor"
+            },
+            "met03_escalation_precision": {
+              "k": 0,
+              "n": 0,
+              "rate": null,
+              "ci": null,
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "mayor"
+            },
+            "met03_escalation_recall": {
+              "k": 0,
+              "n": 0,
+              "rate": null,
+              "ci": null,
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "mayor"
+            },
+            "met04_unsafe_outcomes": {
+              "k": 0,
+              "n": 5,
+              "rate": 0.0,
+              "ci": [
+                0.0,
+                0.4345
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "rule_of_three_upper": 0.6,
+              "mejor_si": "menor"
+            },
+            "met03_handoff_completeness": {
+              "value": 0.0,
+              "n": 0,
+              "ci": [
+                0.0,
+                0.0
+              ],
+              "ci_method": "bootstrap_percentil",
+              "n_insuficiente": true,
+              "mejor_si": "mayor"
+            },
+            "met05_latency_p50_ms": {
+              "value": 34.0,
+              "n": 5,
+              "ci": [
+                21.0,
+                53.0
+              ],
+              "ci_method": "bootstrap_percentil",
+              "n_insuficiente": true,
+              "mejor_si": "menor"
+            },
+            "met05_latency_p95_ms": {
+              "value": 52.6,
+              "n": 5,
+              "ci": [
+                34.0,
+                53.0
+              ],
+              "ci_method": "bootstrap_percentil",
+              "n_insuficiente": true,
+              "mejor_si": "menor"
+            },
+            "met06_cost_per_case_usd": {
+              "value": 0.0,
+              "n": 5,
+              "ci": [
+                0.0,
+                0.0
+              ],
+              "ci_method": "bootstrap_percentil",
+              "n_insuficiente": true,
+              "mejor_si": "menor",
+              "n_con_costo": 5
+            }
+          }
+        },
+        "nota": "n insuficiente (n=5 < 10): se reporta, no se concluye"
+      }
+    },
+    "nivel": {
+      "1": {
+        "n": 5,
+        "n_insuficiente": true,
+        "proposed": {
+          "n": 5,
+          "n_insuficiente": true,
+          "metricas": {
+            "met01_safe_auto_resolution": {
+              "k": 1,
+              "n": 5,
+              "rate": 0.2,
+              "ci": [
+                0.0362,
+                0.6245
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "mayor"
+            },
+            "met01_auto_attempt": {
+              "k": 1,
+              "n": 5,
+              "rate": 0.2,
+              "ci": [
+                0.0362,
+                0.6245
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "mayor"
+            },
+            "met02_containment": {
+              "k": 5,
+              "n": 5,
+              "rate": 1.0,
+              "ci": [
+                0.5655,
+                1.0
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "mayor"
+            },
+            "met03_escalation_precision": {
+              "k": 0,
+              "n": 0,
+              "rate": null,
+              "ci": null,
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "mayor"
+            },
+            "met03_escalation_recall": {
+              "k": 0,
+              "n": 0,
+              "rate": null,
+              "ci": null,
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "mayor"
+            },
+            "met04_unsafe_outcomes": {
+              "k": 0,
+              "n": 5,
+              "rate": 0.0,
+              "ci": [
+                0.0,
+                0.4345
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "rule_of_three_upper": 0.6,
+              "mejor_si": "menor"
+            },
+            "met03_handoff_completeness": {
+              "value": 0.0,
+              "n": 0,
+              "ci": [
+                0.0,
+                0.0
+              ],
+              "ci_method": "bootstrap_percentil",
+              "n_insuficiente": true,
+              "mejor_si": "mayor"
+            },
+            "met05_latency_p50_ms": {
+              "value": 34.0,
+              "n": 5,
+              "ci": [
+                21.0,
+                53.0
+              ],
+              "ci_method": "bootstrap_percentil",
+              "n_insuficiente": true,
+              "mejor_si": "menor"
+            },
+            "met05_latency_p95_ms": {
+              "value": 52.6,
+              "n": 5,
+              "ci": [
+                34.0,
+                53.0
+              ],
+              "ci_method": "bootstrap_percentil",
+              "n_insuficiente": true,
+              "mejor_si": "menor"
+            },
+            "met06_cost_per_case_usd": {
+              "value": 0.0,
+              "n": 5,
+              "ci": [
+                0.0,
+                0.0
+              ],
+              "ci_method": "bootstrap_percentil",
+              "n_insuficiente": true,
+              "mejor_si": "menor",
+              "n_con_costo": 5
+            }
+          }
+        },
+        "nota": "n insuficiente (n=5 < 10): se reporta, no se concluye"
+      }
+    },
+    "tipo": {
+      "normal": {
+        "n": 5,
+        "n_insuficiente": true,
+        "proposed": {
+          "n": 5,
+          "n_insuficiente": true,
+          "metricas": {
+            "met01_safe_auto_resolution": {
+              "k": 1,
+              "n": 5,
+              "rate": 0.2,
+              "ci": [
+                0.0362,
+                0.6245
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "mayor"
+            },
+            "met01_auto_attempt": {
+              "k": 1,
+              "n": 5,
+              "rate": 0.2,
+              "ci": [
+                0.0362,
+                0.6245
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "mayor"
+            },
+            "met02_containment": {
+              "k": 5,
+              "n": 5,
+              "rate": 1.0,
+              "ci": [
+                0.5655,
+                1.0
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "mayor"
+            },
+            "met03_escalation_precision": {
+              "k": 0,
+              "n": 0,
+              "rate": null,
+              "ci": null,
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "mayor"
+            },
+            "met03_escalation_recall": {
+              "k": 0,
+              "n": 0,
+              "rate": null,
+              "ci": null,
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "mayor"
+            },
+            "met04_unsafe_outcomes": {
+              "k": 0,
+              "n": 5,
+              "rate": 0.0,
+              "ci": [
+                0.0,
+                0.4345
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "rule_of_three_upper": 0.6,
+              "mejor_si": "menor"
+            },
+            "met03_handoff_completeness": {
+              "value": 0.0,
+              "n": 0,
+              "ci": [
+                0.0,
+                0.0
+              ],
+              "ci_method": "bootstrap_percentil",
+              "n_insuficiente": true,
+              "mejor_si": "mayor"
+            },
+            "met05_latency_p50_ms": {
+              "value": 34.0,
+              "n": 5,
+              "ci": [
+                21.0,
+                53.0
+              ],
+              "ci_method": "bootstrap_percentil",
+              "n_insuficiente": true,
+              "mejor_si": "menor"
+            },
+            "met05_latency_p95_ms": {
+              "value": 52.6,
+              "n": 5,
+              "ci": [
+                34.0,
+                53.0
+              ],
+              "ci_method": "bootstrap_percentil",
+              "n_insuficiente": true,
+              "mejor_si": "menor"
+            },
+            "met06_cost_per_case_usd": {
+              "value": 0.0,
+              "n": 5,
+              "ci": [
+                0.0,
+                0.0
+              ],
+              "ci_method": "bootstrap_percentil",
+              "n_insuficiente": true,
+              "mejor_si": "menor",
+              "n_con_costo": 5
+            }
+          }
+        },
+        "nota": "n insuficiente (n=5 < 10): se reporta, no se concluye"
+      }
+    }
+  }
+}

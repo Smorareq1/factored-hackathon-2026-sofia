@@ -23,13 +23,15 @@ class InjectedFault(BaseModel):
     - `http_error`: los próximos `times` llamados a `endpoint` ("POST /disputes/eligibility") devuelven `status`.
     - `session_expired`: la sesión vence antes del turno.
     - `drop_writes`: `POST /disputes` responde ok pero no persiste (prueba de VERIFY).
+    - `latency`: demora de `delay_s` segundos para probar timeout/latencia.
     """
 
     before_turn: int = Field(default=1, ge=1)
-    kind: Literal["http_error", "session_expired", "drop_writes"]
+    kind: Literal["http_error", "session_expired", "drop_writes", "latency"]
     endpoint: str | None = None
     status: int = 500
     times: int = Field(default=1, ge=1)
+    delay_s: float = Field(default=1.0, ge=0.0)
 
 
 class EvalCase(BaseModel):

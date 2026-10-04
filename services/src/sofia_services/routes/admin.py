@@ -2,20 +2,28 @@
 
 from typing import Any
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
 from sofia_services.audit.logger import audit_trail
+from sofia_services.auth.service import require_admin_or_local
 from sofia_services.faults.manager import fault_manager
 from sofia_services.store import get_store, reset_store
 
-router = APIRouter(prefix="/admin", tags=["admin"])
+router = APIRouter(prefix="/admin", tags=["admin"], dependencies=[Depends(require_admin_or_local)])
 
 
 class HttpFaultRequest(BaseModel):
     method: str
     path: str
     status: int = 500
+    times: int = Field(default=1, ge=1)
+
+
+class LatencyFaultRequest(BaseModel):
+    method: str
+    path: str
+    delay_s: float = Field(default=1.0, ge=0.0)
     times: int = Field(default=1, ge=1)
 
 
@@ -26,6 +34,12 @@ class DropWritesRequest(BaseModel):
 @router.post("/faults/http")
 def inject_http_fault(body: HttpFaultRequest) -> dict[str, Any]:
     fault_manager.inject_http_error(body.method, body.path, body.status, body.times)
+    return {"status": "ok", "fault": body.model_dump()}
+
+
+@router.post("/faults/latency")
+def inject_latency_fault(body: LatencyFaultRequest) -> dict[str, Any]:
+    fault_manager.inject_latency(body.method, body.path, body.delay_s, body.times)
     return {"status": "ok", "fault": body.model_dump()}
 
 

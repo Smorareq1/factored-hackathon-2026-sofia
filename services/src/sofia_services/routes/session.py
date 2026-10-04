@@ -16,6 +16,7 @@ from sofia_contracts.bank_api import (
 from sofia_services.auth.service import (
     get_current_session,
     harness_session,
+    require_admin_or_local,
     start_session,
     verify_session,
 )
@@ -54,7 +55,7 @@ def post_verify_session(
     return verify_session(body, store)
 
 
-@router.post("/session/test")
+@router.post("/session/test", dependencies=[Depends(require_admin_or_local)])
 def post_harness_session(
     body: HarnessSessionRequest, store: Annotated[BankStore, Depends(get_store)]
 ) -> SessionToken:

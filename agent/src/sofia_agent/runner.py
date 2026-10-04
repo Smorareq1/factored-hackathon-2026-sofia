@@ -202,18 +202,51 @@ class Harness:
             max_retries=self.purpose.limits.max_tool_retries,
             backoff_s=self._backoff_s,
             enforce_allowlist=not baseline,
+            admin_key=self.settings.admin_api_key,
         )
 
     async def _session(self, bank: _CaseBank, case: EvalCase) -> str:
-        token = await BankClient(bank.http, None).harness_session(case.session_customer_id)
+        token = await BankClient(
+            bank.http, None, admin_key=self.settings.admin_api_key
+        ).harness_session(case.session_customer_id)
         return token.access_token
 
-    def _apply_faults(self, run: _Run, bank: _CaseBank, turn: int) -> None:
+    async def _apply_faults(self, run: _Run, bank: _CaseBank, turn: int) -> None:
         faults = [f for f in run.case.faults if f.before_turn == turn]
         if not faults:
             return
         if bank.state is None:
-            run.errors.append(f"turn {turn}: fallas delegadas a SIM ({', '.join(f.kind for f in faults)})")
+            headers = {"X-Admin-Key": self.settings.admin_api_key} if self.settings.admin_api_key else {}
+            for fault in faults:
+                try:
+                    if fault.kind == "session_expired":
+                        await bank.http.post("/admin/faults/expire-sessions", headers=headers)
+                    elif fault.kind == "drop_writes":
+                        await bank.http.post("/admin/faults/drop-writes", json={"enabled": True}, headers=headers)
+                    elif fault.kind == "latency":
+                        method, path = "GET", "/transactions"
+                        if fault.endpoint and " " in fault.endpoint:
+                            method, path = fault.endpoint.split(" ", 1)
+                        elif fault.endpoint:
+                            path = fault.endpoint
+                        await bank.http.post(
+                            "/admin/faults/latency",
+                            json={"method": method, "path": path, "delay_s": getattr(fault, "delay_s", 1.0), "times": fault.times},
+                            headers=headers,
+                        )
+                    elif fault.kind == "http_error" or fault.endpoint:
+                        method, path = "POST", "/disputes"
+                        if fault.endpoint and " " in fault.endpoint:
+                            method, path = fault.endpoint.split(" ", 1)
+                        elif fault.endpoint:
+                            path = fault.endpoint
+                        await bank.http.post(
+                            "/admin/faults/http",
+                            json={"method": method, "path": path, "status": fault.status, "times": fault.times},
+                            headers=headers,
+                        )
+                except Exception as exc:
+                    run.errors.append(f"turn {turn}: error inyectando falla en SIM ({fault.kind}): {exc}")
             return
         for fault in faults:
             _inject(bank.state, fault)
@@ -224,7 +257,7 @@ class Harness:
         graph = compile_graph() if run.system_version == "proposed" else None
         history: list[BaseMessage] = []
         for turn, message in enumerate(case.turns, start=1):
-            self._apply_faults(run, bank, turn)
+            await self._apply_faults(run, bank, turn)
             started = time.perf_counter()
             try:
                 if graph is not None:
@@ -313,8 +346,21 @@ class Harness:
             return [], []
         if bank.state is not None:
             bank.state.faults.clear()
+            bank.state.latency_faults.clear()
+        else:
+            headers = {"X-Admin-Key": self.settings.admin_api_key} if self.settings.admin_api_key else {}
+            try:
+                await bank.http.post("/admin/faults/reset", headers=headers)
+            except Exception:
+                pass
         try:
-            client = BankClient(bank.http, await self._session(bank, case), max_retries=0, backoff_s=0)
+            client = BankClient(
+                bank.http,
+                await self._session(bank, case),
+                max_retries=0,
+                backoff_s=0,
+                admin_key=self.settings.admin_api_key,
+            )
             claims = [
                 ref for ref in sorted(set(DISPUTE_REF.findall(agent_text))) if await client.get_dispute(ref) is None
             ]
@@ -347,6 +393,10 @@ def _inject(state: FakeBankState, fault: InjectedFault) -> None:
         state.expire_sessions()
     elif fault.kind == "drop_writes":
         state.drop_dispute_writes = True
+    elif fault.kind == "latency":
+        endpoint = fault.endpoint or "GET /transactions"
+        delay = getattr(fault, "delay_s", 1.0)
+        state.latency_faults.setdefault(endpoint, []).extend([delay] * fault.times)
     elif fault.endpoint:
         state.faults.setdefault(fault.endpoint, []).extend([fault.status] * fault.times)
 

@@ -365,6 +365,16 @@ def generate_benchmark_cases() -> list[EvalCase]:
             ["Disputo el cargo de 349 de Rappi.", "Sí, confirmo el registro."],
             [InjectedFault(before_turn=2, kind="drop_writes")],
         ),
+        (
+            "latency",
+            "escalate",
+            ["Quiero consultar mis transacciones para disputar un cobro."],
+            [
+                InjectedFault(
+                    before_turn=1, kind="latency", endpoint="GET /transactions", delay_s=5.0, times=3
+                )
+            ],
+        ),
     ]
     for i in range(15):
         kind, exp_route, turns, faults = es_l5_faults[i % len(es_l5_faults)]
@@ -404,6 +414,16 @@ def generate_benchmark_cases() -> list[EvalCase]:
             "escalate",
             ["Quero abrir disputa para a Netflix de 4500.", "Confirmo o registro."],
             [InjectedFault(before_turn=2, kind="drop_writes")],
+        ),
+        (
+            "latency",
+            "escalate",
+            ["Quero consultar meus lançamentos para contestar uma cobrança."],
+            [
+                InjectedFault(
+                    before_turn=1, kind="latency", endpoint="GET /transactions", delay_s=5.0, times=3
+                )
+            ],
         ),
     ]
     for i in range(15):

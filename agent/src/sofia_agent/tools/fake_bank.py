@@ -9,6 +9,7 @@ los IDs usan el prefijo C9… para no chocar con el dataset.
 """
 
 import secrets
+import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import UTC, date, datetime, timedelta
@@ -38,8 +39,8 @@ from sofia_contracts.bank_api import (
 from sofia_contracts.common import Country
 from sofia_contracts.handoff import Handoff, HandoffDraft, HandoffFeedback, HandoffFeedbackRecord
 
-DISPUTE_WINDOW_DAYS = 90  # N provisional (DS calibra el D2)
-AMOUNT_THRESHOLD_USD = Decimal("500")  # U provisional (DS calibra el D2)
+DISPUTE_WINDOW_DAYS = 90  # N calibrado por DS (§8.3)
+AMOUNT_THRESHOLD_USD = Decimal("500")  # U calibrado por DS (§8.3)
 FRAUD_SCORE_THRESHOLD = 0.8
 SESSION_TTL = timedelta(minutes=30)
 ELIGIBILITY_TTL = timedelta(minutes=15)
@@ -87,6 +88,7 @@ class FakeBankState:
     audit: list[dict[str, object]] = field(default_factory=list)
     # Inyección de fallas para tests: "POST /disputes" -> cola de status HTTP a devolver.
     faults: dict[str, list[int]] = field(default_factory=dict)
+    latency_faults: dict[str, list[float]] = field(default_factory=dict)
     # Simula un POST /disputes que "responde ok" pero no persiste (para probar VERIFY).
     drop_dispute_writes: bool = False
     _seq: int = 0
@@ -173,6 +175,9 @@ def create_fake_bank(now: datetime | None = None) -> tuple[FastAPI, FakeBankStat
     app = FastAPI(title="Banco falso (propuesta AG §9.2)", version="0.1.0")
 
     def inject_faults(method: str, path: str) -> None:
+        l_queue = state.latency_faults.get(f"{method} {path}")
+        if l_queue:
+            time.sleep(l_queue.pop(0))
         queue = state.faults.get(f"{method} {path}")
         if queue:
             raise HTTPException(status_code=queue.pop(0), detail="fault_injected")
@@ -244,6 +249,7 @@ def create_fake_bank(now: datetime | None = None) -> tuple[FastAPI, FakeBankStat
         since: date | None = None,
         until: date | None = None,
         merchant: str | None = None,
+        amount: Decimal | None = None,
         limit: Annotated[int, Query(le=200)] = 50,
     ) -> TransactionList:
         inject_faults("GET", "/transactions")
@@ -254,6 +260,8 @@ def create_fake_bank(now: datetime | None = None) -> tuple[FastAPI, FakeBankStat
             items = [t for t in items if t.transaction_date.date() <= until]
         if merchant:
             items = [t for t in items if merchant.casefold() in t.merchant_name.casefold()]
+        if amount is not None:
+            items = [t for t in items if abs(t.amount - amount) < Decimal("0.01")]
         items.sort(key=lambda t: t.transaction_date, reverse=True)
         return TransactionList(items=items[:limit])
 

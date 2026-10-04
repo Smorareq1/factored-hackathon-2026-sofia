@@ -251,7 +251,7 @@ def main() -> None:
     parser.add_argument("--cases-dir", default="eval/cases", help="Directorio con casos JSONL")
     parser.add_argument("--output-dir", default="eval/outputs", help="Directorio de salida para reportes")
     parser.add_argument(
-        "--versions", default="proposed", help="Versiones a evaluar separadas por coma (proposed,baseline)"
+        "--versions", default="proposed,baseline", help="Versiones a evaluar separadas por coma (proposed,baseline)"
     )
     parser.add_argument("--language", default=None, choices=["es", "pt"], help="Filtrar por idioma")
     parser.add_argument("--level", type=int, default=None, choices=[1, 2, 3, 4, 5], help="Filtrar por nivel")
