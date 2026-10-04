@@ -137,6 +137,8 @@ async def test_high_amount_goes_to_human_with_structured_handoff(start):
     assert any(f.source.startswith("GET /transactions") for f in handoff.verified_facts)
     assert any(a.action == "eligibility_check" and a.verified for a in handoff.actions_taken)
     assert handoff.handoff_id in state["response"].text
+    assert "Motivo de la transferencia" in handoff.request_summary
+    assert any("mismo comercio" in q for q in handoff.open_questions)
     assert _transcript_free(handoff, message)
 
 
@@ -156,8 +158,13 @@ async def test_fraud_signal_goes_to_human_pt(start):
     assert state["language"] == "pt"
     assert state["handoff"].reason_for_handoff == "POL-6"
     assert "fraud_suspected" in state["handoff"].risk_flags
-    assert state["handoff"].language == "pt"
-    assert any("tarjeta física" in q for q in state["handoff"].open_questions)
+    handoff = state["handoff"]
+    assert handoff.language == "pt"
+    assert "Motivo da transferência" in handoff.request_summary
+    assert "não reconhece" in handoff.request_summary
+    assert "Motivo de la transferencia" not in handoff.request_summary
+    assert any("cartão físico" in q for q in handoff.open_questions)
+    assert not any("tarjeta física" in q for q in handoff.open_questions)
 
 
 async def test_asking_for_a_person_escalates_keeping_context(start):

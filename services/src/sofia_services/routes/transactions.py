@@ -1,6 +1,7 @@
 """Rutas de consulta de transacciones con control estricto de permisos (POL-1, REQ-10)."""
 
 from datetime import date
+from decimal import Decimal
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -21,6 +22,7 @@ def list_transactions(
     since: date | None = None,
     until: date | None = None,
     merchant: str | None = None,
+    amount: Decimal | None = None,
     limit: Annotated[int, Query(le=200)] = 50,
 ) -> TransactionList:
     fault_manager.check_endpoint("GET", "/transactions")
@@ -34,6 +36,8 @@ def list_transactions(
         items = [t for t in items if t.transaction_date.date() <= until]
     if merchant:
         items = [t for t in items if merchant.casefold() in t.merchant_name.casefold()]
+    if amount is not None:
+        items = [t for t in items if abs(t.amount - amount) < Decimal("0.01")]
 
     items.sort(key=lambda t: t.transaction_date, reverse=True)
     return TransactionList(items=items[:limit])

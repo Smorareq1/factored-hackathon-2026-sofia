@@ -152,7 +152,9 @@ class _ListDisputes(BaseModel):
 
 class _Transfer(BaseModel):
     reason: str = Field(description="Motivo breve del traspaso")
-    summary: str = Field(description="Resumen del pedido del cliente para el agente humano")
+    summary: str = Field(
+        description="Resumen del pedido para el agente humano, en el idioma del cliente (español o portugués)"
+    )
 
 
 def _tx_json(tx: Transaction) -> dict[str, Any]:

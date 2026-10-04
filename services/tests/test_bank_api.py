@@ -207,3 +207,81 @@ def test_fault_injection_drop_writes() -> None:
     # Al releer la disputa en el paso VERIFY, no existe (404) -> el agente debe escalar y no afirmar éxito
     get_resp = client.get(f"/disputes/{dsp_id}", headers=headers)
     assert get_resp.status_code == 404
+
+
+def test_transactions_amount_filter() -> None:
+    """Filtro por monto exacto en GET /transactions (§9.2)."""
+    token = client.post("/session/test", json={"customer_id": "C90000001"}).json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # TX-MX-0001 tiene monto 349.00 MXN en Rappi
+    resp = client.get("/transactions?amount=349.00", headers=headers)
+    assert resp.status_code == 200
+    items = resp.json()["items"]
+    assert len(items) >= 1
+    assert all(float(t["amount"]) == 349.00 for t in items)
+
+    # Monto inexistente
+    resp_empty = client.get("/transactions?amount=999999.99", headers=headers)
+    assert resp_empty.status_code == 200
+    assert len(resp_empty.json()["items"]) == 0
+
+
+def test_admin_and_test_endpoints_restricted_in_cloud() -> None:
+    """Protege /admin/* y /session/test cuando SOFIA_ENV=cloud salvo con X-Admin-Key."""
+    from sofia_services.store import get_store
+
+    store = get_store()
+    orig_env = store.settings.SOFIA_ENV
+    orig_key = store.settings.ADMIN_API_KEY
+    try:
+        store.settings.SOFIA_ENV = "cloud"
+        store.settings.ADMIN_API_KEY = "bank-admin-secret"
+
+        # 1. /admin/audit sin clave en cloud -> 403
+        resp = client.get("/admin/audit")
+        assert resp.status_code == 403
+
+        # 2. /session/test sin clave en cloud -> 403
+        resp_test = client.post("/session/test", json={"customer_id": "C90000001"})
+        assert resp_test.status_code == 403
+
+        # 3. Con clave errónea -> 403
+        resp_bad = client.get("/admin/audit", headers={"X-Admin-Key": "wrong-key"})
+        assert resp_bad.status_code == 403
+
+        # 4. Con clave correcta -> 200
+        resp_ok = client.get("/admin/audit", headers={"X-Admin-Key": "bank-admin-secret"})
+        assert resp_ok.status_code == 200
+
+        resp_sess_ok = client.post(
+            "/session/test",
+            json={"customer_id": "C90000001"},
+            headers={"X-Admin-Key": "bank-admin-secret"},
+        )
+        assert resp_sess_ok.status_code == 200
+    finally:
+        store.settings.SOFIA_ENV = orig_env
+        store.settings.ADMIN_API_KEY = orig_key
+
+
+def test_latency_fault_injection() -> None:
+    """Inyección de latencia vía /admin/faults/latency."""
+    import time
+
+    token = client.post("/session/test", json={"customer_id": "C90000001"}).json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Inyectar 0.05 segundos de delay en GET /transactions
+    fault_resp = client.post(
+        "/admin/faults/latency",
+        json={"method": "GET", "path": "/transactions", "delay_s": 0.05, "times": 1},
+    )
+    assert fault_resp.status_code == 200
+
+    start = time.perf_counter()
+    resp = client.get("/transactions", headers=headers)
+    elapsed = time.perf_counter() - start
+    assert resp.status_code == 200
+    assert elapsed >= 0.04
+

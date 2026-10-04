@@ -20,6 +20,7 @@ class Settings(BaseSettings):
 
     # "fake" = banco en proceso (tools/fake_bank.py) hasta que llegue el stub de SIM.
     bank_api_url: str = Field(default=FAKE_BANK, validation_alias="BANK_API_URL")
+    admin_api_key: str = Field(default="", validation_alias="ADMIN_API_KEY")
     # Vacío = reglas locales por palabras clave (fallback del router de DS).
     router_url: str | None = Field(default=None, validation_alias="ROUTER_URL")
     # Vacío = checkpointer en memoria.

@@ -90,7 +90,11 @@ ml/cache/
 **/.cache/
 
 # --- Corridas del harness (eval/). Los casos JSON de §9.5 sí se versionan ---
-eval/outputs/
+eval/outputs/*
+!eval/outputs/ds_stats.json
+!eval/outputs/results.json
+!eval/outputs/summary.json
+!eval/outputs/EVALUATION_REPORT.md
 eval/runs/
 eval/cache/
 
