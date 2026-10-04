@@ -1,16 +1,17 @@
-"""Capa estadística DS sobre MET-01..MET-06 (§6, REQ-14, REQ-18, DEL-06).
+"""DS statistics layer over MET-01..MET-06 (§6, REQ-14, REQ-18, DEL-06).
 
-No redefine métricas: todo pasa por `calculate_metrics`/`MetricSummary`. Agrega lo que el reporte necesita para
-no sobreconcluir con muestras chicas:
+It does not redefine metrics: everything goes through `calculate_metrics`/`MetricSummary`. It adds what the report
+needs to avoid over-concluding from small samples:
 
-- IC 95% de Wilson para proporciones (+ cota "regla de tres" cuando hay 0 eventos: cero en muestra chica ≠ riesgo
-  cero).
-- IC bootstrap (semilla fija, determinista) para latencia p50/p95, costo medio por caso y completitud del handoff,
-  remuestreando casos y recalculando con `calculate_metrics`.
-- Baseline vs propuesto: diferencia, IC de la diferencia y p-valor, siempre con n.
-- Desglose por idioma, nivel, tipo y segmento; celdas con n < 10 se marcan "n insuficiente" (REQ-18).
+- 95% Wilson CIs for proportions (+ a "rule of three" bound when there are 0 events: zero in a small sample ≠ zero
+  risk).
+- Bootstrap CIs (fixed seed, deterministic) for latency p50/p95, mean cost per case and handoff completeness,
+  resampling cases and recomputing with `calculate_metrics`.
+- Baseline vs proposed: difference, CI of the difference and p-value, always with n.
+- Breakdown by language, level, type and segment; cells with n < 10 are marked "insufficient n" (REQ-18).
 
-Solo stdlib (math, random, statistics): sin dependencias nuevas.
+JSON keys stay as they are (Spanish) because the report placeholders point at them.
+Standard library only (math, random, statistics): no new dependencies.
 """
 
 import json
@@ -25,36 +26,36 @@ from typing import Any
 from sofia_contracts.eval_case import ConversationResult, EvalCase
 from sofia_eval.metrics import MetricSummary, calculate_metrics
 
-MIN_N = 10  # REQ-18: por debajo, se reporta pero no se concluye
+MIN_N = 10  # REQ-18: below it, report but do not conclude
 DEFAULT_SEED = 20260
 DEFAULT_N_BOOT = 1000
-INSUFFICIENT = "n insuficiente"
+INSUFFICIENT = "insufficient n"
 
-# Proporciones: nombre -> (numerador, denominador, mejor_si) en campos de MetricSummary.
+# Proportions: name -> (numerator, denominator, better_if) as MetricSummary fields.
 PROPORTIONS: dict[str, tuple[str, str, str]] = {
-    "met01_safe_auto_resolution": ("safe_automated_resolutions", "in_scope_auto_eligible", "mayor"),
-    "met01_auto_attempt": ("auto_attempted", "total_cases", "mayor"),
-    "met02_containment": ("contained_cases", "total_cases", "mayor"),
-    "met03_escalation_precision": ("escalation_true_positives", "escalations_actual", "mayor"),
-    "met03_escalation_recall": ("escalation_true_positives", "escalations_expected", "mayor"),
-    "met04_unsafe_outcomes": ("unsafe_outcomes_total", "total_cases", "menor"),
+    "met01_safe_auto_resolution": ("safe_automated_resolutions", "in_scope_auto_eligible", "higher"),
+    "met01_auto_attempt": ("auto_attempted", "total_cases", "higher"),
+    "met02_containment": ("contained_cases", "total_cases", "higher"),
+    "met03_escalation_precision": ("escalation_true_positives", "escalations_actual", "higher"),
+    "met03_escalation_recall": ("escalation_true_positives", "escalations_expected", "higher"),
+    "met04_unsafe_outcomes": ("unsafe_outcomes_total", "total_cases", "lower"),
 }
 
-# Continuas (bootstrap): nombre -> (campo de MetricSummary, mejor_si).
+# Continuous (bootstrap): name -> (MetricSummary field, better_if).
 CONTINUOUS: dict[str, tuple[str, str]] = {
-    "met03_handoff_completeness": ("handoff_field_completeness", "mayor"),
-    "met05_latency_p50_ms": ("latency_p50_ms", "menor"),
-    "met05_latency_p95_ms": ("latency_p95_ms", "menor"),
-    "met06_cost_per_case_usd": ("cost_per_case_attempted_usd", "menor"),
-    # None si no hay resoluciones seguras (§6: "not defined"); n = resoluciones seguras.
-    "met06_cost_per_safe_resolution_usd": ("cost_per_safe_resolution_usd", "menor"),
+    "met03_handoff_completeness": ("handoff_field_completeness", "higher"),
+    "met05_latency_p50_ms": ("latency_p50_ms", "lower"),
+    "met05_latency_p95_ms": ("latency_p95_ms", "lower"),
+    "met06_cost_per_case_usd": ("cost_per_case_attempted_usd", "lower"),
+    # None when there are no safe resolutions (§6: "not defined"); n = safe resolutions.
+    "met06_cost_per_safe_resolution_usd": ("cost_per_safe_resolution_usd", "lower"),
 }
 
-NOT_DEFINED = "not defined (sin resoluciones seguras)"
+NOT_DEFINED = "not defined (no safe resolutions)"
 
 
 # ---------------------------------------------------------------------------
-# Primitivas estadísticas
+# Statistical primitives
 # ---------------------------------------------------------------------------
 
 
@@ -63,7 +64,7 @@ def _z(alpha: float) -> float:
 
 
 def wilson_interval(k: int, n: int, alpha: float = 0.05) -> tuple[float, float] | None:
-    """IC de Wilson para k/n. None si n = 0."""
+    """Wilson CI for k/n. None if n = 0."""
     if n <= 0:
         return None
     z = _z(alpha)
@@ -77,12 +78,12 @@ def wilson_interval(k: int, n: int, alpha: float = 0.05) -> tuple[float, float] 
 
 
 def rule_of_three_upper(n: int) -> float | None:
-    """Cota superior ~95% cuando se observan 0 eventos en n: 3/n."""
+    """~95% upper bound when 0 events are observed in n: 3/n."""
     return min(1.0, 3 / n) if n > 0 else None
 
 
 def proportion_stat(k: int, n: int, alpha: float = 0.05, min_n: int = MIN_N) -> dict[str, Any]:
-    """k/n con IC de Wilson; agrega regla de tres si k = 0 y marca n insuficiente."""
+    """k/n with a Wilson CI; adds the rule of three when k = 0 and flags insufficient n."""
     ci = wilson_interval(k, n, alpha)
     out: dict[str, Any] = {
         "k": k,
@@ -98,7 +99,7 @@ def proportion_stat(k: int, n: int, alpha: float = 0.05, min_n: int = MIN_N) -> 
 
 
 def fisher_exact(k1: int, n1: int, k2: int, n2: int) -> float:
-    """p-valor bilateral exacto de Fisher para la tabla [[k1, n1-k1], [k2, n2-k2]]."""
+    """Two-sided exact Fisher p-value for the table [[k1, n1-k1], [k2, n2-k2]]."""
     total, col = n1 + n2, k1 + k2
     denom = math.comb(total, col)
 
@@ -112,7 +113,7 @@ def fisher_exact(k1: int, n1: int, k2: int, n2: int) -> float:
 
 
 def two_proportion_z(k1: int, n1: int, k2: int, n2: int) -> float:
-    """p-valor bilateral del test z de dos proporciones (varianza agrupada)."""
+    """Two-sided p-value of the two-proportion z test (pooled variance)."""
     pooled = (k1 + k2) / (n1 + n2)
     se = math.sqrt(pooled * (1 - pooled) * (1 / n1 + 1 / n2))
     if se == 0:
@@ -122,10 +123,10 @@ def two_proportion_z(k1: int, n1: int, k2: int, n2: int) -> float:
 
 
 def compare_proportions(k1: int, n1: int, k2: int, n2: int, alpha: float = 0.05, min_n: int = MIN_N) -> dict:
-    """Compara referencia (k1/n1) vs prueba (k2/n2): diff = p2 - p1, IC de Newcombe y p-valor.
+    """Compares reference (k1/n1) vs test (k2/n2): diff = p2 - p1, Newcombe CI and p-value.
 
-    Usa Fisher exacto si alguna frecuencia esperada < 5; si no, z de dos proporciones. Asume muestras
-    independientes (conservador si los mismos casos corren en ambos sistemas).
+    Uses exact Fisher if any expected frequency is < 5; otherwise the two-proportion z test. Assumes independent
+    samples (conservative when the same cases run on both systems).
     """
     out: dict[str, Any] = {"n_ref": n1, "n_test": n2, "diff": None, "ci": None, "p_value": None, "test": None}
     if n1 <= 0 or n2 <= 0:
@@ -165,7 +166,7 @@ def _quantile(sorted_vals: list[float], q: float) -> float:
 
 
 def percentile_ci(samples: list[float], alpha: float = 0.05) -> list[float] | None:
-    """IC percentil a partir de réplicas bootstrap."""
+    """Percentile CI from bootstrap replicates."""
     if not samples:
         return None
     s = sorted(samples)
@@ -175,21 +176,21 @@ def percentile_ci(samples: list[float], alpha: float = 0.05) -> list[float] | No
 def _conclusion(n_min: int, p_value: float, alpha: float, min_n: int) -> str:
     if n_min < min_n:
         return INSUFFICIENT
-    return "diferencia significativa" if p_value < alpha else "sin diferencia concluyente"
+    return "significant difference" if p_value < alpha else "no conclusive difference"
 
 
 # ---------------------------------------------------------------------------
-# Bootstrap sobre casos (reusa calculate_metrics)
+# Bootstrap over cases (reuses calculate_metrics)
 # ---------------------------------------------------------------------------
 
 
 def _rng(seed: int, label: str) -> random.Random:
-    # Semilla derivada por celda: determinista y sin depender de PYTHONHASHSEED.
-    return random.Random(f"{seed}:{label}")  # noqa: S311 — bootstrap, no criptografía
+    # Seed derived per cell: deterministic and independent of PYTHONHASHSEED.
+    return random.Random(f"{seed}:{label}")  # noqa: S311 — bootstrap, not cryptography
 
 
 def _group_by_case(cases: list[EvalCase], results: list[ConversationResult]) -> dict[str, list[ConversationResult]]:
-    # Agrupa por case_id (bootstrap por clúster si hay varias corridas por caso); ignora resultados sin caso.
+    # Groups by case_id (cluster bootstrap when there are several runs per case); ignores results without a case.
     known = {c.case_id for c in cases}
     groups: dict[str, list[ConversationResult]] = defaultdict(list)
     for r in results:
@@ -203,7 +204,7 @@ def _resample(groups: dict[str, list[ConversationResult]], ids: list[str], rng: 
 
 
 def _fields(summary: MetricSummary) -> dict[str, float | None]:
-    # None = métrica no definida en esa réplica (p. ej. costo por resolución sin resoluciones): se descarta.
+    # None = metric undefined in that replicate (e.g. cost per resolution with no resolutions): dropped.
     return {
         name: None if (v := getattr(summary, field)) is None else float(v) for name, (field, _) in CONTINUOUS.items()
     }
@@ -216,7 +217,7 @@ def bootstrap_metrics(
     seed: int = DEFAULT_SEED,
     label: str = "all",
 ) -> dict[str, list[float]]:
-    """Réplicas bootstrap de las métricas continuas remuestreando casos."""
+    """Bootstrap replicates of the continuous metrics, resampling cases."""
     groups = _group_by_case(cases, results)
     ids = sorted(groups)
     reps: dict[str, list[float]] = {name: [] for name in CONTINUOUS}
@@ -239,9 +240,9 @@ def bootstrap_diff(
     seed: int = DEFAULT_SEED,
     label: str = "diff",
 ) -> tuple[dict[str, list[float]], bool]:
-    """Réplicas de (test - ref) por métrica continua.
+    """Replicates of (test - ref) per continuous metric.
 
-    Si ambos sistemas cubren los mismos casos, remuestrea case_id en conjunto (pareado); si no, independiente.
+    If both systems cover the same cases, case_ids are resampled jointly (paired); otherwise independently.
     """
     g_ref, g_test = _group_by_case(cases, ref_results), _group_by_case(cases, test_results)
     reps: dict[str, list[float]] = {name: [] for name in CONTINUOUS}
@@ -266,7 +267,7 @@ def bootstrap_diff(
 
 
 def _bootstrap_p(diffs: list[float]) -> float | None:
-    # p-valor bilateral aproximado: proporción de réplicas al otro lado de 0.
+    # Approximate two-sided p-value: share of replicates on the other side of 0.
     if not diffs:
         return None
     le = sum(d <= 0 for d in diffs) / len(diffs)
@@ -275,12 +276,12 @@ def _bootstrap_p(diffs: list[float]) -> float | None:
 
 
 # ---------------------------------------------------------------------------
-# Estadísticas por sistema y comparaciones
+# Per-system statistics and comparisons
 # ---------------------------------------------------------------------------
 
 
 def _only_known(cases: list[EvalCase], results: list[ConversationResult]) -> list[ConversationResult]:
-    # calculate_metrics ya ignora resultados sin caso conocido (#17); se filtra igual para que n y bootstrap coincidan.
+    # calculate_metrics already ignores results without a known case (#17); filtered anyway so n and bootstrap agree.
     known = {c.case_id for c in cases}
     return [r for r in results if r.case_id in known]
 
@@ -304,7 +305,7 @@ def system_stats(
     label: str = "all",
     min_n: int = MIN_N,
 ) -> dict[str, Any]:
-    """MET-01..06 de un sistema con IC: Wilson para proporciones, bootstrap para continuas."""
+    """MET-01..06 for one system with CIs: Wilson for proportions, bootstrap for continuous metrics."""
     results = _only_known(cases, results)
     summary = calculate_metrics(cases, results)
     out: dict[str, Any] = {"n": summary.total_cases, "n_insuficiente": summary.total_cases < min_n}
@@ -327,7 +328,7 @@ def system_stats(
             "value": getattr(summary, field),
             "n": n,
             "ci": [round(x, 6) for x in ci] if ci else None,
-            "ci_method": "bootstrap_percentil",
+            "ci_method": "bootstrap_percentile",
             "n_insuficiente": n < min_n,
             "mejor_si": better,
         }
@@ -348,7 +349,7 @@ def compare(
     label: str = "compare",
     min_n: int = MIN_N,
 ) -> dict[str, Any]:
-    """Compara test vs ref (diff = test - ref) en cada métrica, con n, IC de la diferencia y p-valor."""
+    """Compares test vs ref (diff = test - ref) on every metric, with n, the CI of the difference and a p-value."""
     ref_results, test_results = _only_known(cases, ref_results), _only_known(cases, test_results)
     s_ref, s_test = calculate_metrics(cases, ref_results), calculate_metrics(cases, test_results)
     out: dict[str, Any] = {}
@@ -369,7 +370,7 @@ def compare(
             "n_test": n_test,
             "diff": round(v_test - v_ref, 6) if v_ref is not None and v_test is not None else None,
             "ci": [round(x, 6) for x in ci] if ci else None,
-            "ci_method": "bootstrap_percentil_pareado" if paired else "bootstrap_percentil",
+            "ci_method": "bootstrap_percentile_paired" if paired else "bootstrap_percentile",
             "p_value": round(p, 4) if p is not None else None,
             "test": "bootstrap",
             "conclusion": _conclusion(min(n_ref, n_test), p, alpha, min_n) if p is not None else INSUFFICIENT,
@@ -379,12 +380,12 @@ def compare(
 
 
 # ---------------------------------------------------------------------------
-# Desgloses (REQ-18) y salida JSON (DEL-06)
+# Breakdowns (REQ-18) and JSON output (DEL-06)
 # ---------------------------------------------------------------------------
 
 
 def segment_of(case: EvalCase, segments: dict[str, str]) -> str:
-    """Segmento por case_id o, si no, por session_customer_id."""
+    """Segment by case_id or, failing that, by session_customer_id."""
     return segments.get(case.case_id) or segments.get(case.session_customer_id) or "sin_segmento"
 
 
@@ -406,7 +407,7 @@ def _breakdown(
             cell["baseline"] = system_stats(sub, baseline, label=f"{label}:baseline", **kw)
             cell["comparacion"] = compare(sub, baseline, proposed, label=f"{label}:cmp", **kw)
         if cell["n_insuficiente"]:
-            cell["nota"] = f"{INSUFFICIENT} (n={cell['n']} < {kw.get('min_n', MIN_N)}): se reporta, no se concluye"
+            cell["nota"] = f"{INSUFFICIENT} (n={cell['n']} < {kw.get('min_n', MIN_N)}): reported, not concluded"
         cells[str(value)] = cell
     return cells
 
@@ -421,7 +422,7 @@ def build_ds_stats(
     seed: int = DEFAULT_SEED,
     min_n: int = MIN_N,
 ) -> dict[str, Any]:
-    """Arma el bloque estadístico DS (serializable a JSON) para el reporte de evaluación."""
+    """Builds the DS statistics block (JSON-serializable) for the evaluation report."""
     kw: dict[str, Any] = {"alpha": alpha, "n_boot": n_boot, "seed": seed, "min_n": min_n}
     baseline = baseline_results or None
 
@@ -439,7 +440,7 @@ def build_ds_stats(
     ids_pt = {c.case_id for c in cases_pt}
     parity = None
     if cases_es and cases_pt:
-        # REQ-18: brecha PT - ES del sistema propuesto (muestras independientes).
+        # REQ-18: PT - ES gap of the proposed system (independent samples).
         parity = compare(
             cases,
             [r for r in proposed_results if r.case_id in ids_es],
@@ -456,11 +457,11 @@ def build_ds_stats(
             "seed": seed,
             "min_n": min_n,
             "metodos": {
-                "proporciones": "IC de Wilson; regla de tres (3/n) si 0 eventos",
-                "continuas": "bootstrap percentil remuestreando casos (calculate_metrics por réplica)",
-                "diferencia_proporciones": "IC de Newcombe (Wilson); Fisher exacto si esperado < 5, si no z",
-                "diferencia_continuas": "bootstrap de la diferencia (pareado por case_id si aplica)",
-                "desglose": f"celdas con n < {min_n} se marcan '{INSUFFICIENT}'",
+                "proporciones": "Wilson CI; rule of three (3/n) when there are 0 events",
+                "continuas": "percentile bootstrap resampling cases (calculate_metrics per replicate)",
+                "diferencia_proporciones": "Newcombe (Wilson) CI; exact Fisher if an expected count < 5, otherwise z",
+                "diferencia_continuas": "bootstrap of the difference (paired by case_id when possible)",
+                "desglose": f"cells with n < {min_n} are marked '{INSUFFICIENT}'",
             },
         },
         "proposed": system_stats(cases, proposed_results, label="proposed", **kw),
@@ -474,7 +475,7 @@ def build_ds_stats(
 
 
 def save_ds_stats(stats: dict[str, Any], output_dir: Path | str = "eval/outputs") -> Path:
-    """Escribe `ds_stats.json` en output_dir."""
+    """Writes `ds_stats.json` to output_dir."""
     out = Path(output_dir)
     out.mkdir(parents=True, exist_ok=True)
     path = out / "ds_stats.json"

@@ -1,9 +1,9 @@
-"""Utilidades compartidas por los notebooks de analysis/ (DS). Se importa con `from common import *`.
+"""Helpers shared by the analysis/ notebooks (DS). Imported with `from common import connect, save_result, show`.
 
-- Rutas del repo sin rutas absolutas (funciona local, en conda y en Docker con DATA_DIR=/app/data).
-- `connect()`: DuckDB con una vista por tabla; lee gold/silver si existe, si no los CSV de data/raw.
-- `save_result()`: guarda **agregados** (nunca filas de clientes, CON-03) en analysis/results/<nombre>.json,
-  que es la evidencia versionada que citan el README, el reporte y las slides.
+- Repo paths without absolute paths (works locally, in conda and in Docker with DATA_DIR=/app/data).
+- `connect()`: DuckDB with one view per table; reads silver if it exists, otherwise the CSVs in data/raw, plus gold.
+- `save_result()`: stores **aggregates** (never customer rows, CON-03) in analysis/results/<name>.json, the versioned
+  evidence that the README, the report and the slides cite.
 """
 
 import json
@@ -36,14 +36,14 @@ def _source(table: str) -> str | None:
 
 
 def connect() -> duckdb.DuckDBPyConnection:
-    """Una vista por tabla disponible (silver > raw) y por tabla gold. Imprime qué se cargó y de dónde."""
+    """One view per available table (silver > raw) and per gold table. Prints what was loaded and from where."""
     con = duckdb.connect()
     for t in TABLES:
         if src := _source(t):
-            con.sql(f"CREATE VIEW {t} AS SELECT * FROM {src}")  # noqa: S608 (rutas locales, sin input externo)
+            con.sql(f"CREATE VIEW {t} AS SELECT * FROM {src}")  # noqa: S608 (local paths, no external input)
             print(f"  {t:28s} <- {src.split('(')[0]}")
         else:
-            print(f"  {t:28s} (no disponible: correr `make data` o bajar de S3)")
+            print(f"  {t:28s} (not available: run `make data` or download from S3)")
     for g in sorted(GOLD.glob("gold_*.parquet")):
         con.sql(f"CREATE VIEW {g.stem} AS SELECT * FROM read_parquet('{g.as_posix()}')")  # noqa: S608
         print(f"  {g.stem:28s} <- gold")
@@ -58,7 +58,7 @@ def show(con: duckdb.DuckDBPyConnection, title: str, sql: str, n: int = 40):
 
 
 def save_result(name: str, payload: dict) -> Path:
-    """Agregados versionados. `payload` no debe tener ids ni textos de clientes."""
+    """Versioned aggregates. `payload` must not contain customer ids or texts."""
     RESULTS.mkdir(parents=True, exist_ok=True)
     out = RESULTS / f"{name}.json"
     body = {"generated_at": datetime.now(UTC).isoformat(timespec="seconds"), **payload}

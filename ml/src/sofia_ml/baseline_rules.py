@@ -1,10 +1,12 @@
-"""Baseline por palabras clave; también es el router que se publica el D1 (v0 del servicio HTTP).
+"""Keyword baseline; it was also the router published on D1 (v0 of the HTTP service) and is now the rules half
+of the served hybrid (`sofia_ml.router`).
 
-Las reglas son las mismas que usa el agente como fallback (`sofia_agent.tools.router`), copiadas tal cual para que
-el comportamiento no cambie al pasar de fallback local a servicio. Desde aquí evolucionan por separado: las del
-agente quedan como red de seguridad (REQ-16) y estas son la vara que tiene que superar el modelo entrenado.
+The rules started as a copy of the agent's fallback (`sofia_agent.tools.router`), so behavior did not change when
+moving from the local fallback to the service. They evolve separately: the agent's stay as a safety net (REQ-16) and
+these are the bar the trained model has to beat. The patterns are Spanish and Portuguese on purpose: they match what
+customers write.
 
-`router_version` identifica qué predijo: `rules-ds-0.1` aquí, `rules-local-0.1` si cayó al fallback del agente.
+`router_version` says what predicted: `rules-ds-0.1` here, `rules-local-0.1` if the agent fell back to its own rules.
 """
 
 import re
@@ -72,7 +74,7 @@ _RULES: dict[Intent, list[str]] = {
     ],
 }
 _COMPILED = {intent: [re.compile(p) for p in patterns] for intent, patterns in _RULES.items()}
-# Si varias clases coinciden, gana la más cara de equivocar (needs_human primero, §8.6).
+# If several classes match, the most expensive one to get wrong wins (needs_human first, §8.6).
 _PRIORITY: tuple[Intent, ...] = ("needs_human", "dispute_status", "dispute_new", "out_of_scope", "transaction_inquiry")
 
 
@@ -82,7 +84,7 @@ def predict_rules(text: str, language_hint: Language | None = None) -> IntentPre
     language = detect_language(text, fallback=language_hint or "es")
     matched = [i for i in _PRIORITY if hits[i] > 0]
     if not matched:
-        # Sin ninguna regla: out_of_scope con confianza baja, para que el agente aclare en vez de abstenerse.
+        # No rule matched: out_of_scope with low confidence, so the agent clarifies instead of abstaining.
         return IntentPrediction(
             intent="out_of_scope",
             confidence=0.3,

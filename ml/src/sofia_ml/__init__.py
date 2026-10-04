@@ -1,1 +1,1 @@
-"""Router de intención + idioma (§8.6)."""
+"""Intent + language router (§8.6)."""

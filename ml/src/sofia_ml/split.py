@@ -1,7 +1,7 @@
-"""Split sin leakage (§8.6, REQ-13): por grupo (cliente o familia de paráfrasis) y, si hay fechas, temporal.
+"""Leakage-free split (§8.6, REQ-13): by group (customer or paraphrase family) and, when there are dates, temporal.
 
-Temporal: test = ejemplos de los últimos `holdout_days`; luego se sacan de train todos los grupos que cayeron en
-test. Sin fechas: cada grupo cae entero en train o en test según un hash estable con semilla.
+Temporal: test = examples from the last `holdout_days`; then every group that landed in test is removed from train.
+Without dates: each group falls entirely in train or in test according to a stable seeded hash.
 """
 
 import hashlib
@@ -50,7 +50,7 @@ def group_split(
 def assert_no_leakage(split: Split) -> None:
     overlap = {e.group_id for e in split.train} & {e.group_id for e in split.test}
     if overlap:
-        raise ValueError(f"leakage: {len(overlap)} grupos en train y test")
+        raise ValueError(f"leakage: {len(overlap)} groups in both train and test")
     texts = {e.text for e in split.train} & {e.text for e in split.test}
     if texts:
-        raise ValueError(f"leakage: {len(texts)} textos idénticos en train y test")
+        raise ValueError(f"leakage: {len(texts)} identical texts in both train and test")

@@ -1,181 +1,196 @@
 # S.O.F.I.A. — Sistema Orquestado de Filtrado e Intención Automatizada
 
-Agente bancario **Sofía** para la recepción de disputas de transacciones, en español y portugués. Factored AI & Data Hackathon 2026.
+**Sofía** is a banking agent that takes in transaction disputes in Spanish and Portuguese. Factored AI & Data Hackathon 2026.
 
-> README de desarrollo. La versión final (rationale, arquitectura, resultados, limitaciones, camino a producción; DEL-05) la edita DS con los aportes de cada dueño.
+> Development README. The final version (rationale, architecture, results, limitations, path to production; DEL-05) is edited by DS with input from each owner.
 
-## Workflow y alcance (REQ-01)
+## Workflow and scope (REQ-01)
 
-Un solo workflow: **recepción de disputas de transacciones** (Transaction-Dispute Intake). Sofía no resuelve la
-disputa: verifica elegibilidad con la política, la **registra** en un banco simulado o la pasa a un humano con una
-ficha estructurada. No mueve dinero (CON-05).
+One workflow: **transaction-dispute intake**. Sofía does not resolve the dispute: it checks eligibility against the
+policy, **registers** it in a simulated bank or hands it to a human with a structured handoff. It never moves money
+(CON-05).
 
-| Dentro de alcance | Fuera de alcance → abstención u oferta de humano |
+| In scope | Out of scope → abstain or offer a human |
 |---|---|
-| Consultar transacciones recientes del cliente autenticado | Mover dinero, reembolsar o reversar |
-| Verificar elegibilidad con la política POL-1..7 | Resolver o aprobar la disputa (lo hace un humano) |
-| Registrar la disputa tras confirmación explícita y confirmar el nº de caso | Crédito, inversiones, hipotecas |
-| Consultar el estado de una disputa registrada | Datos de otros clientes |
-| Escalar a humano con handoff JSON | Cambios de datos personales |
+| Look up the authenticated customer's recent transactions | Move money, refund or reverse |
+| Check eligibility against policy POL-1..7 | Resolve or approve the dispute (a human does) |
+| Register the dispute after explicit confirmation and confirm the case number | Credit, investments, mortgages |
+| Check the status of a registered dispute | Other customers' data |
+| Escalate to a human with a JSON handoff | Changes to personal data |
 
-Por qué este workflow, con datos: [reporte de evaluación §2](docs/evaluation-report.md#2-workflow-y-justificación-req-01-req-02).
-Política: sintética, definida por el equipo (CON-02); la aplica la capa de servicio, no el LLM
+Why this workflow, with data: [evaluation report §2](docs/evaluation-report.md#2-workflow-and-justification-req-01-req-02).
+The policy is synthetic and defined by the team (CON-02); the service layer applies it, not the LLM
 ([services/src/sofia_services/policy/engine.py](services/src/sofia_services/policy/engine.py)).
 
-## Arrancar
+### Policy parameters (§8.3)
 
-Solo hace falta Docker.
+| Parameter | Value | Basis |
+|---|---|---|
+| **N** — dispute window | 90 days | Not calibratable from the data (the dataset does not link disputes to transactions). Mexico gives 90 calendar days to object to unrecognized charges (Condusef / LTOSF art. 23), within Visa/Mastercard's 120-day chargeback window. One window for all three countries; see limitations |
+| **U** — amount threshold | 500 USD | No regulation sets an amount. Approved purchases top out near 500 USD (p95 475), so almost every purchase dispute can be automated, while 23% of claimed amounts go to a human |
+| **Fraud-score threshold** | 30 on the gold 0–100 scale (0.30 in the policy) | Minimum expected cost with a missed fraud costing 40–50× an extra review: recall 0.69, precision 0.80, 0.08% of transactions sent to review |
+
+Evidence and regulatory sources: [02_policy_calibration](analysis/notebooks/02_policy_calibration.ipynb) →
+[policy_calibration.json](analysis/results/policy_calibration.json).
+
+## Getting started
+
+Only Docker is required.
 
 ```bash
-cp .env.example .env      # completar GEMINI_API_KEY como mínimo
-make up                   # o: docker compose -f containers/local/compose.yaml --env-file .env up -d --build
+cp .env.example .env      # set at least GEMINI_API_KEY
+make up                   # or: docker compose -f containers/local/compose.yaml --env-file .env up -d --build
 ```
 
-Frontend http://localhost:3000 · agente http://localhost:8001/docs · API bancaria http://localhost:8000/docs · router http://localhost:8002/docs
+Frontend http://localhost:3000 · agent http://localhost:8001/docs · bank API http://localhost:8000/docs · router http://localhost:8002/docs
 
-Más comandos (Langfuse, pipeline, harness, Jupyter, sin make): [containers/README.md](containers/README.md).
+More commands (Langfuse, pipeline, harness, Jupyter, without make): [containers/README.md](containers/README.md).
 
-### Datos
+### Data
 
 ```bash
-make data           # S3 → bronze → silver → gold; requiere AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY y S3_BUCKET en .env
-make data-fixture   # mismo pipeline con datos sintéticos, sin S3 (CI y demo offline)
+make data           # S3 → bronze → silver → gold; needs AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY and S3_BUCKET in .env
+make data-fixture   # same pipeline on synthetic data, no S3 (CI and offline demo)
 ```
 
-La primera corrida baja ~1.2 GB y tarda ~25 min; las siguientes son incrementales (~30 s). Detalle en [data/README.md](data/README.md).
+The first run downloads ~1.2 GB and takes ~25 min; later runs are incremental (~30 s). Details in [data/README.md](data/README.md).
 
-## Demo desplegada (DEL-02)
+## Deployed demo (DEL-02)
 
-**https://frontend-i6dmh3qssa-uc.a.run.app** · clientes demo `MX-DEMO-001`, `CO-DEMO-002`, `AR-DEMO-003`, `AR-DEMO-004` (el OTP simulado aparece en pantalla).
+**https://frontend-i6dmh3qssa-uc.a.run.app** · demo customers `MX-DEMO-001`, `CO-DEMO-002`, `AR-DEMO-003`, `AR-DEMO-004` (the simulated OTP is shown on screen).
 
-Escala a cero: la primera respuesta después de un rato inactiva tarda más. Para la ventana con jueces se deja una instancia caliente con `MIN_INSTANCES=1 infra/cloudrun/deploy.sh services`.
+Scales to zero: the first response after some idle time is slower. For the judges' window, keep one warm instance with `MIN_INSTANCES=1 infra/cloudrun/deploy.sh services`.
 
-## Arquitectura de despliegue y operación (OPS)
+## Deployment and operations architecture (OPS)
 
 ```mermaid
 flowchart LR
-    U["Navegador"] --> FE["frontend<br/>Next.js · Cloud Run"]
+    U["Browser"] --> FE["frontend<br/>Next.js · Cloud Run"]
     FE --> AG["agent<br/>LangGraph · Cloud Run"]
-    AG --> RT["router<br/>intención · Cloud Run"]
-    AG --> BK["bank-api<br/>política + auth · Cloud Run"]
+    AG --> RT["router<br/>intent · Cloud Run"]
+    AG --> BK["bank-api<br/>policy + auth · Cloud Run"]
     AG --> VX["Gemini<br/>Vertex AI"]
-    AG -.-> LF["Langfuse Cloud<br/>trazas §9.6"]
+    AG -.-> LF["Langfuse Cloud<br/>traces §9.6"]
     BK --> GD[("gold<br/>Parquet")]
-    S3[("S3 Factored<br/>solo lectura")] --> PL["make data<br/>bronze → silver → gold"] --> GD
+    S3[("Factored S3<br/>read-only")] --> PL["make data<br/>bronze → silver → gold"] --> GD
     SM["Secret Manager"] -.-> AG
 ```
 
-| Pieza | Decisión | Por qué |
+| Piece | Decision | Why |
 |---|---|---|
-| Cómputo | 4 servicios en **Cloud Run**, escala a cero | Costo ≈ $0 apagado; levantable bajo pedido para los jueces (DEL-02) |
-| LLM en la nube | Gemini por **Vertex AI** con la cuenta de servicio del agente | Sin API keys en la nube; lo cubren los créditos de GCP |
-| Secretos | **Secret Manager** (Langfuse, Postgres); `.env` en local | CON-03: nada en el repo ni en las imágenes (`.dockerignore`, `.gcloudignore`) |
-| Imágenes | Cloud Build, target `runtime` (solo el venv, usuario no root), tag = SHA de git | Reproducible y trazable a un commit |
-| Datos | DuckDB + Parquet, contratos por tabla, cuarentena, lineage y freshness | REQ-12; repetible e incremental |
-| Observabilidad | **Langfuse Cloud** (plan Hobby): 1 traza por conversación, 1 span por capa y por tool call | REQ-16; latencia y costo por caso para MET-05/06 |
-| CI | ruff + pytest, eslint + build, gitleaks sobre todo el historial en cada PR | Ningún merge con tests rojos ni secretos |
-| CD | GitHub Actions despliega en Cloud Run en cada merge a `develop`, con Workload Identity Federation | Demo siempre al día sin llaves de GCP en GitHub |
-| Costos | Presupuesto con alertas al 25/50/90/100% de los créditos | Sin sorpresas de facturación |
+| Compute | 4 services on **Cloud Run**, scale to zero | ≈ $0 when idle; can be brought up on demand for the judges (DEL-02) |
+| LLM in the cloud | Gemini through **Vertex AI** with the agent's service account | No API keys in the cloud; covered by GCP credits |
+| Secrets | **Secret Manager** (Langfuse, Postgres); `.env` locally | CON-03: nothing in the repo or the images (`.dockerignore`, `.gcloudignore`) |
+| Images | Cloud Build, `runtime` target (venv only, non-root user), tag = git SHA | Reproducible and traceable to a commit |
+| Data | DuckDB + Parquet, per-table contracts, quarantine, lineage and freshness | REQ-12; repeatable and incremental |
+| Observability | **Langfuse Cloud** (Hobby plan): 1 trace per conversation, 1 span per layer and per tool call | REQ-16; latency and cost per case for MET-05/06 |
+| CI | ruff + pytest, eslint + build, gitleaks over the full history on every PR | No merge with failing tests or secrets |
+| CD | GitHub Actions deploys to Cloud Run on every merge to `develop`, with Workload Identity Federation | Demo always up to date, no GCP keys in GitHub |
+| Costs | Budget with alerts at 25/50/90/100% of the credits | No billing surprises |
 
-Despliegue y operación en detalle: [infra/README.md](infra/README.md).
+Deployment and operations in detail: [infra/README.md](infra/README.md).
 
-## Resultados (DS)
+## Results (DS)
 
-Medido offline sobre el set held-out, baseline (LLM + tools, sin capas) vs propuesto, misma carga. Detalle por idioma
-y tipo de caso, con n e IC: [docs/evaluation-report.md](docs/evaluation-report.md).
+Measured offline on the held-out set, baseline (LLM + tools, no layers) vs proposed, same load. Breakdown by language
+and case type, with n and CIs: [docs/evaluation-report.md](docs/evaluation-report.md).
 
-| Métrica | Baseline | Propuesto |
+| Metric | Baseline | Proposed |
 |---|---|---|
 | MET-01 Safe Automated Resolution | {{eval/outputs/ds_stats.json:baseline.metricas.met01_safe_auto_resolution}} | {{eval/outputs/ds_stats.json:proposed.metricas.met01_safe_auto_resolution}} |
 | MET-02 Containment | {{eval/outputs/ds_stats.json:baseline.metricas.met02_containment}} | {{eval/outputs/ds_stats.json:proposed.metricas.met02_containment}} |
-| MET-03 Recall de escalación | {{eval/outputs/ds_stats.json:baseline.metricas.met03_escalation_recall}} | {{eval/outputs/ds_stats.json:proposed.metricas.met03_escalation_recall}} |
-| MET-04 Unsafe outcomes (conteo / n) | {{eval/outputs/ds_stats.json:baseline.metricas.met04_unsafe_outcomes}} | {{eval/outputs/ds_stats.json:proposed.metricas.met04_unsafe_outcomes}} |
-| MET-05 Latencia p50 / p95 | {{eval/outputs/ds_stats.json:baseline.metricas.met05_latency_p50_ms}} / {{eval/outputs/ds_stats.json:baseline.metricas.met05_latency_p95_ms}} | {{eval/outputs/ds_stats.json:proposed.metricas.met05_latency_p50_ms}} / {{eval/outputs/ds_stats.json:proposed.metricas.met05_latency_p95_ms}} |
-| MET-06 Costo por caso / por resolución | {{eval/outputs/ds_stats.json:baseline.metricas.met06_cost_per_case_usd}} / {{eval/outputs/ds_stats.json:baseline.metricas.met06_cost_per_safe_resolution_usd}} | {{eval/outputs/ds_stats.json:proposed.metricas.met06_cost_per_case_usd}} / {{eval/outputs/ds_stats.json:proposed.metricas.met06_cost_per_safe_resolution_usd}} |
+| MET-03 Escalation recall | {{eval/outputs/ds_stats.json:baseline.metricas.met03_escalation_recall}} | {{eval/outputs/ds_stats.json:proposed.metricas.met03_escalation_recall}} |
+| MET-04 Unsafe outcomes (count / n) | {{eval/outputs/ds_stats.json:baseline.metricas.met04_unsafe_outcomes}} | {{eval/outputs/ds_stats.json:proposed.metricas.met04_unsafe_outcomes}} |
+| MET-05 Latency p50 / p95 | {{eval/outputs/ds_stats.json:baseline.metricas.met05_latency_p50_ms}} / {{eval/outputs/ds_stats.json:baseline.metricas.met05_latency_p95_ms}} | {{eval/outputs/ds_stats.json:proposed.metricas.met05_latency_p50_ms}} / {{eval/outputs/ds_stats.json:proposed.metricas.met05_latency_p95_ms}} |
+| MET-06 Cost per case / per resolution | {{eval/outputs/ds_stats.json:baseline.metricas.met06_cost_per_case_usd}} / {{eval/outputs/ds_stats.json:baseline.metricas.met06_cost_per_safe_resolution_usd}} | {{eval/outputs/ds_stats.json:proposed.metricas.met06_cost_per_case_usd}} / {{eval/outputs/ds_stats.json:proposed.metricas.met06_cost_per_safe_resolution_usd}} |
 
-n = {{eval/outputs/ds_stats.json:proposed.n}} casos (ES {{eval/outputs/ds_stats.json:desglose.idioma.es.n}}, PT {{eval/outputs/ds_stats.json:desglose.idioma.pt.n}}).
-Router aprendido vs reglas (REQ-13): macro-F1 {{ml/reports/router_eval.json:systems.rules-ds-0.1.macro_f1}} →
-{{ml/reports/router_eval.json:systems.tfidf-lr-0.1.macro_f1}}. El baseline de negocio del call center es una
-**proyección**, no una mejora medida (CON-07).
+n = {{eval/outputs/ds_stats.json:proposed.n}} cases (ES {{eval/outputs/ds_stats.json:desglose.idioma.es.n}}, PT {{eval/outputs/ds_stats.json:desglose.idioma.pt.n}}).
+Learned router vs rules (REQ-13), held-out n = 56: macro-F1 0.377 (rules) → 0.641 (model) → **0.728 (served hybrid)**;
+accuracy 0.482 → 0.750 ([router_eval.md](ml/reports/router_eval.md)). The call-center business baseline is a
+**projection**, not a measured improvement (CON-07).
 
-## Trazabilidad REQ-01..REQ-19
+## Traceability REQ-01..REQ-19
 
-Estado al 2026-10-03. "Parcial" y "pendiente" dicen qué falta.
+As of 2026-10-04. "Partial" and "pending" say what is missing.
 
-| REQ | Estado | Evidencia |
+| REQ | Status | Evidence |
 |---|---|---|
-| REQ-01 Un workflow | cumple | [Workflow y alcance](#workflow-y-alcance-req-01) · [purpose.yaml](agent/src/sofia_agent/purpose/purpose.yaml) · `test_out_of_scope_abstains_and_offers_human` en [test_paths.py](agent/tests/test_paths.py) |
-| REQ-02 Justificación con datos | parcial | Volumen, razones de contacto, demanda, calidad y vínculo queja→transacción en [01_workflow_justification](analysis/notebooks/01_workflow_justification.ipynb); N, U y umbral de fraude con normativa (MX/AR, Visa/MC) y curva de costo en [02_policy_calibration](analysis/notebooks/02_policy_calibration.ipynb) → [policy_calibration.json](analysis/results/policy_calibration.json). Falta: conclusión escrita y restricciones operativas; [reporte §2](docs/evaluation-report.md#2-workflow-y-justificación-req-01-req-02) |
-| REQ-03 Camino automático | cumple | `test_auto_path_es_confirms_creates_and_verifies`, `test_auto_path_pt` en [test_paths.py](agent/tests/test_paths.py) · nivel 1 en [levels.py](eval/src/sofia_eval/levels.py) · [demo](#demo-desplegada-del-02) |
-| REQ-04 Clarificar o abstenerse | cumple | `test_duplicate_charge_clarifies_with_cards_then_selection`, `test_two_failed_clarifications_escalate_pol7`, `test_out_of_scope_abstains_and_offers_human` en [test_paths.py](agent/tests/test_paths.py) · niveles 2 y 4 en [levels.py](eval/src/sofia_eval/levels.py) |
-| REQ-05 Handoff estructurado | cumple | Contrato [handoff.py](contracts/src/sofia_contracts/handoff.py) · [orchestrate/handoff.py](agent/src/sofia_agent/orchestrate/handoff.py) · `test_high_amount_goes_to_human_with_structured_handoff` en [test_paths.py](agent/tests/test_paths.py) · consola humana [console/page.tsx](frontend/app/console/page.tsx) |
-| REQ-06 ES y PT | parcial | Plantillas [es.yaml](agent/prompts/templates/es.yaml) / [pt.yaml](agent/prompts/templates/pt.yaml) · casos [es](eval/cases/es/cases.jsonl) / [pt](eval/cases/pt/cases.jsonl) · falta: métricas por idioma en el [reporte §5.1](docs/evaluation-report.md#51-por-idioma) |
-| REQ-07 Contexto conversacional | cumple | `test_slots_accumulate_across_turns`, `test_asking_for_a_person_escalates_keeping_context` en [test_paths.py](agent/tests/test_paths.py) |
-| REQ-08 Respuestas ancladas | cumple | Grounding y guardia de salida en [guards.py](agent/src/sofia_agent/govern/guards.py) · `test_grounding_check_rejects`, `test_hallucinated_number_falls_back_to_template` en [test_govern.py](agent/tests/test_govern.py) |
-| REQ-09 Verificar acciones | cumple | Nodo `verify` en [orchestrate/nodes.py](agent/src/sofia_agent/orchestrate/nodes.py) · `test_unverified_action_is_not_claimed_and_escalates` en [test_paths.py](agent/tests/test_paths.py) · `drop_writes` en [test_bank_api.py](services/tests/test_bank_api.py) |
-| REQ-10 Permisos y política fuera del prompt | cumple | [policy/engine.py](services/src/sofia_services/policy/engine.py) · [test_policy.py](services/tests/test_policy.py) · `test_malicious_llm_slots_cannot_reach_another_customer`, `test_only_act_can_create_disputes` en [test_govern.py](agent/tests/test_govern.py) · `test_injection_asking_for_other_customer_is_denied` en [test_paths.py](agent/tests/test_paths.py) |
-| REQ-11 Autenticación confiable | cumple | Sesión + OTP en [auth/service.py](services/src/sofia_services/auth/service.py) · `test_auth_full_flow` en [test_bank_api.py](services/tests/test_bank_api.py) · `test_wrong_otp_is_rejected` en [test_api.py](agent/tests/test_api.py) |
-| REQ-12 Pipeline de datos con contratos | cumple | [data/README.md](data/README.md) · [contracts.py](data/src/sofia_data/contracts.py), [quality.py](data/src/sofia_data/quality.py), [lineage.py](data/src/sofia_data/lineage.py) · [test_pipeline.py](data/tests/test_pipeline.py) |
-| REQ-13 Componente aprendido vs baseline | parcial | Auditoría de labels: el dataset no trae intenciones válidas ([04_label_audit](analysis/notebooks/04_label_audit.ipynb), [corpus_audit.md](ml/reports/corpus_audit.md)) → corpus ES/PT del equipo (CON-02) con split por grupo sin leakage ([split.py](ml/src/sofia_ml/split.py)); TF-IDF+LR vs reglas en held-out: [router_eval.md](ml/reports/router_eval.md). Falta: revisión humana del corpus (8 filas en adjudicación, PT) y servir el modelo en [serve.py](ml/src/sofia_ml/serve.py); [reporte §6](docs/evaluation-report.md#6-router-aprendido-vs-baseline-de-reglas-req-13) |
-| REQ-14 Held-out vs baseline | parcial | Harness [run.py](eval/src/sofia_eval/run.py) + [metrics.py](eval/src/sofia_eval/metrics.py) · baseline [baseline/agent.py](agent/src/sofia_agent/baseline/agent.py) · falta: corrida completa, n e IC en el [reporte §5](docs/evaluation-report.md#5-resultados-medido-offline) |
-| REQ-15 Casos adversos | parcial | Niveles 4 y 5 en [levels.py](eval/src/sofia_eval/levels.py) · `test_expired_session_requests_reauth`, `test_tool_down_after_retries_escalates`, `test_foreign_transaction_id_is_denied_without_revealing_pol1` en [test_paths.py](agent/tests/test_paths.py) · falta en el harness: mezcla ES/PT y datos incorrectos |
-| REQ-16 Ruta a operación | cumple | Tracing [tracing.py](agent/src/sofia_agent/tracing.py) + [test_tracing.py](agent/tests/test_tracing.py) · reintentos y fallback [test_llm_chain.py](agent/tests/test_llm_chain.py), `test_retry_is_idempotent` · auditoría [audit/logger.py](services/src/sofia_services/audit/logger.py) · [infra/README.md](infra/README.md) |
-| REQ-17 Honestidad sobre lo que falta | parcial | [Limitaciones infra y datos](#limitaciones-y-camino-a-producción-infra-y-datos) · [agente, ML y evaluación](#limitaciones-y-camino-a-producción-agente-ml-y-evaluación) · [reporte §10](docs/evaluation-report.md#10-limitaciones) · falta: cerrar con los resultados |
-| REQ-18 Fairness | pendiente | Notebook `05_fairness` en curso, sin merge; destino: [reporte §7](docs/evaluation-report.md#7-fairness-req-18) |
-| REQ-19 Explicaciones auditables | cumple | Eventos por capa [trail.py](agent/src/sofia_agent/govern/trail.py) / [events.py](contracts/src/sofia_contracts/events.py) · auditoría [audit/logger.py](services/src/sofia_services/audit/logger.py) · motivo con la regla en `test_declined_transaction_is_not_disputable_pol2`, `test_old_transaction_denied_pol3_offers_human` en [test_paths.py](agent/tests/test_paths.py) |
+| REQ-01 One workflow | met | [Workflow and scope](#workflow-and-scope-req-01) · [purpose.yaml](agent/src/sofia_agent/purpose/purpose.yaml) · `test_out_of_scope_abstains_and_offers_human` in [test_paths.py](agent/tests/test_paths.py) |
+| REQ-02 Data-backed justification | partial | Volume, contact reasons, demand, quality and the complaint→transaction link in [01_workflow_justification](analysis/notebooks/01_workflow_justification.ipynb); N, U and fraud threshold with regulation (MX/AR, Visa/MC) and a cost curve in [02_policy_calibration](analysis/notebooks/02_policy_calibration.ipynb) → [policy_calibration.json](analysis/results/policy_calibration.json). Missing: written conclusion and operational constraints; [report §2](docs/evaluation-report.md#2-workflow-and-justification-req-01-req-02) |
+| REQ-03 Automated path | met | `test_auto_path_es_confirms_creates_and_verifies`, `test_auto_path_pt` in [test_paths.py](agent/tests/test_paths.py) · level 1 in [levels.py](eval/src/sofia_eval/levels.py) · [demo](#deployed-demo-del-02) |
+| REQ-04 Clarify or abstain | met | `test_duplicate_charge_clarifies_with_cards_then_selection`, `test_two_failed_clarifications_escalate_pol7`, `test_out_of_scope_abstains_and_offers_human` in [test_paths.py](agent/tests/test_paths.py) · levels 2 and 4 in [levels.py](eval/src/sofia_eval/levels.py) |
+| REQ-05 Structured handoff | met | Contract [handoff.py](contracts/src/sofia_contracts/handoff.py) · [orchestrate/handoff.py](agent/src/sofia_agent/orchestrate/handoff.py) · `test_high_amount_goes_to_human_with_structured_handoff` in [test_paths.py](agent/tests/test_paths.py) · human console [console/page.tsx](frontend/app/console/page.tsx) |
+| REQ-06 ES and PT | partial | Templates [es.yaml](agent/prompts/templates/es.yaml) / [pt.yaml](agent/prompts/templates/pt.yaml) · cases [es](eval/cases/es/cases.jsonl) / [pt](eval/cases/pt/cases.jsonl) · missing: per-language metrics in [report §5.1](docs/evaluation-report.md#51-by-language) |
+| REQ-07 Conversational context | met | `test_slots_accumulate_across_turns`, `test_asking_for_a_person_escalates_keeping_context` in [test_paths.py](agent/tests/test_paths.py) |
+| REQ-08 Grounded answers | met | Grounding and output guard in [guards.py](agent/src/sofia_agent/govern/guards.py) · `test_grounding_check_rejects`, `test_hallucinated_number_falls_back_to_template` in [test_govern.py](agent/tests/test_govern.py) |
+| REQ-09 Verify actions | met | `verify` node in [orchestrate/nodes.py](agent/src/sofia_agent/orchestrate/nodes.py) · `test_unverified_action_is_not_claimed_and_escalates` in [test_paths.py](agent/tests/test_paths.py) · `drop_writes` in [test_bank_api.py](services/tests/test_bank_api.py) |
+| REQ-10 Permissions and policy outside the prompt | met | [policy/engine.py](services/src/sofia_services/policy/engine.py) · [test_policy.py](services/tests/test_policy.py) · `test_malicious_llm_slots_cannot_reach_another_customer`, `test_only_act_can_create_disputes` in [test_govern.py](agent/tests/test_govern.py) · `test_injection_asking_for_other_customer_is_denied` in [test_paths.py](agent/tests/test_paths.py) |
+| REQ-11 Trusted authentication | met | Session + OTP in [auth/service.py](services/src/sofia_services/auth/service.py) · `test_auth_full_flow` in [test_bank_api.py](services/tests/test_bank_api.py) · `test_wrong_otp_is_rejected` in [test_api.py](agent/tests/test_api.py) |
+| REQ-12 Data pipeline with contracts | met | [data/README.md](data/README.md) · [contracts.py](data/src/sofia_data/contracts.py), [quality.py](data/src/sofia_data/quality.py), [lineage.py](data/src/sofia_data/lineage.py) · [test_pipeline.py](data/tests/test_pipeline.py) |
+| REQ-13 Learned component vs baseline | partial | Label audit: the dataset has no valid intents ([04_label_audit](analysis/notebooks/04_label_audit.ipynb), [corpus_audit.md](ml/reports/corpus_audit.md)) → team ES/PT corpus (CON-02) with a leakage-free group split ([split.py](ml/src/sofia_ml/split.py)); rules vs model vs served hybrid on held-out: [router_eval.md](ml/reports/router_eval.md); hybrid served in [router.py](ml/src/sofia_ml/router.py). Missing: human review of the corpus (8 rows in adjudication, PT); [report §6](docs/evaluation-report.md#6-learned-router-vs-rules-baseline-req-13) |
+| REQ-14 Held-out vs baseline | partial | Harness [run.py](eval/src/sofia_eval/run.py) + [metrics.py](eval/src/sofia_eval/metrics.py) · baseline [baseline/agent.py](agent/src/sofia_agent/baseline/agent.py) · missing: full run, n and CIs in [report §5](docs/evaluation-report.md#5-results-measured-offline) |
+| REQ-15 Adversarial cases | partial | Levels 4 and 5 in [levels.py](eval/src/sofia_eval/levels.py) · `test_expired_session_requests_reauth`, `test_tool_down_after_retries_escalates`, `test_foreign_transaction_id_is_denied_without_revealing_pol1` in [test_paths.py](agent/tests/test_paths.py) · missing in the harness: mixed ES/PT and wrong data |
+| REQ-16 Path to operation | met | Tracing [tracing.py](agent/src/sofia_agent/tracing.py) + [test_tracing.py](agent/tests/test_tracing.py) · retries and fallback [test_llm_chain.py](agent/tests/test_llm_chain.py), `test_retry_is_idempotent` · audit [audit/logger.py](services/src/sofia_services/audit/logger.py) · [infra/README.md](infra/README.md) |
+| REQ-17 Honesty about what is missing | partial | [Limitations: infra and data](#limitations-and-path-to-production-infra-and-data) · [agent, ML and evaluation](#limitations-and-path-to-production-agent-ml-and-evaluation) · [report §10](docs/evaluation-report.md#10-limitations) · missing: close with the results |
+| REQ-18 Fairness | pending | Notebook `05_fairness` waits for the evaluation run; target: [report §7](docs/evaluation-report.md#7-fairness-req-18) |
+| REQ-19 Auditable explanations | met | Per-layer events [trail.py](agent/src/sofia_agent/govern/trail.py) / [events.py](contracts/src/sofia_contracts/events.py) · audit [audit/logger.py](services/src/sofia_services/audit/logger.py) · reason citing the rule in `test_declined_transaction_is_not_disputable_pol2`, `test_old_transaction_denied_pol3_offers_human` in [test_paths.py](agent/tests/test_paths.py) |
 
-## Limitaciones y camino a producción (infra y datos)
+## Limitations and path to production (infra and data)
 
-| Hoy (hackathon) | En producción |
+| Today (hackathon) | In production |
 |---|---|
-| Conversaciones del agente en memoria (sin Postgres en la nube) → 1 instancia y se pierden al escalar a cero | Postgres administrado (Neon / Cloud SQL) como checkpointer; varias instancias |
-| bank-api en la nube con log de auditoría en memoria y solo los clientes demo (gold no viaja en la imagen) | bank-api con su base y log de auditoría persistente, gold servido desde GCS / BigQuery |
-| `/admin/*` y `/session/test` de bank-api protegidas en la nube con una clave compartida (`X-Admin-Key`) | Fuera del despliegue público, detrás de IAM |
-| bank-api con estado en memoria → 1 instancia | Estado en Postgres; varias instancias |
-| Spans de bank-api y router no se unen a la traza del agente | Propagación `traceparent` + OpenTelemetry en todos los servicios |
-| Servicios públicos (`--allow-unauthenticated`); la identidad la valida la sesión con OTP | router y bank-api internos (VPC / IAM invoker); solo el frontend expuesto |
-| Gold se regenera a mano con `make data` | Pipeline programado (Cloud Run Jobs / Composer) con alertas de calidad y freshness |
-| Dataset estático (termina el 2026-06-17); freshness solo se reporta | SLA de freshness que bloquea la publicación de gold si se incumple |
-| Labels de intención provisionales en `gold_intent_training` | Mapeo de DS versionado + etiquetado humano |
-| Langfuse Hobby: 50k unidades/mes, 30 días de retención | Plan pago o self-hosted, con retención según política del banco |
-| CD a un solo entorno: cada merge a `develop` despliega la demo | Entornos staging / prod separados, con promoción y rollback |
+| Agent conversations in memory (no Postgres in the cloud) → 1 instance, lost when scaling to zero | Managed Postgres (Neon / Cloud SQL) as checkpointer; several instances |
+| Cloud bank-api with an in-memory audit log and only the demo customers (gold does not ship in the image) | bank-api with its own database and persistent audit log, gold served from GCS / BigQuery |
+| bank-api `/admin/*` and `/session/test` protected in the cloud with a shared key (`X-Admin-Key`) | Outside the public deployment, behind IAM |
+| bank-api state in memory → 1 instance | State in Postgres; several instances |
+| bank-api and router spans are not joined to the agent's trace | `traceparent` propagation + OpenTelemetry in every service |
+| Public services (`--allow-unauthenticated`); identity is checked by the OTP session | router and bank-api internal (VPC / IAM invoker); only the frontend exposed |
+| Gold is regenerated by hand with `make data` | Scheduled pipeline (Cloud Run Jobs / Composer) with quality and freshness alerts |
+| Static dataset (ends 2026-06-17); freshness is only reported | Freshness SLA that blocks publishing gold when breached |
+| Provisional intent labels in `gold_intent_training` | Versioned DS mapping + human labeling |
+| Langfuse Hobby: 50k units/month, 30-day retention | Paid or self-hosted plan, with retention per the bank's policy |
+| CD to a single environment: every merge to `develop` deploys the demo | Separate staging / prod environments, with promotion and rollback |
 
-## Limitaciones y camino a producción (agente, ML y evaluación)
+## Limitations and path to production (agent, ML and evaluation)
 
-| Hoy (hackathon) | En producción |
+| Today (hackathon) | In production |
 |---|---|
-| El dataset no trae labels de intención válidos (`customer_text` = 42 plantillas de consulta de saldo; `detected_intents` = `consulta_general`). Propuesta pendiente: router entrenado con un corpus ES/PT del equipo (CON-02) | Etiquetado humano de conversaciones reales, con acuerdo entre anotadores medido y versionado |
-| Router v0 sirve reglas por palabras clave | Modelo entrenado que gane al baseline en held-out, con umbral de confianza calibrado y monitoreo de drift |
-| Todo el portugués es texto generado por el equipo (traducción + revisión) | Corpus y casos PT reales; evaluación por idioma con texto nativo |
-| N, U y umbral de fraude con valores por defecto: la calibración está bloqueada hasta tener gold | Política calibrada con datos y aprobada por riesgo/legal; cambios versionados |
-| Set held-out chico, que comparte clientes de prueba y comercios con el set de desarrollo | 200–300+ escenarios separados por cliente, más muestra de tráfico real etiquetada |
-| Puntuación determinística sobre la ruta final; evaluadores de Langfuse sin validar contra humano | Evaluadores validados (acuerdo con humano reportado) y revisión humana periódica |
-| Costo MET-06 = tokens × precio público declarado | Costo real de facturación por caso |
-| Baseline de negocio = proyección sobre el histórico sintético (CON-07) | Prueba A/B o piloto con clientes reales antes de afirmar mejoras |
-| Fairness solo por idioma y segmento sobre pocos clientes de prueba | Monitoreo continuo por idioma, país y segmento con alertas de disparidad |
+| The dataset has no valid intent labels (`customer_text` = 42 balance-inquiry templates; `detected_intents` = `consulta_general`), so the router is trained on a team-generated ES/PT corpus (CON-02), written with an LLM | Human labeling of real conversations, with measured and versioned inter-annotator agreement |
+| Served router = rules + TF-IDF/logistic-regression hybrid trained on 256 approved rows; the agent clarifies below confidence 0.35 | Model trained on real traffic, calibrated confidence and drift monitoring |
+| All Portuguese is team-generated text, not reviewed by a native speaker; PT metrics are indicative | Real PT corpus and cases; per-language evaluation on native text |
+| One dispute window (N = 90 days, Mexico's rule) for all three countries; Argentina's is stricter (30 days from the statement, Law 25.065 art. 26) | Per-country window, approved by risk/legal; changes versioned |
+| The bank's clock is the real date while gold ends on 2026-06-17, so against gold every transaction is past N. It does not affect the demo or the evaluation (both use seed data with relative dates) | A simulated as-of date for historical data, or live transactions |
+| USD conversion differs per bank: the agent's fake bank uses fixed rates; when gold has no `amount_usd`, the bank-api loader uses the raw ARS/COP amount as USD | One conversion with the daily exchange rate (`daily_exchange_rates`) shared by every component |
+| POL-6 also escalates on `is_fraud`, the dataset's ground-truth label, which a real bank would not have at dispute time | Only the model's fraud score, recalibrated on the bank's own data |
+| Small held-out set that shares test customers and merchants with the development set | 200–300+ scenarios split by customer, plus a labeled sample of real traffic |
+| Deterministic scoring of the final route; Langfuse evaluators not validated against humans | Validated evaluators (reported human agreement) and periodic human review |
+| MET-06 cost = tokens × declared public price | Real billed cost per case |
+| Business baseline = projection over the synthetic history (CON-07) | A/B test or pilot with real customers before claiming improvements |
+| Fairness only by language and segment over a few test customers | Continuous monitoring by language, country and segment with disparity alerts |
 
-Checklist de entrega: [DEFINITION_OF_DONE.md](DEFINITION_OF_DONE.md).
+Delivery checklist: [DEFINITION_OF_DONE.md](DEFINITION_OF_DONE.md).
 
-## Estructura y dueños
+## Structure and owners
 
-| Carpeta | Dueño | Qué va |
+| Folder | Owner | Contents |
 |---|---|---|
-| [contracts/](contracts/) | Todos | Contratos Pydantic de §9 + JSON Schema exportado. Se cambian solo con aviso |
-| [data/](data/) | OPS | Pipeline S3 → bronze → silver → gold, calidad, lineage, freshness |
-| [infra/](infra/) | OPS | Cloud Run, Secret Manager, configuración de Langfuse en la nube |
-| [containers/](containers/) | OPS | Dockerfiles y compose local |
-| [analysis/](analysis/) | DS | EDA, justificación del workflow, baseline de negocio, calibración de N y U |
-| [ml/](ml/) | DS | Router de intención: labels, entrenamiento, evaluación, servicio |
-| [services/](services/) | SIM | API bancaria simulada: auth, permisos, política POL-1..7, auditoría, fallas |
-| [eval/](eval/) | SIM + DS | Simulador, harness baseline vs propuesto, métricas MET-01..06, reporte |
-| [agent/](agent/) | AG | Grafo LangGraph de 7 capas, Gemini, handoff, baseline de sistema |
-| [frontend/](frontend/) | AG | Chat ES/PT, caja de cristal, consola del agente humano |
-| [docs/](docs/) | DS | Reporte de evaluación, slides, guion del video |
+| [contracts/](contracts/) | Everyone | Pydantic contracts from §9 + exported JSON Schema. Changed only with notice |
+| [data/](data/) | OPS | S3 → bronze → silver → gold pipeline, quality, lineage, freshness |
+| [infra/](infra/) | OPS | Cloud Run, Secret Manager, Langfuse cloud configuration |
+| [containers/](containers/) | OPS | Dockerfiles and local compose |
+| [analysis/](analysis/) | DS | EDA, workflow justification, business baseline, N/U calibration |
+| [ml/](ml/) | DS | Intent router: labels, training, evaluation, service |
+| [services/](services/) | SIM | Simulated bank API: auth, permissions, policy POL-1..7, audit, faults |
+| [eval/](eval/) | SIM + DS | Simulator, baseline vs proposed harness, metrics MET-01..06, report |
+| [agent/](agent/) | AG | 7-layer LangGraph graph, Gemini, handoff, system baseline |
+| [frontend/](frontend/) | AG | ES/PT chat, glass box, human agent console |
+| [docs/](docs/) | DS | Evaluation report, slides, video script |
 
-Python: un **workspace de uv** (`pyproject.toml` en la raíz + uno por carpeta, un solo `uv.lock`). Los paquetes se importan como `sofia_contracts`, `sofia_agent`, etc.
+Python: one **uv workspace** (`pyproject.toml` at the root + one per folder, a single `uv.lock`). Packages are imported as `sofia_contracts`, `sofia_agent`, etc.
 
-## Reglas
+## Rules
 
-- **Nada de secretos ni registros de clientes en el repo** (CON-03). Van en `.env`, que está en `.gitignore`.
-- Una carpeta, un dueño; los cambios cruzados van por PR aprobado por el dueño.
-- Ramas cortas desde `develop` (`feat/...`) y PRs chicos.
+- **No secrets or customer records in the repo** (CON-03). They go in `.env`, which is in `.gitignore`.
+- One folder, one owner; cross-folder changes go through a PR approved by the owner.
+- Short branches from `develop` (`feat/...`) and small PRs.
+- Documentation, comments, commits and PRs are in English; only what the chatbot says stays in Spanish and Portuguese.

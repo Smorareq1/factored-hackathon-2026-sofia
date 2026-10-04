@@ -1,184 +1,196 @@
-# Notas de defensa (DEL-08) · Top 5, 2026-10-16
+# Defense notes (DEL-08) · Top 5, 2026-10-16
 
-Preguntas probables del jurado con respuesta corta (≤ 30 s hablada) y la evidencia para mostrar si repreguntan.
-Las cifras son placeholders `{{...}}` que se completan desde los JSON versionados antes de la defensa; si una
-cifra no existe, se responde sin ella y se dice que no se midió.
+Likely jury questions with a short answer (≤ 30 s spoken) and the evidence to show if they push back. The figures are
+`{{...}}` placeholders filled from the versioned JSONs before the defense; if a figure does not exist, answer without
+it and say it was not measured.
 
-**Mensaje que repetimos:** *el LLM entiende y redacta; la API decide. Medimos contra un baseline con la misma carga,
-reportamos por idioma con n e intervalos, y decimos qué no sabemos.*
+**The message we repeat:** *the LLM understands and writes; the API decides. We measured against a baseline under the
+same load, we report by language with n and intervals, and we say what we do not know.*
 
 ---
 
-## 1. Datos y elección del workflow
+## 1. Data and choice of workflow
 
-**¿Por qué disputas y no tarjetas o pagos?**
-Porque es donde el dataset tiene más evidencia conectable: `transactions`, `complaints` y `call_center_interactions`
-se unen por llaves y nos dejan medir volumen, SLA roto y escalación del mismo fenómeno. Las disputas son
-`{{results/workflow_justification.json:dispute_share_pct}}`% de las quejas. Escribimos un criterio de salida antes del
-EDA (si eran marginales, cambiábamos a soporte de tarjetas) y no se activó.
-*Evidencia:* `analysis/notebooks/01_workflow_justification.ipynb`, `analysis/results/workflow_justification.json`.
+**Why disputes and not cards or payments?**
+Because that is where the dataset has the most connected evidence: `transactions`, `complaints` and
+`call_center_interactions` join by keys and let us measure volume, broken SLAs and escalation of the same phenomenon.
+Disputes are `{{results/workflow_justification.json:dispute_share_pct}}`% of complaints. We wrote an exit criterion
+before the EDA (if they were marginal, we would switch to card support) and it did not fire.
+*Evidence:* `analysis/notebooks/01_workflow_justification.ipynb`, `analysis/results/workflow_justification.json`.
 
-**`complaints` no tiene `transaction_id`. ¿Cómo ligan una queja con una transacción?**
-Por producto afectado + ventana de fechas previa a la queja. Lo medimos en vez de suponerlo: cubre
-`{{results/workflow_justification.json:link_coverage_pct}}`% de las disputas. En la conversación no hace falta el
-vínculo histórico: el cliente señala la transacción y Sofía la busca en sus propios registros.
+**`complaints` has no `transaction_id`. How do you link a complaint to a transaction?**
+We tested it instead of assuming it, and in this dataset you cannot: the affected product never belongs to the
+customer who complained (0 of 16,257), and claimed amounts match the customer's own transactions at chance level
+(37 of 6,987). The conversation does not need that historical link: the customer points to the transaction and Sofía
+finds it in their own records, which the API verifies as theirs (POL-1).
+*Evidence:* `analysis/notebooks/02_policy_calibration.ipynb` §1, `analysis/results/policy_calibration.json`.
 
-**¿De dónde salen N y U?**
-De la distribución real, no de un número redondo. N = `{{results/policy_calibration.json:N_days.value}}` días
-(`{{results/policy_calibration.json:N_days.rationale}}`); U = `{{results/policy_calibration.json:U_usd.value}}` USD, que deja
-`{{results/policy_calibration.json:U_usd.pct_auto}}`% de las disputas en ruta automática. La política es sintética y
-está etiquetada como definida por el equipo (CON-02): un banco real pondría sus propias reglas en el mismo lugar.
+**Where do N and U come from?**
+N = `{{results/policy_calibration.json:N_days.value}}` days. Since the data cannot calibrate it (no dispute links to its
+transaction), we took it from regulation: Mexico gives 90 calendar days to object to an unrecognized charge, inside
+Visa/Mastercard's 120-day chargeback window. Argentina is stricter (30 days from the statement), so per-country windows
+are a production step. U = `{{results/policy_calibration.json:U_usd.value}}` USD: no regulation sets an amount;
+purchases in the data top out near 500 USD, so almost every purchase dispute is automated while 23% of claimed amounts
+go to a human. The fraud threshold, 30 on the 0–100 score, is the point of minimum expected cost. The policy is
+synthetic and labeled as team-defined (CON-02): a real bank would put its own rules in the same place.
 
-## 2. Componente aprendido (router)
+## 2. Learned component (router)
 
-**¿De dónde salen los labels del router? (pregunta muy probable)**
-Del dataset no: lo auditamos antes de entrenar y no sirven. `call_transcripts` tiene solo
-`{{results/label_audit.json:transcript_templates[0].plantillas}}` plantillas de **consulta de saldo**
-(`{{results/label_audit.json:transcript_templates[0].filas}}` filas), repartidas por igual entre las categorías de
-contacto, y `detected_intents` es siempre `consulta_general`. El texto no tiene relación con la categoría: un
-modelo entrenado ahí aprendería ruido, o memorizaría plantillas y daría un número alto y vacío.
-*Propuesta (pendiente de aprobación del equipo):* entrenar el router con un corpus ES/PT generado por el equipo,
-etiquetado `team_generated` (CON-02), con split por grupo, y presentar la auditoría de labels como evidencia de
-REQ-13 ("labels válidos"). Es una limitación declarada: el router no está validado con texto real de clientes.
-*Evidencia:* `analysis/notebooks/04_label_audit.ipynb`, `analysis/results/label_audit.json`.
+**Where do the router's labels come from? (very likely question)**
+Not from the dataset: we audited it before training and the labels are unusable. `call_transcripts` has only
+`{{results/label_audit.json:transcript_templates[0].plantillas}}` **balance-inquiry** templates
+(`{{results/label_audit.json:transcript_templates[0].filas}}` rows), spread evenly across contact categories, and
+`detected_intents` is always `consulta_general`. The text has nothing to do with the category: a model trained there
+would learn noise, or memorize templates and give a high, empty number.
+So we trained the router on a team-generated ES/PT corpus, labeled `team_generated` (CON-02), with a group split, and
+we present the label audit as the REQ-13 evidence ("valid labels"). It is a declared limitation: the router is not
+validated on real customer text.
+*Evidence:* `analysis/notebooks/04_label_audit.ipynb`, `ml/reports/corpus_audit.md`.
 
-**¿Cómo evitaron leakage en el split del router?**
-Tres capas. (1) Split por grupo: en el corpus del equipo, el grupo es la familia de paráfrasis (todas las
-variantes de una misma frase caen del mismo lado); en datos del dataset, el cliente. (2) Temporal cuando hay
-fechas: test = los últimos días, y se sacan de train los grupos que aparecen en test. (3) Un `assert` que falla si
-hay un grupo **o un texto idéntico** en ambos lados. Tamaño del test: `{{ml/reports/router_eval.json:split.n_test}}`.
-*Evidencia:* `ml/src/sofia_ml/split.py` (`assert_no_leakage`), `ml/reports/router_eval.json`.
+**How did you avoid leakage in the router split?**
+Three layers. (1) Group split: in the team corpus, the group is the paraphrase family (all variants of one sentence
+land on the same side); in dataset data, the customer. (2) Temporal when there are dates: test = the last days, and
+groups that appear in test are removed from train. (3) An `assert` that fails if a group **or an identical text** is on
+both sides. Test size: `{{ml/reports/router_eval.json:split.n_test}}`.
+*Evidence:* `ml/src/sofia_ml/split.py` (`assert_no_leakage`), `ml/reports/router_eval.json`.
 
-**Repregunta: si el corpus lo escribieron ustedes, ¿no es fácil?**
-Es un riesgo real: quien escribe train y test comparte estilo. Lo mitigamos con el split por familia de
-paráfrasis y lo medimos por idioma (macro-F1 PT `{{ml/reports/router_eval.json:systems.tfidf-lr-0.1.by_language.pt.macro_f1}}`).
-Pero el número del router es optimista frente a clientes reales, y lo decimos; el siguiente paso es etiquetar
-mensajes reales en modo sombra.
+**Follow-up: if you wrote the corpus yourselves, isn't it easy?**
+It is a real risk: whoever writes train and test shares a style. We mitigated it with the paraphrase-family split and
+measured it per language (macro-F1 PT 0.778 for the served hybrid). But the router's number is optimistic compared
+with real customers, and we say so; the next step is labeling real messages in shadow mode.
 
-**¿Por qué macro-F1 y recall de `needs_human`?**
-Macro-F1 porque las clases están desbalanceadas y `out_of_scope` o `needs_human` importan tanto como la mayoritaria.
-Recall de `needs_human` porque dejar pasar un caso que debía ir a un humano es el error más caro; uno innecesario
-cuesta minutos de un agente. Resultado: `{{ml/reports/router_eval.json:systems.rules-ds-0.1.needs_human_recall}}` (reglas)
-→ `{{ml/reports/router_eval.json:systems.tfidf-lr-0.1.needs_human_recall}}` (aprendido).
+**Why macro-F1 and `needs_human` recall?**
+Macro-F1 because the classes are imbalanced and `out_of_scope` or `needs_human` matter as much as the majority class.
+`needs_human` recall because letting through a case that should go to a human is the most expensive error; an
+unnecessary one costs an agent a few minutes. Result on the held-out test: 0.0 (rules) → 0.7 (learned model and served
+hybrid); macro-F1 0.377 → 0.728.
 
-**¿Y si el router se equivoca?**
-No decide nada sensible. Por debajo del umbral de confianza (`{{ml/reports/router_eval.json:confidence_threshold}}`) Sofía
-pregunta; y aunque clasifique mal, la elegibilidad y los permisos los vuelve a decidir la API. El peor caso de un
-error del router es una pregunta de más o un handoff, no una acción indebida.
+**Why rules plus a model, instead of just the model?**
+Because it measured better. The keyword rules are precise when they match (0.865 accuracy on 41% of messages) and the
+model covers what they miss; out-of-fold on the 256 approved rows, rules 0.449, model 0.645, hybrid 0.766.
+`router_version` records which part answered each message.
 
-## 3. Arquitectura y seguridad
+**What if the router gets it wrong?**
+It decides nothing sensitive. Below the confidence threshold (`{{ml/reports/router_eval.json:confidence_threshold}}`)
+Sofía asks; and even if it misclassifies, the API decides eligibility and permissions again. The worst case of a router
+error is one extra question or a handoff, not an improper action.
 
-**¿Por qué la política fuera del prompt?**
-Porque un prompt es una sugerencia y una regla en la API es un hecho. Si la elegibilidad estuviera en el prompt,
-un cliente podría negociarla ("ignora tus reglas"). En Sofía, la API solo devuelve transacciones del `customer_id`
-ligado al token, contesta 404 si la transacción es de otro (sin revelar que existe, POL-1) y exige una confirmación
-explícita antes de registrar. El LLM no tiene una herramienta que le permita saltarse eso. Hay un test que lo
-demuestra con un prompt de inyección (REQ-10).
+## 3. Architecture and safety
 
-**¿Para qué 7 capas? ¿No es sobreingeniería?**
-Cada capa responde a un requisito y deja un evento auditable: PURPOSE (alcance y límites versionados), SENSE
-(idioma, normalización), INTERPRET (router + slots), DECIDE (política), ORCHESTRATE (actuar, verificar, escalar),
-GOVERN (allowlist de tools por nodo, grounding, guardia de salida), LEARN (gate de regresión). Así cada decisión es
-explicable con registros, no con chain-of-thought (REQ-19). El baseline es justamente lo contrario —un LLM con las
-mismas tools— y la diferencia está medida.
+**Why is the policy outside the prompt?**
+Because a prompt is a suggestion and a rule in the API is a fact. If eligibility lived in the prompt, a customer could
+negotiate it ("ignore your rules"). In Sofía, the API only returns transactions of the `customer_id` bound to the token,
+answers 404 if the transaction belongs to someone else (without revealing it exists, POL-1) and requires an explicit
+confirmation before registering. The LLM has no tool that lets it skip that. A test proves it with an injection prompt
+(REQ-10).
 
-**¿Cómo saben que la acción ocurrió?**
-Después de crear la disputa, Sofía la relee con `GET /disputes/{id}`. Solo informa el número de caso si la relectura
-lo confirma; si la tool falla, reintenta de forma acotada y, si sigue fallando, no afirma nada y escala (REQ-09, REQ-16).
+**Why 7 layers? Isn't that over-engineering?**
+Each layer answers a requirement and leaves an auditable event: PURPOSE (versioned scope and limits), SENSE (language,
+normalization), INTERPRET (router + slots), DECIDE (policy), ORCHESTRATE (act, verify, escalate), GOVERN (per-node tool
+allowlist, grounding, output guard), LEARN (regression gate). That way every decision is explainable with records, not
+with chain-of-thought (REQ-19). The baseline is exactly the opposite (one LLM with the same tools) and the difference is
+measured.
 
-**¿Qué ve el humano en el handoff?**
-Una ficha JSON: hechos verificados con su fuente, acciones ejecutadas, preguntas abiertas, banderas de riesgo y la
-regla que motivó el handoff. Nunca el transcript (REQ-05). Además del §9.4 del brief, la ficha trae
-`schema_version`, `customer_claim`, `system_version` (los pone el agente) y `created_at` (lo pone SIM al guardar).
-El resumen y las preguntas abiertas van en el idioma de la conversación; los hechos verificados, en español.
-La completitud de campos se mide (MET-03:
+**How do you know the action happened?**
+After creating the dispute, Sofía reads it back with `GET /disputes/{id}`. She only reports the case number if the
+read-back confirms it; if the tool fails, she retries a bounded number of times and, if it keeps failing, claims nothing
+and escalates (REQ-09, REQ-16).
+
+**What does the human see in the handoff?**
+A JSON card: verified facts with their source, actions taken, open questions, risk flags and the rule that triggered the
+handoff. Never the transcript (REQ-05). Beyond brief §9.4, the card carries `schema_version`, `customer_claim`,
+`system_version` (set by the agent) and `created_at` (set by SIM when storing). The summary and the open questions are in
+the conversation's language; the verified facts, in Spanish. Field completeness is measured (MET-03:
 `{{eval/outputs/ds_stats.json:proposed.metricas.met03_handoff_completeness}}`).
 
-## 4. Evaluación y estadística
+## 4. Evaluation and statistics
 
-**Reportan cero (o pocos) unsafe outcomes. Con ese n, ¿qué significa?**
-Poco, y lo decimos. Con `{{eval/outputs/ds_stats.json:proposed.n}}` casos y
-`{{eval/outputs/ds_stats.json:proposed.metricas.met04_unsafe_outcomes.k}}` resultados inseguros, la cota superior al 95 % es
-`{{eval/outputs/ds_stats.json:proposed.metricas.met04_unsafe_outcomes.ci[1]}}` (con cero eventos, regla de tres: ≈ 3/n). Cero en una muestra
-chica no es riesgo cero. Lo que sí es fuerte es la evidencia estructural: los tests que muestran que la API niega
-acciones no autorizadas no dependen del tamaño de la muestra.
+**You report zero (or few) unsafe outcomes. With that n, what does it mean?**
+Little, and we say so. With `{{eval/outputs/ds_stats.json:proposed.n}}` cases and
+`{{eval/outputs/ds_stats.json:proposed.metricas.met04_unsafe_outcomes.k}}` unsafe outcomes, the 95% upper bound is
+`{{eval/outputs/ds_stats.json:proposed.metricas.met04_unsafe_outcomes.ci[1]}}` (with zero events, rule of three: ≈ 3/n).
+Zero in a small sample is not zero risk. What is strong is the structural evidence: the tests showing that the API
+denies unauthorized actions do not depend on sample size.
 
-**¿Cómo construyeron los intervalos?**
-`{{eval/outputs/ds_stats.json:meta.metodos}}`. El principio: se remuestrean casos, no turnos (los turnos de una
-conversación no son independientes), por idioma, y `{{PENDIENTE:corridas repetidas por sistema}}` corridas repetidas miden la
-variabilidad del LLM. Baseline y Sofía corren sobre los **mismos** casos, así que la diferencia se puede comparar
-caso a caso. *(Confirmar con el método real de `ds_stats.json` antes de la defensa.)*
+**How did you build the intervals?**
+`{{eval/outputs/ds_stats.json:meta.metodos}}`. The principle: we resample cases, not turns (the turns of one
+conversation are not independent), per language, and `{{PENDIENTE:repeated runs per system}}` repeated runs measure the
+LLM's variability. Baseline and Sofía run on the **same** cases, so the difference can be compared case by case.
+*(Confirm against the actual method in `ds_stats.json` before the defense.)*
 
-**Containment alto no es bueno si el sistema no resuelve.**
-De acuerdo: por eso MET-01 (resolución automatizada **correcta** sobre casos in-scope) y MET-02 (containment) se
-reportan por separado, junto con el % de casos donde se intentó automatizar.
+**High containment is not good if the system does not resolve.**
+Agreed: that is why MET-01 (**correct** automated resolution over in-scope cases) and MET-02 (containment) are reported
+separately, together with the % of cases where automation was attempted.
 
-**¿Usaron LLM-as-judge?**
-Las métricas MET-01..05 son determinísticas (ruta, tool calls, fugas, verificación). Los evaluadores de Langfuse solo
-puntúan calidad de redacción y se validaron contra una muestra etiquetada por humanos
-(`{{eval/outputs/judge_validation.json:evaluators[0].agreement}}` de acuerdo). No usamos el juez para nada que afecte seguridad.
+**Did you use LLM-as-judge?**
+Metrics MET-01..05 are deterministic (route, tool calls, leaks, verification). The Langfuse evaluators only score
+writing quality and were validated against a human-labeled sample
+(`{{eval/outputs/judge_validation.json:evaluators[0].agreement}}` agreement). We do not use the judge for anything that
+affects safety.
 
-**¿Hay disparidades por idioma o segmento? (REQ-18)**
-Las reportamos por celda con su n: `{{results/fairness.json:summary}}`. Donde la celda es chica no concluimos; lo
-decimos así en el reporte.
+**Are there disparities by language or segment? (REQ-18)**
+We report them per cell with its n: `{{results/fairness.json:summary}}`. Where a cell is small we do not conclude; the
+report says so.
 
-## 5. Portugués
+## 5. Portuguese
 
-**El dataset es todo en español. ¿Qué tan bueno es su portugués?**
-Es nuestra mayor limitación y la declaramos. Los casos PT son generados por el equipo: traducidos con LLM y
-revisados por humanos, y etiquetados `team_generated` (CON-02). El catálogo del harness está balanceado (100 ES y
-100 PT). El script enmascara los identificadores antes de traducir y el texto se revisa a mano antes del reporte;
-no medimos cuántas frases se corrigieron en ese pase, así que no inventamos ese conteo. Las correcciones ya
-escritas del corpus del router están en `ml/reports/corpus_audit.md`. El set de desarrollo del agente (23 ES, 7 PT)
-solo alimenta el gate y no es esta muestra.
-Riesgo conocido: un PT traducido es más "limpio" que el de un cliente real de Brasil (menos jerga, menos errores de
-tipeo), así que el resultado PT probablemente es optimista. En producción: un set PT real etiquetado por hablantes
-nativos antes de abrir el canal.
+**The dataset is all Spanish. How good is your Portuguese?**
+It is our biggest limitation and we declare it. The PT cases and the PT half of the router corpus are team-generated
+with an LLM and labeled `team_generated` (CON-02); they were **not** reviewed by a native speaker. The harness catalog is
+balanced (100 ES and 100 PT). The translation script masks identifiers before translating. The language fixes we did
+make to the router corpus are listed in `ml/reports/corpus_audit.md`. The agent's development set (23 ES, 7 PT) only
+feeds the gate and is not this sample.
+Known risk: LLM-written PT is "cleaner" than a real Brazilian customer's (less slang, fewer typos), so the PT result is
+probably optimistic. In production: a real PT set labeled by native speakers before opening the channel.
 
-**¿Y la mezcla ES/PT en un mismo mensaje?**
-Es un caso adversarial del set (nivel 4). SENSE detecta el idioma por turno y Sofía responde en el del cliente; si
-la intención no queda clara, pregunta.
+**And Spanish and Portuguese mixed in one message?**
+It is an adversarial case in the set (level 4). SENSE detects the language per turn and Sofía answers in the customer's
+language; if the intent is unclear, she asks.
 
-## 6. Costo y latencia
+## 6. Cost and latency
 
-**¿Qué supuestos tiene el costo por caso?**
-Tokens reales medidos por Langfuse en cada llamada × precio público de Gemini por token en la fecha de la corrida
-(`{{agent/evals/reference.rules.json:context."Modelo (cadena)"}}`, `{{agent/src/sofia_agent/config.py:GEMINI_PRICE_INPUT_PER_MTOK}}` USD por millón
-de tokens de entrada, `{{agent/src/sofia_agent/config.py:GEMINI_PRICE_OUTPUT_PER_MTOK}}` de salida). No incluye infraestructura
-(Cloud Run escala a cero) ni el costo del agente humano en los handoffs. El costo por resolución exitosa se reporta
-como "not defined" si no hay éxitos (MET-06).
+**What assumptions does the cost per case carry?**
+Real tokens measured on every call × Gemini's public per-token price on the run date
+(`{{agent/evals/reference.rules.json:context."Modelo (cadena)"}}`, `{{agent/src/sofia_agent/config.py:GEMINI_PRICE_INPUT_PER_MTOK}}`
+USD per million input tokens, `{{agent/src/sofia_agent/config.py:GEMINI_PRICE_OUTPUT_PER_MTOK}}` per million output
+tokens). It does not include infrastructure (Cloud Run scales to zero) or the human agent's cost in handoffs. The cost
+per successful resolution is reported as "not defined" if there are no successes (MET-06).
 
-**¿Por qué Sofía es más lenta/cara que el baseline (si lo es)?**
-Porque verifica: relee la disputa después de crearla y consulta la política. Es un costo deliberado: p95
-`{{eval/outputs/ds_stats.json:proposed.metricas.met05_latency_p95_ms.value}}` ms contra `{{eval/outputs/ds_stats.json:baseline.metricas.met05_latency_p95_ms.value}}` ms
-del baseline. Además Sofía no manda los datos de las tools al LLM para decidir, el baseline sí.
+**Why is Sofía slower/more expensive than the baseline (if she is)?**
+Because she verifies: she reads the dispute back after creating it and consults the policy. It is a deliberate cost:
+p95 `{{eval/outputs/ds_stats.json:proposed.metricas.met05_latency_p95_ms.value}}` ms against
+`{{eval/outputs/ds_stats.json:baseline.metricas.met05_latency_p95_ms.value}}` ms for the baseline. Also, Sofía does not
+send tool data to the LLM to decide; the baseline does.
 
-**¿Cuánto ahorraría al banco?**
-No lo presentamos como ahorro medido. Contra el baseline de negocio histórico (FCR, escalación, duración del call
-center, `analysis/results/business_baseline.json`) solo mostramos una **proyección**, etiquetada como tal (CON-07).
+**How much would it save the bank?**
+We do not present it as measured savings. Against the historical business baseline (call-center FCR, escalation,
+duration, `analysis/results/business_baseline.json`) we only show a **projection**, labeled as such (CON-07).
 
-## 7. Camino a producción
+## 7. Path to production
 
-**¿Qué falta para producción?** (en orden de prioridad)
-1. **Datos reales en PT** y una corrida de evaluación con clientes reales en sombra (shadow mode), sin actuar.
-2. **Persistencia:** checkpointer en Postgres administrado (hoy la conversación vive en memoria, 1 instancia) y log
-   de auditoría persistente.
-3. **Red y auth:** router y bank-api internos (VPC / IAM invoker), solo el frontend expuesto; autenticación con el
-   IdP real del banco en lugar del OTP simulado.
-4. **Política del banco:** reemplazar POL-1..7 sintéticas por las reales, con dueños de negocio y versionado.
-5. **Operación:** staging/prod separados con rollback, pipeline programado con SLA de freshness que bloquee gold,
-   monitoreo de deriva del router y re-entrenamiento con los labels que deja la consola de agentes (LEARN).
-6. **Evaluación continua:** el gate de regresión (MET-01 no baja, MET-04 no sube) en cada cambio de prompt o modelo.
+**What is missing for production?** (in priority order)
+1. **Real PT data** and an evaluation run with real customers in shadow mode, without acting.
+2. **Persistence:** checkpointer on managed Postgres (today the conversation lives in memory, 1 instance) and a
+   persistent audit log.
+3. **Network and auth:** router and bank-api internal (VPC / IAM invoker), only the frontend exposed; authentication with
+   the bank's real IdP instead of the simulated OTP.
+4. **The bank's policy:** replace the synthetic POL-1..7 with the real ones, with business owners and versioning;
+   per-country dispute windows.
+5. **Operations:** separate staging/prod with rollback, a scheduled pipeline with a freshness SLA that blocks gold,
+   router drift monitoring and retraining with the labels the agent console produces (LEARN).
+6. **Continuous evaluation:** the regression gate (MET-01 does not drop, MET-04 does not rise) on every prompt or model
+   change.
 
-**¿Qué harían distinto con más tiempo?**
-Un set held-out más grande para intervalos más angostos, etiquetado humano más amplio del router y una evaluación
-PT con hablantes nativos.
+**What would you do differently with more time?**
+A larger held-out set for narrower intervals, broader human labeling for the router and a PT evaluation with native
+speakers.
 
 ---
 
-## Plan de demo en vivo
+## Live demo plan
 
-- La víspera: `MIN_INSTANCES=1` (OPS) para evitar el arranque en frío; probar desde una red externa.
-- Guion: el mismo del video (ES feliz → PT → handoff → Langfuse), con `MX-DEMO-001`; tener `CO-DEMO-002` de respaldo.
-- Si Gemini falla en vivo: el turno sigue con reglas y plantillas (fallback, REQ-16). Mostrarlo como fortaleza.
-- Respaldo final: el video grabado y capturas de la traza en Langfuse.
+- The day before: `MIN_INSTANCES=1` (OPS) to avoid the cold start; test from an external network.
+- Script: the same as the video (ES happy path → PT → handoff → Langfuse), with `MX-DEMO-001`; keep `CO-DEMO-002` as
+  backup.
+- If Gemini fails live: the turn continues with rules and templates (fallback, REQ-16). Show it as a strength.
+- Final backup: the recorded video and screenshots of the Langfuse trace.

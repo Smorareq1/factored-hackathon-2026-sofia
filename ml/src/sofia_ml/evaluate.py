@@ -1,7 +1,7 @@
-"""Evaluación del router (§8.6): macro-F1, recall de needs_human (el error más caro), matriz de confusión,
-desglose por idioma; reglas (baseline) vs modelo entrenado sobre el mismo test held-out.
+"""Router evaluation (§8.6): macro-F1, needs_human recall (the most expensive error), confusion matrix and a
+per-language breakdown; rules (baseline) vs trained model vs served hybrid on the same held-out test.
 
-Los reportes son agregados (sin textos) y se versionan en `ml/reports/` como evidencia de REQ-13.
+Reports are aggregates (no texts) and are versioned in `ml/reports/` as REQ-13 evidence.
 """
 
 import json

@@ -1,99 +1,99 @@
-# SIM: API Bancaria Simulada y Servicios de Evaluación (services/)
+# SIM: simulated bank API and evaluation services (services/)
 
-Servicio bancario simulado para el flujo de recepción de disputas de transacciones (**Transaction-Dispute Intake**, REQ-01), gobernanza de políticas financieras (POL-1..POL-7, REQ-10), autenticación confiable con sesión + OTP (REQ-11), auditoría auditable (REQ-19) e inyección controlada de fallas (REQ-15, REQ-16).
-
----
-
-## 1. Arquitectura y Responsabilidades
-
-SIM es el dueño del backend financiero (`sofia-services`). Todo lo que involucra verdad de negocio, validación de políticas y persistencia de transacciones/disputas vive en este servicio y **no en el LLM**:
-
-- **Autenticación y Sesión (§9.2, REQ-11)**: Emisión de desafíos (challenge) con OTP simulado para la demo, verificación de OTP y emisión de tokens de sesión con TTL de 30 minutos.
-- **Control de Permisos (§9.2, POL-1, REQ-10)**: Las consultas de transacciones (`/transactions`) devuelven únicamente las transacciones del cliente autenticado. Si un cliente intenta consultar una transacción ajena, se retorna `404 Not Found` idéntico para no filtrar existencia de datos de terceros.
-- **Motor de Políticas Determinístico (POL-1..POL-6, REQ-10)**: Valida elegibilidad de disputas (`POST /disputes/eligibility`) evaluando reglas determinísticas basadas en datos históricos.
-- **Registro de Disputas Idempotente (§9.2, REQ-09)**: `POST /disputes` exige `Idempotency-Key` en cabecera, `eligibility_id` vigente y prueba explícita de confirmación (`ConfirmationProof`).
-- **Simulación y Harness (REQ-15, REQ-16)**: Endpoints administrativos en `/admin/*` para inyección de fallas HTTP, expiración forzada de sesiones, simulación de fallas de escritura (`drop_writes`) e inyección de latencia/timeouts.
+Simulated banking service for the transaction-dispute intake workflow (**Transaction-Dispute Intake**, REQ-01): financial policy governance (POL-1..POL-7, REQ-10), trusted authentication with session + OTP (REQ-11), auditable logging (REQ-19) and controlled fault injection (REQ-15, REQ-16).
 
 ---
 
-## 2. Endpoints de la API (§9.2)
+## 1. Architecture and responsibilities
 
-| Método | Endpoint | Rol / Auth | Propósito |
+SIM owns the financial backend (`sofia-services`). Everything involving business truth, policy validation and persistence of transactions/disputes lives in this service and **not in the LLM**:
+
+- **Authentication and session (§9.2, REQ-11)**: issues challenges with a simulated OTP for the demo, verifies the OTP and issues session tokens with a 30-minute TTL.
+- **Permission control (§9.2, POL-1, REQ-10)**: transaction queries (`/transactions`) return only the authenticated customer's transactions. If a customer tries to read someone else's transaction, an identical `404 Not Found` is returned so third-party data is not revealed.
+- **Deterministic policy engine (POL-1..POL-6, REQ-10)**: checks dispute eligibility (`POST /disputes/eligibility`) by evaluating deterministic rules over historical data.
+- **Idempotent dispute registration (§9.2, REQ-09)**: `POST /disputes` requires an `Idempotency-Key` header, a valid `eligibility_id` and explicit proof of confirmation (`ConfirmationProof`).
+- **Simulation and harness (REQ-15, REQ-16)**: admin endpoints under `/admin/*` for HTTP fault injection, forced session expiry, silent write failures (`drop_writes`) and latency/timeout injection.
+
+---
+
+## 2. API endpoints (§9.2)
+
+| Method | Endpoint | Role / Auth | Purpose |
 |---|---|---|---|
-| `GET` | `/health` | Público | Healthcheck del servicio |
-| `GET` | `/demo/customers` | Público | Lista clientes sintéticos para el selector del frontend demo |
-| `POST` | `/session` | Público | Inicia sesión con número de documento; genera challenge + OTP |
-| `POST` | `/session/verify` | Público | Valida OTP y retorna token Bearer de sesión |
-| `POST` | `/session/test` | Protegido / Sandbox | Apertura directa de sesión para `session_customer_id` en harness |
-| `GET` | `/session/me` | Customer / Agent | Información del cliente autenticado |
-| `GET` | `/transactions` | Customer | Lista transacciones del cliente con filtros (`since`, `until`, `merchant`, `amount`, `limit`) |
-| `GET` | `/transactions/{id}` | Customer | Detalle de transacción (POL-1: 404 si es ajena) |
-| `POST` | `/disputes/eligibility` | Customer | Evalúa políticas POL-1..POL-6 y emite `eligibility_id` |
-| `POST` | `/disputes` | Customer | Registra la disputa (requiere `Idempotency-Key` y `ConfirmationProof`) |
-| `GET` | `/disputes` | Customer | Lista disputas del cliente autenticado |
-| `GET` | `/disputes/{id}` | Customer | Detalle de disputa |
-| `POST` | `/handoff` | Customer / Agent | Registra ficha estructurada de transferencia a humano |
-| `GET` | `/handoffs` | Agent | Lista handoffs pendientes para la consola humana |
-| `POST` | `/handoffs/{id}/feedback` | Agent | Envía feedback de utilidad del handoff recibido |
-| `POST` | `/admin/faults/http` | Admin / Sandbox | Inyecta código de error HTTP para método/ruta |
-| `POST` | `/admin/faults/latency` | Admin / Sandbox | Inyecta latencia controlada para simular timeouts |
-| `POST` | `/admin/faults/drop-writes` | Admin / Sandbox | Simula respuesta exitosa sin persistir (falla silenciosa) |
-| `POST` | `/admin/faults/expire-sessions`| Admin / Sandbox | Expira todas las sesiones activas |
-| `POST` | `/admin/faults/reset` | Admin / Sandbox | Limpia todas las fallas inyectadas |
-| `GET` | `/admin/audit` | Admin / Sandbox | Registro de eventos de auditoría |
-| `POST` | `/admin/reset-store` | Admin / Sandbox | Restablece el estado del store y las fallas |
+| `GET` | `/health` | Public | Service healthcheck |
+| `GET` | `/demo/customers` | Public | Lists synthetic customers for the demo frontend selector |
+| `POST` | `/session` | Public | Starts a session with a document number; issues a challenge + OTP |
+| `POST` | `/session/verify` | Public | Validates the OTP and returns a Bearer session token |
+| `POST` | `/session/test` | Protected / Sandbox | Opens a session directly for a `session_customer_id` in the harness |
+| `GET` | `/session/me` | Customer / Agent | Authenticated customer's information |
+| `GET` | `/transactions` | Customer | Lists the customer's transactions with filters (`since`, `until`, `merchant`, `amount`, `limit`) |
+| `GET` | `/transactions/{id}` | Customer | Transaction detail (POL-1: 404 if it belongs to someone else) |
+| `POST` | `/disputes/eligibility` | Customer | Evaluates policies POL-1..POL-6 and issues an `eligibility_id` |
+| `POST` | `/disputes` | Customer | Registers the dispute (requires `Idempotency-Key` and `ConfirmationProof`) |
+| `GET` | `/disputes` | Customer | Lists the authenticated customer's disputes |
+| `GET` | `/disputes/{id}` | Customer | Dispute detail |
+| `POST` | `/handoff` | Customer / Agent | Registers a structured handoff card to a human |
+| `GET` | `/handoffs` | Agent | Lists pending handoffs for the human console |
+| `POST` | `/handoffs/{id}/feedback` | Agent | Sends feedback on how useful the received handoff was |
+| `POST` | `/admin/faults/http` | Admin / Sandbox | Injects an HTTP error code for a method/route |
+| `POST` | `/admin/faults/latency` | Admin / Sandbox | Injects controlled latency to simulate timeouts |
+| `POST` | `/admin/faults/drop-writes` | Admin / Sandbox | Simulates a successful response without persisting (silent failure) |
+| `POST` | `/admin/faults/expire-sessions`| Admin / Sandbox | Expires every active session |
+| `POST` | `/admin/faults/reset` | Admin / Sandbox | Clears every injected fault |
+| `GET` | `/admin/audit` | Admin / Sandbox | Audit event log |
+| `POST` | `/admin/reset-store` | Admin / Sandbox | Resets the store state and the faults |
 
 ---
 
-## 3. Seguridad y Protección en Cloud
+## 3. Security and protection in the cloud
 
-Para prevenir abusos o manipulaciones no autorizadas en el despliegue público en Google Cloud Run:
+To prevent abuse or unauthorized tampering in the public Google Cloud Run deployment:
 
-1. **Gateo de Entorno (`SOFIA_ENV`)**:
-   - Cuando `SOFIA_ENV=cloud` (o `production`), las rutas `/admin/*` y `POST /session/test` se bloquean por defecto con `403 Forbidden`.
-   - Para acceder en entornos cloud desde herramientas de evaluación o administración, se requiere la cabecera `X-Admin-Key` configurada con el valor de `ADMIN_API_KEY`.
-2. **Entorno Local**:
-   - En desarrollo local (`SOFIA_ENV=local` o `test`), el acceso a los endpoints administrativos y sandbox se permite de manera transparente para facilitar la ejecución del arnés y las pruebas automatizadas.
-
----
-
-## 4. Calibración de Políticas Bancarias (§8.3)
-
-Los parámetros de política fueron formalmente analizados y calibrados por el equipo de Ciencia de Datos (`analysis/results/policy_calibration.json`):
-
-- **$N$ (Ventana de disputa)**: **90 días**. Supuesto de política estándar de la industria bancaria (el dataset de transacciones no vincula de forma explícita disputas con identificadores de transacción).
-- **$U$ (Monto umbral)**: **$500.00 USD**. Cubre más del 95% de las compras aprobadas históricas en el dataset, canalizando montos atípicos a revisión humana especializada (POL-6).
-- **Umbral de Fraude**: **0.8** (80/100). Balance óptimo de precisión y cobertura para alertas de transacciones sospechosas.
+1. **Environment gating (`SOFIA_ENV`)**:
+   - When `SOFIA_ENV=cloud` (or `production`), the `/admin/*` routes and `POST /session/test` are blocked by default with `403 Forbidden`.
+   - To reach them in cloud environments from evaluation or admin tools, the `X-Admin-Key` header must carry the value of `ADMIN_API_KEY`.
+2. **Local environment**:
+   - In local development (`SOFIA_ENV=local` or `test`), the admin and sandbox endpoints are open, to make running the harness and the automated tests easy.
 
 ---
 
-## 5. Inyección de Fallas de Nivel 5 (REQ-15, REQ-16)
+## 4. Calibrated banking policy (§8.3)
 
-El gestor de fallas (`FaultManager`) permite someter al agente a pruebas de estrés y escenarios adversos sin comprometer la estabilidad del sistema:
+The policy parameters were analyzed by the Data Science owner (`analysis/notebooks/02_policy_calibration.ipynb` → `analysis/results/policy_calibration.json`):
 
-1. **HTTP Error (`POST /admin/faults/http`)**:
-   - Simula caídas de dependencias (por ejemplo, `500 Internal Server Error` o `503 Service Unavailable` repetido $k$ veces).
-2. **Expiración de Sesión (`POST /admin/faults/expire-sessions`)**:
-   - Invalida los tokens activos para verificar que el agente transiciona a la ruta `reauth` y solicita reautenticación sin perder el contexto conversacional.
-3. **Falla de Persistencia / Drop Writes (`POST /admin/faults/drop-writes`)**:
-   - `POST /disputes` responde con código `201 Created` simulado pero omite la persistencia en memoria/base de datos. Permite comprobar que el nodo `VERIFY` del agente detecta la omisión y escala a humano con la alerta correspondiente en lugar de afirmar un éxito falso al cliente (REQ-09, MET-04).
-4. **Latencia y Timeouts (`POST /admin/faults/latency`)**:
-   - Introduce un retraso de `delay_s` segundos en el endpoint seleccionado. Permite validar que el cliente bancario (`BankClient`) respeta el límite de tiempo (`tool_timeout_s`), aplica reintentos con backoff exponencial y, al agotar los intentos, escala limpiamente a humano.
+- **$N$ (dispute window)**: **90 days**. It cannot be calibrated from the data (the dataset does not link disputes to their transactions); it follows Mexico's 90-calendar-day window to object to unrecognized charges, within Visa/Mastercard's 120-day chargeback window.
+- **$U$ (amount threshold)**: **500.00 USD**. Approved purchases top out near 500 USD (p95 475), so almost every purchase dispute can be automated, while large claims (23% of claimed amounts) go to specialized human review (POL-6).
+- **Fraud threshold**: **0.30** on the policy's 0–1 scale (= 30 on gold's 0–100 `fraud_score`, which the store converts when loading gold). It is the minimum expected cost with a missed fraud costing 40–50× an extra review: recall 0.69, precision 0.80, 0.08% of transactions sent to review.
 
 ---
 
-## 6. Desviaciones y Decisiones Arquitectónicas del Contrato
+## 5. Level 5 fault injection (REQ-15, REQ-16)
 
-En la implementación del sistema S.O.F.I.A. se adoptaron cuatro decisiones arquitectónicas justificadas:
+The fault manager (`FaultManager`) puts the agent through stress tests and adverse scenarios without compromising system stability:
 
-### 1. POL-7 se gestiona en el agente conversacional, no en el motor de políticas de SIM
-- **Rationale**: POL-1 a POL-6 evalúan reglas determinísticas financieras sobre transacciones y clientes (estado de cuenta, montos, antigüedad, reclamos duplicados y riesgo de fraude). Por el contrario, POL-7 define el límite de turnos de clarificación (máximo 2 intentos antes de escalar a un humano). El conteo de intentos de clarificación y la ambigüedad del diálogo son inherentes al estado del grafo conversacional (`agent/`), por lo que su control reside en la capa de orquestación del agente y no en la API bancaria.
+1. **HTTP error (`POST /admin/faults/http`)**:
+   - Simulates dependency outages (e.g. `500 Internal Server Error` or `503 Service Unavailable` repeated $k$ times).
+2. **Session expiry (`POST /admin/faults/expire-sessions`)**:
+   - Invalidates the active tokens to check that the agent moves to the `reauth` route and asks to re-authenticate without losing the conversation context.
+3. **Persistence failure / drop writes (`POST /admin/faults/drop-writes`)**:
+   - `POST /disputes` returns a simulated `201 Created` but skips persisting in memory/database. It checks that the agent's `VERIFY` node detects the omission and escalates to a human with the corresponding alert instead of claiming a false success to the customer (REQ-09, MET-04).
+4. **Latency and timeouts (`POST /admin/faults/latency`)**:
+   - Adds a `delay_s`-second delay to the chosen endpoint. It checks that the bank client (`BankClient`) respects the time limit (`tool_timeout_s`), retries with exponential backoff and, after the last attempt, escalates cleanly to a human.
 
-### 2. Identificador de elegibilidad (`eligibility_id`) + `ConfirmationProof` en lugar de `confirmation_id` independiente
-- **Rationale**: La especificación preliminar contemplaba un `confirmation_id` emitido por el banco. En el diseño final, la creación de la disputa (`POST /disputes`) requiere el `eligibility_id` (que garantiza que la transacción fue validada previamente bajo la política y está dentro de su ventana de TTL de 15 minutos) junto con un objeto `ConfirmationProof` (que encapsula el texto explícito de confirmación del cliente y el timestamp del turno). Esto simplifica el contrato eliminando una llamada intermedia redundante mientras preserva la garantía estricta de confirmación previa a cualquier mutación (REQ-09).
+---
 
-### 3. Registro de auditoría en memoria (`InMemoryAuditTrail`) para el sandbox de hackathon
-- **Rationale**: Durante la fase de hackathon, el registro de auditoría (`audit_trail`) opera en memoria para asegurar máxima velocidad en tests unitarios y permitir inspección directa mediante `GET /admin/audit`. En el diseño para producción bancaria, este registro se descarga de manera asíncrona a una tabla append-only en PostgreSQL/BigQuery o Cloud Logging con retención WORM inmutable y firmas criptográficas.
+## 6. Contract deviations and architecture decisions
 
-### 4. Métricas MET-05 y MET-06 calculadas a partir de temporizadores locales y contadores de tokens
-- **Rationale**: MET-05 (latencia) y MET-06 (costo) se miden en el arnés de evaluación acumulando deltas de `time.perf_counter()` por turno y sumando los tokens de entrada y salida provistos por las respuestas del LLM multiplicados por las tarifas públicas configuradas (`GEMINI_PRICE_INPUT_PER_MTOK` y `GEMINI_PRICE_OUTPUT_PER_MTOK`). Esto asegura reproducibilidad estricta de las evaluaciones offline (`make eval`) sin dependencia de red ni de cuotas en la API de analítica externa de Langfuse.
+The S.O.F.I.A. implementation adopted four justified architecture decisions:
+
+### 1. POL-7 is handled in the conversational agent, not in SIM's policy engine
+- **Rationale**: POL-1 to POL-6 evaluate deterministic financial rules over transactions and customers (account status, amounts, age, duplicate claims and fraud risk). POL-7, instead, sets the limit of clarification turns (at most 2 attempts before escalating to a human). The clarification count and the dialogue's ambiguity belong to the conversational graph's state (`agent/`), so they are controlled in the agent's orchestration layer, not in the bank API.
+
+### 2. Eligibility identifier (`eligibility_id`) + `ConfirmationProof` instead of a separate `confirmation_id`
+- **Rationale**: The preliminary specification had a `confirmation_id` issued by the bank. In the final design, creating the dispute (`POST /disputes`) requires the `eligibility_id` (which guarantees the transaction was checked against the policy beforehand and is within its 15-minute TTL) plus a `ConfirmationProof` object (which carries the customer's explicit confirmation text and the turn's timestamp). This removes a redundant intermediate call while keeping the strict guarantee of confirmation before any mutation (REQ-09).
+
+### 3. In-memory audit log (`InMemoryAuditTrail`) for the hackathon sandbox
+- **Rationale**: During the hackathon, the audit log (`audit_trail`) runs in memory for maximum speed in unit tests and direct inspection through `GET /admin/audit`. In a production banking design, this log is shipped asynchronously to an append-only table in PostgreSQL/BigQuery or Cloud Logging with immutable WORM retention and cryptographic signatures.
+
+### 4. MET-05 and MET-06 computed from local timers and token counters
+- **Rationale**: MET-05 (latency) and MET-06 (cost) are measured in the evaluation harness by accumulating `time.perf_counter()` deltas per turn and summing the input and output tokens reported by the LLM responses multiplied by the configured public prices (`GEMINI_PRICE_INPUT_PER_MTOK` and `GEMINI_PRICE_OUTPUT_PER_MTOK`). This keeps offline evaluations (`make eval`) strictly reproducible without depending on the network or on Langfuse's external analytics API quotas.

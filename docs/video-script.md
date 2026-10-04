@@ -1,58 +1,59 @@
-# Guion del video pitch (DEL-04)
+# Video pitch script (DEL-04)
 
-**Límite duro: 3:00. Objetivo: 2:50** (10 s de margen para la edición). Narración en español, con un tramo en
-portugués dentro de la demo. Ritmo de lectura de referencia: ~150 palabras/min.
+**Hard limit: 3:00. Target: 2:50** (10 s of margin for editing). Narration in English; the demo itself runs in Spanish
+and, for one segment, Portuguese, with on-screen subtitles in English. Reference reading pace: ~150 words/min.
 
-- **Demo:** https://frontend-i6dmh3qssa-uc.a.run.app · cliente demo `MX-DEMO-001` · el OTP simulado aparece en
-  pantalla (se muestra a propósito: es una sesión de prueba, REQ-11).
-- **Quién graba qué (§14, mitigación de DS sobrecargado):** **AG** graba todas las tomas de pantalla de la demo
-  (chat, caja de cristal, consola, Langfuse). **DS** graba la voz en off y las tomas de slides, y edita.
-  **OPS** revisa el guion y deja una instancia caliente antes de grabar (`MIN_INSTANCES=1`).
-- **Cifras:** solo placeholders `{{...}}`, que se reemplazan con los JSON versionados antes de grabar la voz. Si una
-  cifra no existe, la frase se dice sin la cifra.
+- **Demo:** https://frontend-i6dmh3qssa-uc.a.run.app · demo customer `MX-DEMO-001` · the simulated OTP is shown on
+  screen (on purpose: it is a test session, REQ-11).
+- **Who records what (§14, mitigation for an overloaded DS):** **AG** records all the demo screen takes (chat, glass
+  box, console, Langfuse). **DS** records the voice-over and the slide takes, and edits. **OPS** reviews the script and
+  keeps a warm instance before recording (`MIN_INSTANCES=1`).
+- **Figures:** only `{{...}}` placeholders, replaced with the versioned JSONs before recording the voice. If a figure
+  does not exist, the sentence is said without it.
 
-## Guion
+## Script
 
-| Tiempo | Pantalla / toma | Narración | Graba |
+| Time | Screen / take | Narration | Records |
 |---|---|---|---|
-| 0:00–0:12 | Slide 1 (título S.O.F.I.A.) sobre un cargo "no reconocido" en un estado de cuenta | "Un cliente ve un cargo que no reconoce. Hoy eso es una llamada, una espera y, muchas veces, una disputa que rompe el SLA. Les presentamos a Sofía." | DS |
-| 0:12–0:27 | Slide 4: barras por categoría de contacto | "Elegimos un solo workflow con datos: la recepción de disputas. Es `{{results/workflow_justification.json:dispute_share_pct}}` por ciento de las quejas del dataset, y la acción es segura: registrar la disputa, nunca mover dinero." | DS |
-| 0:27–0:40 | Demo: pantalla de ingreso, `MX-DEMO-001`, OTP visible, se ingresa | "Primero, autenticación de verdad: un número de cliente solo no basta. Sofía pide un código de un solo uso y liga la sesión a ese cliente." | AG |
-| 0:40–1:05 | Demo ES (camino feliz): "Me cobraron algo que no reconozco en [comercio] la semana pasada" → Sofía muestra la transacción → pide confirmación → cliente confirma → número de caso. Caja de cristal abierta a la derecha, las capas se encienden | "Camino normal, en español. Sofía encuentra la transacción en los registros del cliente, la política dice que es elegible y, antes de actuar, pide confirmación explícita. Registra la disputa y la vuelve a leer: solo confirma el número de caso cuando verificó que existe. A la derecha, la caja de cristal: registros de ejecución, no razonamiento del modelo." | AG |
-| 1:05–1:22 | Demo PT (camino feliz): selector de idioma en PT, "Quero contestar uma compra que não reconheço" → confirmação → número do caso | (voz, en portugués, 2 frases) "Agora em português: mesma política, mesmas regras, resposta no idioma do cliente." (DS sigue en español) "Las métricas las reportamos por idioma, por separado." | AG |
-| 1:22–1:47 | Demo handoff: cargo de monto alto → Sofía explica que lo revisa una persona → corte a la consola del agente humano con la ficha (hechos verificados, acciones, preguntas abiertas, riesgo) | "Ahora un monto alto. Acá Sofía sabe que no debe actuar: la regla de política manda el caso a una persona. El agente humano no recibe un transcript; recibe una ficha con hechos verificados y su fuente, lo que ya se hizo y lo que falta preguntar." | AG |
-| 1:47–2:02 | Demo Langfuse: la traza de esa conversación, árbol de spans por capa, tool calls, latencia y costo | "Cada conversación es una traza en Langfuse: un span por capa y por llamada a herramienta, con latencia y costo reales. De ahí salen nuestras métricas de latencia y costo." | AG |
-| 2:02–2:22 | Slide 5: diagrama de 7 capas con la frontera de confianza | "La decisión clave: el LLM entiende y redacta, pero no decide. Permisos y elegibilidad viven en la API, fuera del prompt; una inyección no tiene nada que convencer. Y auditamos los datos: el dataset no trae intenciones válidas, así que no fingimos un modelo sobre ellas." | DS |
-| 2:22–2:42 | Slide 6: dot plot con intervalos, baseline vs Sofía, ES y PT | "Contra un baseline con las mismas herramientas pero sin capas, Sofía pasa de `{{eval/outputs/ds_stats.json:baseline.metricas.met01_safe_auto_resolution.rate}}` a `{{eval/outputs/ds_stats.json:proposed.metricas.met01_safe_auto_resolution.rate}}` en resolución automática segura, con `{{eval/outputs/ds_stats.json:proposed.metricas.met04_unsafe_outcomes.k}}` resultados inseguros. Somos honestos: el portugués es traducido por nosotros y una muestra chica no prueba riesgo cero." | DS |
-| 2:42–2:50 | Slide de cierre: repo + link a la demo | "Sofía funciona, lo medimos, y sabe cuándo no actuar. Todo está en el repo." | DS |
+| 0:00–0:12 | Slide 1 (S.O.F.I.A. title) over an "unrecognized" charge on a statement | "A customer sees a charge they don't recognize. Today that means a call, a wait and, often, a dispute that breaks the SLA. Meet Sofía." | DS |
+| 0:12–0:27 | Slide 4: bars by contact category | "We picked one workflow, with data: dispute intake. It is `{{results/workflow_justification.json:dispute_share_pct}}` percent of the dataset's complaints, and the action is safe: register the dispute, never move money." | DS |
+| 0:27–0:40 | Demo: login screen, `MX-DEMO-001`, OTP visible, sign in | "First, real authentication: a customer number alone is not enough. Sofía asks for a one-time code and binds the session to that customer." | AG |
+| 0:40–1:05 | Demo ES (happy path): "Me cobraron algo que no reconozco en [merchant] la semana pasada" → Sofía shows the transaction → asks for confirmation → customer confirms → case number. Glass box open on the right, the layers light up | "The normal path, in Spanish. Sofía finds the transaction in the customer's records, the policy says it is eligible and, before acting, she asks for explicit confirmation. She registers the dispute and reads it back: she only confirms the case number once she has verified it exists. On the right, the glass box: execution records, not the model's reasoning." | AG |
+| 1:05–1:22 | Demo PT (happy path): language selector on PT, "Quero contestar uma compra que não reconheço" → confirmação → número do caso | "Now in Portuguese: same policy, same rules, the answer in the customer's language. We report the metrics for each language separately." | AG |
+| 1:22–1:47 | Demo handoff: high-amount charge → Sofía explains a person will review it → cut to the human agent console with the handoff card (verified facts, actions, open questions, risk) | "Now a high amount. Here Sofía knows she must not act: the policy rule sends the case to a person. The human agent does not get a transcript; they get a card with verified facts and their source, what was already done and what is left to ask." | AG |
+| 1:47–2:02 | Demo Langfuse: that conversation's trace, span tree by layer, tool calls, latency and cost | "Every conversation is a trace in Langfuse: one span per layer and per tool call, with real latency and cost. Our latency and cost metrics come from there." | AG |
+| 2:02–2:22 | Slide 5: 7-layer diagram with the trust boundary | "The key decision: the LLM understands and writes, but does not decide. Permissions and eligibility live in the API, outside the prompt; an injection has nothing to persuade. We also audited the data: it has no valid intents, so we did not fake a model on them." | DS |
+| 2:22–2:42 | Slide 6: dot plot with intervals, baseline vs Sofía, ES and PT | "Against a baseline with the same tools but no layers, Sofía goes from `{{eval/outputs/ds_stats.json:baseline.metricas.met01_safe_auto_resolution.rate}}` to `{{eval/outputs/ds_stats.json:proposed.metricas.met01_safe_auto_resolution.rate}}` in safe automated resolution, with `{{eval/outputs/ds_stats.json:proposed.metricas.met04_unsafe_outcomes.k}}` unsafe outcomes. To be honest: we wrote the Portuguese ourselves, and a small sample does not prove zero risk." | DS |
+| 2:42–2:50 | Closing slide: repo + demo link | "Sofía works, we measured it, and she knows when not to act. Everything is in the repo." | DS |
 
-## Verificación de duración
+## Duration check
 
-Conteo de palabras de la narración, sin acotaciones entre paréntesis; cada placeholder cuenta como 2 palabras
-habladas (una cifra con su unidad):
+Word count of the narration, without the parenthetical notes; each placeholder counts as 2 spoken words (a figure with
+its unit):
 
-| Tramo | Duración | Palabras | Tiempo a 150 ppm |
+| Segment | Window | Words | Time at 150 wpm |
 |---|---|---|---|
-| 0:00–0:12 | 12 s | 28 | 11.2 s |
-| 0:12–0:27 | 15 s | 31 | 12.4 s |
-| 0:27–0:40 | 13 s | 26 | 10.4 s |
-| 0:40–1:05 | 25 s | 58 | 23.2 s |
-| 1:05–1:22 | 17 s | 20 | 8.0 s (+ pausa para leer la confirmación) |
-| 1:22–1:47 | 25 s | 47 | 18.8 s |
-| 1:47–2:02 | 15 s | 30 | 12.0 s |
-| 2:02–2:22 | 20 s | 46 | 18.4 s |
-| 2:22–2:42 | 20 s | 43 | 17.2 s |
-| 2:42–2:50 | 8 s | 14 | 5.6 s |
-| **Total** | **2:50** | **343** | **2:17.2** de voz; el resto son pausas sobre la demo |
+| 0:00–0:12 | 12 s | 25 | 10.0 s |
+| 0:12–0:27 | 15 s | 28 | 11.2 s |
+| 0:27–0:40 | 13 s | 23 | 9.2 s |
+| 0:40–1:05 | 25 s | 59 | 23.6 s |
+| 1:05–1:22 | 17 s | 21 | 8.4 s (+ pause to read the confirmation) |
+| 1:22–1:47 | 25 s | 48 | 19.2 s |
+| 1:47–2:02 | 15 s | 28 | 11.2 s |
+| 2:02–2:22 | 20 s | 47 | 18.8 s |
+| 2:22–2:42 | 20 s | 44 | 17.6 s |
+| 2:42–2:50 | 8 s | 17 | 6.8 s |
+| **Total** | **2:50** | **340** | **2:16.0** of voice; the rest are pauses over the demo |
 
-Ninguna fila excede su ventana a 150 ppm. Si al grabar alguna toma de demo se alarga (arranque en frío de Cloud
-Run, respuesta lenta de Gemini), se corta la espera en edición; **no** se acelera la voz.
+No row exceeds its window at 150 wpm. If a demo take runs long while recording (Cloud Run cold start, slow Gemini
+answer), cut the wait in editing; do **not** speed up the voice.
 
-## Notas de grabación (AG)
+## Recording notes (AG)
 
-- Grabar con la instancia caliente; resolución 1920×1080, zoom del navegador 110–125 % para que el texto se lea.
-- Ensayar el caso de monto alto con una transacción de `MX-DEMO-001` que supere U, para que el handoff salga por
-  POL-6 y no por otra regla.
-- Tener abierta de antemano la traza de Langfuse de la conversación del handoff (se graba en una toma aparte).
-- Si el selector PT exige otra sesión, repetir el ingreso fuera de cámara; no mostrarlo dos veces.
-- Grabar cada tramo por separado (10 clips) para editar sin regrabar todo.
+- Record with the warm instance; 1920×1080 resolution, browser zoom 110–125% so the text is readable.
+- Rehearse the high-amount case with a `MX-DEMO-001` transaction above U, so the handoff comes from POL-6 and not from
+  another rule.
+- Have the Langfuse trace of the handoff conversation open in advance (it is recorded as a separate take).
+- If the PT selector needs another session, repeat the login off camera; do not show it twice.
+- Record each segment separately (10 clips) to edit without re-recording everything.
+- Add English subtitles for the Spanish and Portuguese chat lines.

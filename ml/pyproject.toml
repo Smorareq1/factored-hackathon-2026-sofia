@@ -1,7 +1,7 @@
 [project]
 name = "sofia-ml"
 version = "0.1.0"
-description = "Router de intención + idioma (§8.6, §9.3): entrenamiento, evaluación vs baseline y servicio HTTP. Dueño: DS."
+description = "Intent + language router (§8.6, §9.3): training, evaluation vs baseline and HTTP service. Owner: DS."
 requires-python = ">=3.12"
 dependencies = [
     "sofia-contracts",

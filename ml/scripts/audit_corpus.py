@@ -1,10 +1,10 @@
-"""Chequeos automáticos del corpus del router. Se corre tras cada cambio al corpus:
+"""Automated checks on the router corpus. Run after every corpus change:
 
     uv run --package sofia-ml python ml/scripts/audit_corpus.py [--review-csv corpus_review.csv]
 
-Las predicciones del modelo, de las reglas y del detector de idioma son **señales para revisar**, nunca verdad:
-el label lo decide la guía de etiquetado (ml/reports/corpus_audit.md). Escribe ml/reports/corpus_checks.json
-(agregados) y, si se pide, un CSV de revisión con una fila por ejemplo y sus flags (filas con flags primero).
+Model, rule and language-detector predictions are **signals to review**, never ground truth: the labeling guidelines
+decide the label (ml/reports/corpus_audit.md). Writes ml/reports/corpus_checks.json (aggregates) and, on request, a
+review CSV with one row per example and its flags (flagged rows first).
 """
 
 import argparse
@@ -22,7 +22,7 @@ from sofia_ml.language import detect_language
 from sofia_ml.text import words
 from sofia_ml.train import fit
 
-# Valores que no deben aparecer en el texto crudo: ids con formato del dataset, contactos, números largos.
+# Values that must not appear in the raw text: dataset-formatted ids, contact details, long numbers.
 PRIVACY = {
     "dataset_id": re.compile(r"\b(CLI|CMP|TRX|TX|INT|PRD|SUC|AGT)-[A-Z0-9]{6,}\b"),
     "email": re.compile(r"\b[\w.+-]+@[\w-]+\.[\w.]+\b"),
@@ -33,7 +33,7 @@ PLACEHOLDER = re.compile(r"<[A-Z_]+>")
 
 
 def model_disagreement(examples, n_splits: int = 5) -> list[tuple[str, float] | None]:
-    """Predicción fuera de fold (GroupKFold: un grupo nunca está en train y test a la vez)."""
+    """Out-of-fold prediction (GroupKFold: a group is never in train and test at the same time)."""
     out: list[tuple[str, float] | None] = [None] * len(examples)
     groups = [e.group_id for e in examples]
     for tr, te in GroupKFold(n_splits=n_splits).split(examples, groups=groups):
@@ -45,7 +45,7 @@ def model_disagreement(examples, n_splits: int = 5) -> list[tuple[str, float] | 
 
 
 def shortcuts(examples, min_count: int = 5, purity: float = 0.9) -> dict[str, tuple[str, int]]:
-    """Palabras que casi solo aparecen en una clase: el modelo puede memorizarlas en vez de aprender la intención."""
+    """Words that almost only appear in one class: the model can memorize them instead of learning the intent."""
     by_word: dict[str, Counter] = {}
     for e in examples:
         for w in set(words(e.text)):
@@ -73,19 +73,19 @@ def main() -> None:
     for i, (src, e) in enumerate(zip(raw, rows, strict=True)):
         flags = []
         if e.review_status != "approved":
-            flags.append("adjudicar")
+            flags.append("adjudicate")
         if i in oof and oof[i][0] != e.label:
-            flags.append(f"modelo:{oof[i][0]}({oof[i][1]})")
+            flags.append(f"model:{oof[i][0]}({oof[i][1]})")
             confusions[f"{e.label}->{oof[i][0]}"] += 1
         rule = predict_rules(e.text)
         if rule.confidence > 0.3 and rule.intent != e.label:
-            flags.append(f"reglas:{rule.intent}")
+            flags.append(f"rules:{rule.intent}")
         lang = detect_language(e.text)
         if lang.decided and lang.language != e.language and e.variation != "code_switch":
-            flags.append(f"idioma:{lang.language}")
-        flags += [f"privacidad:{name}" for name, rx in PRIVACY.items() if rx.search(src.text)]
+            flags.append(f"language:{lang.language}")
+        flags += [f"privacy:{name}" for name, rx in PRIVACY.items() if rx.search(src.text)]
         if PLACEHOLDER.search(e.text):
-            flags.append("placeholder_sin_rellenar")
+            flags.append("unfilled_placeholder")
         flag_counts.update(f.split(":")[0] for f in flags)
         review.append({
             "group_id": e.group_id, "language": e.language, "label": e.label, "variation": e.variation,
@@ -119,7 +119,7 @@ def main() -> None:
             writer = csv.DictWriter(f, fieldnames=list(review[0]))
             writer.writeheader()
             writer.writerows(review)
-        print("CSV de revisión:", args.review_csv)
+        print("review CSV:", args.review_csv)
 
 
 if __name__ == "__main__":
