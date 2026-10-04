@@ -7,7 +7,7 @@
 #
 # Requisitos: gcloud autenticado con permisos de Owner/Editor en el proyecto (`release` basta con sofia-deployer,
 # ver setup-github-deploy.sh).
-# Secretos: se leen de .env (LANGFUSE_PUBLIC_KEY, LANGFUSE_SECRET_KEY, DATABASE_URL opcional) y se suben a
+# Secretos: se leen de .env (LANGFUSE_PUBLIC_KEY, LANGFUSE_SECRET_KEY; DATABASE_URL_CLOUD y ADMIN_API_KEY opcionales) y se suben a
 # Secret Manager; nunca se imprimen ni se pasan como variables de entorno en texto plano (CON-03).
 set -euo pipefail
 
@@ -58,8 +58,8 @@ ensure_platform() {
     --condition None >/dev/null
 }
 
-ensure_secret() { # ensure_secret <nombre> <variable de .env>
-  local name="$1" value
+ensure_secret() { # ensure_secret <nombre> <variable de .env> [cuenta que lo lee, sofia-agent por defecto]
+  local name="$1" sa="${3:-sofia-agent}" value
   value="$(env_value "$2")"
   if [ -z "$value" ]; then
     echo "  $name: $2 vacío en .env, se omite"
@@ -74,7 +74,7 @@ ensure_secret() { # ensure_secret <nombre> <variable de .env>
     echo "  $name: sin cambios"
   fi
   "${GC[@]}" secrets add-iam-policy-binding "$name" \
-    --member "serviceAccount:sofia-agent@$PROJECT.iam.gserviceaccount.com" \
+    --member "serviceAccount:$sa@$PROJECT.iam.gserviceaccount.com" \
     --role roles/secretmanager.secretAccessor >/dev/null
 }
 
@@ -102,15 +102,20 @@ deploy_python() { # deploy_python <servicio> <imagen> <módulo:app> <cuenta> [fl
 deploy_services() {
   deploy_python router router sofia_ml.serve:app sofia-runtime --max-instances 3 \
     --set-env-vars "SOFIA_ENV=cloud"
-  deploy_python bank-api bank-api sofia_services.main:app sofia-runtime --max-instances 3 \
-    --set-env-vars "SOFIA_ENV=cloud"
+  # bank-api guarda sesiones, OTP y disputas en memoria: una sola instancia para que todas las llamadas vean el mismo
+  # estado. Sin el secreto admin-api-key, /admin/* y /session/test responden 403 en la nube (require_admin_or_local).
+  local bank_secrets=()
+  secret_exists admin-api-key && bank_secrets=(--set-secrets "ADMIN_API_KEY=admin-api-key:latest")
+  deploy_python bank-api bank-api sofia_services.main:app sofia-runtime --max-instances 1 \
+    --set-env-vars "SOFIA_ENV=cloud" ${bank_secrets[@]+"${bank_secrets[@]}"}
   local router_url bank_url frontend_url secrets=() env
   router_url="$(url_of router)"
   bank_url="$(url_of bank-api)"
   frontend_url="$(url_of frontend)"
 
-  # Hasta que SIM publique la API real, el agente usa el banco en proceso (BANK_API_URL=fake).
-  env="SOFIA_ENV=cloud,BANK_API_URL=${AGENT_BANK_API_URL:-fake},ROUTER_URL=$router_url"
+  # El agente usa el bank-api desplegado; AGENT_BANK_API_URL=fake vuelve al banco en proceso.
+  local agent_bank="${AGENT_BANK_API_URL:-${bank_url:-fake}}"
+  env="SOFIA_ENV=cloud,BANK_API_URL=$agent_bank,ROUTER_URL=$router_url"
   env+=",GEMINI_BACKEND=vertex,GOOGLE_CLOUD_PROJECT=$PROJECT,GOOGLE_CLOUD_LOCATION=$VERTEX_LOCATION"
   env+=",SOFIA_LLM_MODE=auto,CORS_ORIGINS=${frontend_url:-http://localhost:3000}"
   [ -n "$(env_value GEMINI_MODEL)" ] && env+=",GEMINI_MODEL=$(env_value GEMINI_MODEL)"
@@ -127,7 +132,7 @@ deploy_services() {
   secret_exists database-url && max=3
   deploy_python agent agent sofia_agent.api.main:app sofia-agent --max-instances "$max" --timeout 300 \
     --set-env-vars "$env" ${secret_flag[@]+"${secret_flag[@]}"}
-  echo "  bank-api: $bank_url (el agente lo usará cuando AGENT_BANK_API_URL=$bank_url)"
+  echo "  agente → BANK_API_URL=$agent_bank"
 }
 
 deploy_frontend() {
@@ -151,6 +156,7 @@ main() {
       ensure_secret langfuse-public-key LANGFUSE_PUBLIC_KEY
       ensure_secret langfuse-secret-key LANGFUSE_SECRET_KEY
       ensure_secret database-url DATABASE_URL_CLOUD
+      ensure_secret admin-api-key ADMIN_API_KEY sofia-runtime
       build backend
       deploy_services
       deploy_frontend
