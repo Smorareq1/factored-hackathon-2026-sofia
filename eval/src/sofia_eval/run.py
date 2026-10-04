@@ -10,7 +10,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from sofia_agent.runner import Harness
-from sofia_contracts.eval_case import ConversationResult
+from sofia_contracts.eval_case import ConversationResult, EvalCase
 from sofia_eval.ds_stats import build_ds_stats, save_ds_stats
 from sofia_eval.levels import get_benchmark_cases, load_cases_from_dir, save_benchmark_cases
 from sofia_eval.report import build_evaluation_report, save_reports
@@ -39,7 +39,7 @@ def load_segments(gold_dir: Path) -> dict[str, str]:
     return dict(zip(df["customer_id"].to_list(), df["segment"].to_list(), strict=True))
 
 
-def run_metadata(versions: list[str], n_cases: int) -> dict[str, str | int | list[str]]:
+def run_metadata(versions: list[str], n_cases: int) -> dict[str, object]:
     """Qué se corrió (§6: variabilidad por versión de modelo/prompt). Sin secretos."""
     return {
         "started_at": datetime.now(UTC).isoformat(timespec="seconds"),
@@ -59,6 +59,9 @@ async def run_evaluation(
     language: str | None = None,
     level: int | None = None,
     limit: int | None = None,
+    pause_s: float = 0.0,
+    rate_limit_retries: int = 0,
+    retry_wait_s: float = 30.0,
 ) -> int:
     versions = versions or ["proposed"]
     cases_path = Path(cases_dir)
@@ -84,16 +87,41 @@ async def run_evaluation(
     proposed_results: list[ConversationResult] = []
     baseline_results: list[ConversationResult] = []
 
+    retried: list[str] = []
+
+    async def run_case(harness: Harness, case: EvalCase, version: str) -> ConversationResult:
+        """Un 429 del proveedor no es una falla del sistema: se espera y se repite el caso (queda en meta.run)."""
+        result = await harness.run(case, version)
+        for attempt in range(1, rate_limit_retries + 1):
+            if not any("429" in e for e in result.errors):
+                break
+            logger.warning("%s/%s: 429, reintento %d en %ss", case.case_id, version, attempt, retry_wait_s)
+            retried.append(f"{version}:{case.case_id}")
+            await asyncio.sleep(retry_wait_s)
+            result = await harness.run(case, version)
+        if pause_s:
+            await asyncio.sleep(pause_s)
+        return result
+
     async with Harness.open() as harness:
         if "proposed" in versions:
             logger.info("Ejecutando sistema propuesto (S.O.F.I.A.)...")
             for c in cases:
-                proposed_results.append(await harness.run(c, "proposed"))
+                proposed_results.append(await run_case(harness, c, "proposed"))
 
         if "baseline" in versions:
             logger.info("Ejecutando sistema baseline...")
             for c in cases:
-                baseline_results.append(await harness.run(c, "baseline"))
+                baseline_results.append(await run_case(harness, c, "baseline"))
+
+    meta["pause_s"] = pause_s
+    meta["rate_limit_retries"] = {"max": rate_limit_retries, "wait_s": retry_wait_s, "retried": retried}
+    meta["still_rate_limited"] = [
+        f"{v}:{r.case_id}"
+        for v, rs in (("proposed", proposed_results), ("baseline", baseline_results))
+        for r in rs
+        if any("429" in e for e in r.errors)
+    ]
 
     md_report, summary = build_evaluation_report(
         cases,
@@ -201,6 +229,11 @@ def main() -> None:
     parser.add_argument("--language", default=None, choices=["es", "pt"], help="Filtrar por idioma")
     parser.add_argument("--level", type=int, default=None, choices=[1, 2, 3, 4, 5], help="Filtrar por nivel")
     parser.add_argument("--limit", type=int, default=None, help="Límite máximo de casos")
+    parser.add_argument("--pause-s", type=float, default=0.0, help="Pausa entre casos (cuota del proveedor)")
+    parser.add_argument(
+        "--rate-limit-retries", type=int, default=0, help="Reintentos de un caso que falló por 429 (quedan en meta)"
+    )
+    parser.add_argument("--retry-wait-s", type=float, default=30.0, help="Espera antes de reintentar un 429")
 
     args = parser.parse_args()
     versions = [v.strip() for v in args.versions.split(",") if v.strip()]
@@ -213,6 +246,9 @@ def main() -> None:
             language=args.language,
             level=args.level,
             limit=args.limit,
+            pause_s=args.pause_s,
+            rate_limit_retries=args.rate_limit_retries,
+            retry_wait_s=args.retry_wait_s,
         )
     )
     sys.exit(exit_code)
