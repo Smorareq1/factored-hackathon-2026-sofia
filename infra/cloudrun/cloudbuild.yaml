@@ -20,7 +20,7 @@ steps:
     env:
       - DOCKER_BUILDKIT=1
     args:
-      - -ceu
+      - -ceux
       - |
         IMG="${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}"
         if [ "${_TARGETS}" = "backend" ]; then

@@ -85,9 +85,19 @@ secret_exists() { "${GC[@]}" secrets describe "$1" >/dev/null 2>&1; }
 
 build() { # build backend|frontend [agent_url]
   log "Cloud Build: $1 ($TAG)"
-  "${GC[@]}" builds submit "$ROOT" --config "$ROOT/infra/cloudrun/cloudbuild.yaml" --region "$REGION" \
+  local ret=0
+  "${GC[@]}" beta builds submit "$ROOT" --config "$ROOT/infra/cloudrun/cloudbuild.yaml" --region "$REGION" \
     --service-account "projects/$PROJECT/serviceAccounts/sofia-build@$PROJECT.iam.gserviceaccount.com" \
-    --substitutions "_REGION=$REGION,_REPO=$REPO,_TAG=$TAG,_TARGETS=$1,_AGENT_URL=${2:-},_LANGFUSE_URL=${3:-},_LANGFUSE_PROJECT_ID=$LANGFUSE_PROJECT_ID"
+    --substitutions "_REGION=$REGION,_REPO=$REPO,_TAG=$TAG,_TARGETS=$1,_AGENT_URL=${2:-},_LANGFUSE_URL=${3:-},_LANGFUSE_PROJECT_ID=$LANGFUSE_PROJECT_ID" || ret=$?
+  if [ "$ret" -ne 0 ]; then
+    log "Cloud Build fallo ($ret). Obteniendo logs del build:"
+    local last_build
+    last_build="$("${GC[@]}" builds list --region "$REGION" --limit 1 --format 'value(id)' 2>/dev/null || true)"
+    if [ -n "$last_build" ]; then
+      "${GC[@]}" builds log "$last_build" --region "$REGION" || true
+    fi
+    return "$ret"
+  fi
 }
 
 url_of() { "${GC[@]}" run services describe "$1" --region "$REGION" --format 'value(status.url)' 2>/dev/null || true; }
