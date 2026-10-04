@@ -15,7 +15,7 @@ import re
 import secrets
 import time
 from collections.abc import AsyncIterator, Callable, Iterable
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
@@ -229,22 +229,26 @@ class Harness:
                             method, path = fault.endpoint.split(" ", 1)
                         elif fault.endpoint:
                             path = fault.endpoint
-                        await bank.http.post(
-                            "/admin/faults/latency",
-                            json={"method": method, "path": path, "delay_s": getattr(fault, "delay_s", 1.0), "times": fault.times},
-                            headers=headers,
-                        )
+                        latency_payload = {
+                            "method": method,
+                            "path": path,
+                            "delay_s": getattr(fault, "delay_s", 1.0),
+                            "times": fault.times,
+                        }
+                        await bank.http.post("/admin/faults/latency", json=latency_payload, headers=headers)
                     elif fault.kind == "http_error" or fault.endpoint:
                         method, path = "POST", "/disputes"
                         if fault.endpoint and " " in fault.endpoint:
                             method, path = fault.endpoint.split(" ", 1)
                         elif fault.endpoint:
                             path = fault.endpoint
-                        await bank.http.post(
-                            "/admin/faults/http",
-                            json={"method": method, "path": path, "status": fault.status, "times": fault.times},
-                            headers=headers,
-                        )
+                        http_payload = {
+                            "method": method,
+                            "path": path,
+                            "status": fault.status,
+                            "times": fault.times,
+                        }
+                        await bank.http.post("/admin/faults/http", json=http_payload, headers=headers)
                 except Exception as exc:
                     run.errors.append(f"turn {turn}: error inyectando falla en SIM ({fault.kind}): {exc}")
             return
@@ -349,10 +353,8 @@ class Harness:
             bank.state.latency_faults.clear()
         else:
             headers = {"X-Admin-Key": self.settings.admin_api_key} if self.settings.admin_api_key else {}
-            try:
+            with suppress(Exception):
                 await bank.http.post("/admin/faults/reset", headers=headers)
-            except Exception:
-                pass
         try:
             client = BankClient(
                 bank.http,
