@@ -115,7 +115,7 @@ def raw_to_bronze(settings: Settings, run_id: str, tables: tuple[str, ...] = tup
     written = []
     con = duckdb.connect()
     for raw in list_raw(settings, tables):
-        rel = str(raw.path.relative_to(settings.raw))
+        rel = raw.path.relative_to(settings.raw).as_posix()  # mismas llaves y nombres en Windows y Linux
         if ingested.get(rel) == raw.fingerprint:
             continue
         out_dir = settings.bronze / raw.table / f"ingest_date={now:%Y-%m-%d}"
@@ -134,7 +134,7 @@ def raw_to_bronze(settings: Settings, run_id: str, tables: tuple[str, ...] = tup
         n = rows[0] if rows else 0
         log.info("raw -> bronze: %s -> %s (%d filas)", rel, raw.table, n)
         ingested[rel] = raw.fingerprint
-        bronze_path = str(out.relative_to(settings.data_dir))
+        bronze_path = out.relative_to(settings.data_dir).as_posix()
         written.append({"table": raw.table, "source": rel, "bronze": bronze_path, "rows": n})
     con.close()
     settings.state.mkdir(parents=True, exist_ok=True)
