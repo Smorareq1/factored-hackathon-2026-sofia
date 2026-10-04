@@ -66,7 +66,10 @@ def calculate_metrics(
         return MetricSummary(metadata=metadata or {})
 
     case_map = {c.case_id: c for c in cases}
-    total = len(results)
+    matched_results = [r for r in results if r.case_id in case_map]
+    total = len(matched_results)
+    if total == 0:
+        return MetricSummary(metadata=metadata or {})
 
     in_scope_eligible = 0
     safe_auto_res = 0
@@ -90,10 +93,8 @@ def calculate_metrics(
     tokens_out = 0
     cost_usd = 0.0
 
-    for res in results:
-        case = case_map.get(res.case_id)
-        if not case:
-            continue
+    for res in matched_results:
+        case = case_map[res.case_id]
 
         latencies.append(res.latency_ms)
         tokens_in += res.tokens_in
