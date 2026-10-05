@@ -48,6 +48,8 @@ Evidence: notebook `analysis/notebooks/01_workflow_justification.ipynb` → `ana
 |---|---|
 | Call-center contact reasons and the weight of transactional ones | {{results/workflow_justification.json:reason_categories}} |
 | Complaint subcategories that are disputes (unrecognized charge, improper charge, …) | {{results/workflow_justification.json:complaint_subcategories}} |
+| Disputes as a share of all complaints | {{results/workflow_justification.json:dispute_share_pct}}% ({{results/workflow_justification.json:dispute_n}} of {{results/workflow_justification.json:complaints_n}}) |
+| Operational constraints: SLA breach, first response and resolution days, disputes vs the rest | {{results/workflow_justification.json:operational_constraints}} |
 | Decision and exit criterion (§8.1) | {{results/workflow_justification.json:decision}} |
 
 Why disputes:

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-03T23:06:15+00:00",
+  "generated_at": "2026-10-05T02:29:07+00:00",
   "reason_categories": [
     {
       "reason_category": "Transaccional",
@@ -100,5 +100,64 @@
       "dias_p50": 16.0
     }
   ],
-  "decision": "TODO: disputas de transacciones / criterio de salida"
+  "dispute_share_pct": 36.5,
+  "dispute_n": 24491,
+  "complaints_n": 67095,
+  "operational_constraints": [
+    {
+      "grupo": "other",
+      "n": 35906,
+      "p_sla_roto": 0.202,
+      "dias_p50": 16.0,
+      "dias_p90": 28.0,
+      "horas_primera_respuesta_p50": 38.0,
+      "agentes": 1200
+    },
+    {
+      "grupo": "dispute",
+      "n": 24491,
+      "p_sla_roto": 0.202,
+      "dias_p50": 15.0,
+      "dias_p90": 27.0,
+      "horas_primera_respuesta_p50": 37.0,
+      "agentes": 1200
+    },
+    {
+      "grupo": "no subcategory",
+      "n": 6698,
+      "p_sla_roto": 0.193,
+      "dias_p50": 16.0,
+      "dias_p90": 28.0,
+      "horas_primera_respuesta_p50": 37.0,
+      "agentes": 1167
+    }
+  ],
+  "disputes_by_priority": [
+    {
+      "priority": "Medium",
+      "n": 12179,
+      "p_sla_roto": 0.203,
+      "dias_p50": 15.0
+    },
+    {
+      "priority": "Low",
+      "n": 7491,
+      "p_sla_roto": 0.204,
+      "dias_p50": 16.0
+    },
+    {
+      "priority": "High",
+      "n": 3628,
+      "p_sla_roto": 0.2,
+      "dias_p50": 16.0
+    },
+    {
+      "priority": "Critical",
+      "n": 1193,
+      "p_sla_roto": 0.177,
+      "dias_p50": 15.0
+    }
+  ],
+  "exit_criterion_met": false,
+  "decision": "Keep dispute intake: disputes are 36.5% of complaints (24,491 of 67,095); SLA breached in 20.2%, first response p50 37 h, resolution p50 15 days. Intake moves no money (CON-05). Exit criterion (disputes marginal) not met."
 }

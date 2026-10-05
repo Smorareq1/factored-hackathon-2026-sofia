@@ -1,5 +1,21 @@
 {
-  "generated_at": "2026-10-03T23:08:09+00:00",
+  "generated_at": "2026-10-05T02:33:40+00:00",
+  "label": "historical",
+  "scope": "complaint contacts (reason_category = Queja)",
+  "n": 117021,
+  "fcr": 0.37,
+  "escalacion": 0.1,
+  "dur_p50_s": 431.0,
+  "espera_p50_s": 120.0,
+  "csat": "2.43 / 4 (n=21,843)",
+  "all_contacts": {
+    "n": 686296,
+    "fcr": 0.652,
+    "escalacion": 0.1,
+    "dur_p50_s": 291.0,
+    "espera_p50_s": 119.0,
+    "csat": 2.77
+  },
   "by_reason": [
     {
       "reason_category": "Transaccional",
@@ -7,7 +23,9 @@
       "fcr": 0.779,
       "escalacion": 0.099,
       "dur_p50_s": 205.0,
-      "espera_p50_s": 119.0
+      "espera_p50_s": 119.0,
+      "csat": 2.91,
+      "csat_n": 44837
     },
     {
       "reason_category": "Producto",
@@ -15,7 +33,9 @@
       "fcr": 0.762,
       "escalacion": 0.1,
       "dur_p50_s": 263.0,
-      "espera_p50_s": 119.0
+      "espera_p50_s": 119.0,
+      "csat": 2.9,
+      "csat_n": 27942
     },
     {
       "reason_category": "Queja",
@@ -23,7 +43,9 @@
       "fcr": 0.37,
       "escalacion": 0.1,
       "dur_p50_s": 431.0,
-      "espera_p50_s": 120.0
+      "espera_p50_s": 120.0,
+      "csat": 2.43,
+      "csat_n": 21843
     },
     {
       "reason_category": "Técnico",
@@ -31,7 +53,9 @@
       "fcr": 0.594,
       "escalacion": 0.101,
       "dur_p50_s": 360.0,
-      "espera_p50_s": 119.0
+      "espera_p50_s": 119.0,
+      "csat": 2.7,
+      "csat_n": 19193
     },
     {
       "reason_category": "Comercial",
@@ -39,7 +63,9 @@
       "fcr": 0.555,
       "escalacion": 0.098,
       "dur_p50_s": 540.0,
-      "espera_p50_s": 120.0
+      "espera_p50_s": 120.0,
+      "csat": 2.66,
+      "csat_n": 10243
     },
     {
       "reason_category": "Retención",
@@ -47,8 +73,9 @@
       "fcr": 0.509,
       "escalacion": 0.098,
       "dur_p50_s": 478.0,
-      "espera_p50_s": 120.0
+      "espera_p50_s": 120.0,
+      "csat": 2.61,
+      "csat_n": 3798
     }
-  ],
-  "label": "histórico"
+  ]
 }

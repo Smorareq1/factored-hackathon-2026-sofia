@@ -137,7 +137,7 @@ For whoever writes the JSONs. Notation: `a.b` = nested key; `list[X]` = the list
 | File | Keys | Status |
 |---|---|---|
 | `analysis/results/workflow_justification.json` | `reason_categories[...]` (`pct`, `p_escalado`), `complaint_subcategories[...]` (`p_sla_roto`), `decision` | exist in notebook 01 |
-| `analysis/results/workflow_justification.json` | `dispute_share_pct` | **to add** (notebook 01 §3) |
+| `analysis/results/workflow_justification.json` | `dispute_share_pct`, `operational_constraints`, `decision` | exist (notebook 01 §6–7) |
 | `analysis/results/policy_calibration.json` | `N_days.value`, `U_usd.value`, `fraud_score_threshold.value`, `fraud_score_threshold.cost_curve` | exist (notebook 02) |
 | `analysis/results/label_audit.json` | `transcript_templates[0].{filas,plantillas}` | exist |
 | `ml/reports/router_eval.json` | `split.n_test`, `confidence_threshold`, `served_version`; per-system figures are copied from `router_eval.md` | exist (`ml/src/sofia_ml/train.py`) |
