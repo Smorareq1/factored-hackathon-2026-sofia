@@ -10,14 +10,14 @@ what is missing. Status as of 2026-10-04 (develop `3b2f295`).
 - [ ] **DEL-01..DEL-07 ready; DEL-08 prepared in case we reach the Top 5.**
   - [x] DEL-01 Public repo with reproducible setup: [README](README.md#getting-started)
   - [x] DEL-02 Deployed demo: https://frontend-i6dmh3qssa-uc.a.run.app
-  - [ ] DEL-03 Slides 4–6 (DS): content in [slides-4-6.md](docs/slides/slides-4-6.md); missing the `{{…}}` figures and the export
+  - [ ] DEL-03 Slides 4–6 (DS): content in [slides-4-6.md](docs/slides/slides-4-6.md); figures filled; export to PDF pending
   - [ ] DEL-04 Video ≤ 3 min (DS): script in [video-script.md](docs/video-script.md); missing the shots (AG) and the edit
-  - [ ] DEL-05 Final README (DS edits; OPS already contributed deployment, data, CI, CD, observability, retries/fallbacks
-    and path to production); missing the `{{…}}` placeholders in Results
-  - [ ] DEL-06 Evaluation report MET-01..06 (DS + SIM): structure in [evaluation-report.md](docs/evaluation-report.md);
-    missing the figures from the baseline vs proposed run
+  - [x] DEL-05 Final README (DS edits; OPS already contributed deployment, data, CI, CD, observability, retries/fallbacks
+    and path to production); Results placeholders filled 2026-10-05
+  - [x] DEL-06 Evaluation report MET-01..06 (DS + SIM): structure in [evaluation-report.md](docs/evaluation-report.md);
+    figures filled from the 200-case run (one run per system, Gemini free tier; limits in §10)
   - [ ] DEL-07 Submission email (OPS): draft ready; sent once the video and slides links exist
-  - [ ] DEL-08 Live defense script (everyone): [defense-notes.md](docs/defense-notes.md); missing the figures
+  - [ ] DEL-08 Live defense script (everyone): [defense-notes.md](docs/defense-notes.md); figures filled
 - [ ] **Email sent to hackathon.admin@factored.ai** (OPS, before 2026-10-05).
 
 ## Engineering
@@ -26,8 +26,8 @@ what is missing. Status as of 2026-10-04 (develop `3b2f295`).
   every PR ([ci.yml](.github/workflows/ci.yml)); `data/` and `.env` kept out of git, Cloud Build and the images.
 - [ ] **`make setup && make data && make run && make eval` works from scratch.**
   - [x] `make setup`, `make data` (S3 or `make data-fixture`) and `make run`
-  - [x] `make eval` runs baseline and proposed (`--versions proposed,baseline` by default); the full run is missing: the
-    versioned `eval/outputs/results.json` has 5 proposed cases and 0 baseline cases (SIM + DS)
+  - [x] `make eval` runs baseline and proposed (`--versions proposed,baseline` by default); the full run is done: the
+    versioned `eval/outputs/results.json` has 200 proposed and 200 baseline cases (SIM + DS)
   - [ ] Tested from a clean clone
 - [ ] **Cloud Run demo can be brought up on demand, tested from an external network.** Continuous deployment on every
   merge to `develop` ([deploy.yml](.github/workflows/deploy.yml)).
@@ -44,7 +44,7 @@ what is missing. Status as of 2026-10-04 (develop `3b2f295`).
 - [ ] **Report with MET-01..MET-06 by language and case type, with n and limitations** (DS + SIM). The harness must read
   latency and cost with Langfuse's `GET /api/public/v2/observations`: the classic `/api/public/traces` API does not
   exist for new organizations.
-- [ ] **Langfuse evaluators validated against a human sample and documented** (DS).
+- [ ] **Langfuse evaluators validated against a human sample and documented** (DS). Not done: the report states that no LLM-as-judge was used (§9).
 
 ## Documentation
 

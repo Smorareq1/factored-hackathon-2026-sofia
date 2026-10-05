@@ -14,7 +14,7 @@ same load, we report by language with n and intervals, and we say what we do not
 **Why disputes and not cards or payments?**
 Because that is where the dataset has the most connected evidence: `transactions`, `complaints` and
 `call_center_interactions` join by keys and let us measure volume, broken SLAs and escalation of the same phenomenon.
-Disputes are `{{results/workflow_justification.json:dispute_share_pct}}`% of complaints. We wrote an exit criterion
+Disputes are `36.5`% of complaints. We wrote an exit criterion
 before the EDA (if they were marginal, we would switch to card support) and it did not fire.
 *Evidence:* `analysis/notebooks/01_workflow_justification.ipynb`, `analysis/results/workflow_justification.json`.
 
@@ -26,10 +26,10 @@ finds it in their own records, which the API verifies as theirs (POL-1).
 *Evidence:* `analysis/notebooks/02_policy_calibration.ipynb` §1, `analysis/results/policy_calibration.json`.
 
 **Where do N and U come from?**
-N = `{{results/policy_calibration.json:N_days.value}}` days. Since the data cannot calibrate it (no dispute links to its
+N = `90` days. Since the data cannot calibrate it (no dispute links to its
 transaction), we took it from regulation: Mexico gives 90 calendar days to object to an unrecognized charge, inside
 Visa/Mastercard's 120-day chargeback window. Argentina is stricter (30 days from the statement), so per-country windows
-are a production step. U = `{{results/policy_calibration.json:U_usd.value}}` USD: no regulation sets an amount;
+are a production step. U = `500` USD: no regulation sets an amount;
 purchases in the data top out near 500 USD, so almost every purchase dispute is automated while 23% of claimed amounts
 go to a human. The fraud threshold, 30 on the 0–100 score, is the point of minimum expected cost. The policy is
 synthetic and labeled as team-defined (CON-02): a real bank would put its own rules in the same place.
@@ -38,8 +38,8 @@ synthetic and labeled as team-defined (CON-02): a real bank would put its own ru
 
 **Where do the router's labels come from? (very likely question)**
 Not from the dataset: we audited it before training and the labels are unusable. `call_transcripts` has only
-`{{results/label_audit.json:transcript_templates[0].plantillas}}` **balance-inquiry** templates
-(`{{results/label_audit.json:transcript_templates[0].filas}}` rows), spread evenly across contact categories, and
+`42` **balance-inquiry** templates
+(`171,321` rows), spread evenly across contact categories, and
 `detected_intents` is always `consulta_general`. The text has nothing to do with the category: a model trained there
 would learn noise, or memorize templates and give a high, empty number.
 So we trained the router on a team-generated ES/PT corpus, labeled `team_generated` (CON-02), with a group split, and
@@ -51,7 +51,7 @@ validated on real customer text.
 Three layers. (1) Group split: in the team corpus, the group is the paraphrase family (all variants of one sentence
 land on the same side); in dataset data, the customer. (2) Temporal when there are dates: test = the last days, and
 groups that appear in test are removed from train. (3) An `assert` that fails if a group **or an identical text** is on
-both sides. Test size: `{{ml/reports/router_eval.json:split.n_test}}`.
+both sides. Test size: `56`.
 *Evidence:* `ml/src/sofia_ml/split.py` (`assert_no_leakage`), `ml/reports/router_eval.json`.
 
 **Follow-up: if you wrote the corpus yourselves, isn't it easy?**
@@ -71,7 +71,7 @@ model covers what they miss; out-of-fold on the 256 approved rows, rules 0.484, 
 `router_version` records which part answered each message.
 
 **What if the router gets it wrong?**
-It decides nothing sensitive. Below the confidence threshold (`{{ml/reports/router_eval.json:confidence_threshold}}`)
+It decides nothing sensitive. Below the confidence threshold (`0.35`)
 Sofía asks; and even if it misclassifies, the API decides eligibility and permissions again. The worst case of a router
 error is one extra question or a handoff, not an improper action.
 
@@ -101,21 +101,20 @@ A JSON card: verified facts with their source, actions taken, open questions, ri
 handoff. Never the transcript (REQ-05). Beyond brief §9.4, the card carries `schema_version`, `customer_claim`,
 `system_version` (set by the agent) and `created_at` (set by SIM when storing). The summary and the open questions are in
 the conversation's language; the verified facts, in Spanish. Field completeness is measured (MET-03:
-`{{eval/outputs/ds_stats.json:proposed.metricas.met03_handoff_completeness}}`).
+`0.6042 [0.4808–0.7292], n = 36`).
 
 ## 4. Evaluation and statistics
 
 **You report zero (or few) unsafe outcomes. With that n, what does it mean?**
-Little, and we say so. With `{{eval/outputs/ds_stats.json:proposed.n}}` cases and
-`{{eval/outputs/ds_stats.json:proposed.metricas.met04_unsafe_outcomes.k}}` unsafe outcomes, the 95% upper bound is
-`{{eval/outputs/ds_stats.json:proposed.metricas.met04_unsafe_outcomes.ci[1]}}` (with zero events, rule of three: ≈ 3/n).
+Little, and we say so. With `200` cases and
+`0` unsafe outcomes, the 95% upper bound is
+`0.0188` (with zero events, rule of three: ≈ 3/n).
 Zero in a small sample is not zero risk. What is strong is the structural evidence: the tests showing that the API
 denies unauthorized actions do not depend on sample size.
 
 **How did you build the intervals?**
-`{{eval/outputs/ds_stats.json:meta.metodos}}`. The principle: we resample cases, not turns (the turns of one
-conversation are not independent), per language, and `{{PENDIENTE:repeated runs per system}}` repeated runs measure the
-LLM's variability. Baseline and Sofía run on the **same** cases, so the difference can be compared case by case.
+`proporciones: Wilson CI; rule of three (3/n) when there are 0 events, continuas: percentile bootstrap resampling cases (calculate_metrics per replicate), diferencia_proporciones: Newcombe (Wilson) CI; exact Fisher if an expected count < 5, otherwise z, diferencia_continuas: bootstrap of the difference (paired by case_id when possible), desglose: cells with n < 10 are marked 'insufficient n'`. The principle: we resample cases, not turns (the turns of one
+conversation are not independent), per language. Each system was run once, so the LLM's run-to-run variability was not measured and the intervals only reflect case sampling. Baseline and Sofía run on the **same** cases, so the difference can be compared case by case.
 *(Confirm against the actual method in `ds_stats.json` before the defense.)*
 
 **High containment is not good if the system does not resolve.**
@@ -123,13 +122,10 @@ Agreed: that is why MET-01 (**correct** automated resolution over in-scope cases
 separately, together with the % of cases where automation was attempted.
 
 **Did you use LLM-as-judge?**
-Metrics MET-01..05 are deterministic (route, tool calls, leaks, verification). The Langfuse evaluators only score
-writing quality and were validated against a human-labeled sample
-(`{{eval/outputs/judge_validation.json:evaluators[0].agreement}}` agreement). We do not use the judge for anything that
-affects safety.
+Metrics MET-01..05 are deterministic (route, tool calls, leaks, verification). We did not run an LLM-as-judge: no Langfuse evaluator was validated against a human sample, so none of our numbers uses one. Text quality (tone, clarity) is therefore not evaluated, and we say so in the report.
 
 **Are there disparities by language or segment? (REQ-18)**
-We report them per cell with its n: `{{results/fairness.json:summary}}`. Where a cell is small we do not conclude; the
+We report the language cut with its n: `ES and PT match on safety (0 unsafe in 100 cases each) and are inconclusive on automation and escalation recall; the one gap that holds is handoff completeness (PT lower). The segment cut could not be run`. The customer-segment cut could not be computed, because the evaluation's seed customers are not in the gold data. Where a cell is small we do not conclude; the
 report says so.
 
 ## 5. Portuguese
@@ -151,15 +147,15 @@ language; if the intent is unclear, she asks.
 
 **What assumptions does the cost per case carry?**
 Real tokens measured on every call × Gemini's public per-token price on the run date
-(`{{agent/evals/reference.rules.json:context."Modelo (cadena)"}}`, `{{agent/src/sofia_agent/config.py:GEMINI_PRICE_INPUT_PER_MTOK}}`
-USD per million input tokens, `{{agent/src/sofia_agent/config.py:GEMINI_PRICE_OUTPUT_PER_MTOK}}` per million output
+(`rules (sin LLM)`, `0.3`
+USD per million input tokens, `2.5` per million output
 tokens). It does not include infrastructure (Cloud Run scales to zero) or the human agent's cost in handoffs. The cost
 per successful resolution is reported as "not defined" if there are no successes (MET-06).
 
 **Why is Sofía slower/more expensive than the baseline (if she is)?**
 Because she verifies: she reads the dispute back after creating it and consults the policy. It is a deliberate cost:
-p95 `{{eval/outputs/ds_stats.json:proposed.metricas.met05_latency_p95_ms.value}}` ms against
-`{{eval/outputs/ds_stats.json:baseline.metricas.met05_latency_p95_ms.value}}` ms for the baseline. Also, Sofía does not
+p95 `11,415` ms against
+`5,199` ms for the baseline. Also, Sofía does not
 send tool data to the LLM to decide; the baseline does.
 
 **How much would it save the bank?**

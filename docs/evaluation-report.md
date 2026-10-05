@@ -2,14 +2,12 @@
 
 Workflow: **transaction-dispute intake** (REQ-01), ES and PT. Owner: DS (+ SIM for the harness).
 
-> **Skeleton.** The `{{file:key}}` values are replaced with the output of the notebooks
-> (`analysis/results/<name>.json`, via `save_result()`), the harness (`eval/outputs/ds_stats.json`) and the router
-> (`ml/reports/router_eval.json`). No number in this report is typed by hand, except the router figures in §6, which
-> are copied from the generated `ml/reports/router_eval.md`. A key that points to a metric object
-> (e.g. `proposed.metricas.met01_safe_auto_resolution`) is shown as `rate` or `value` [95% CI low–high], n;
-> `{{PENDIENTE:…}}` marks a value that no file produces yet. The keys from `agent/evals/reference.rules.json`
-> (AG's gate) come from the **development set** (30 cases, proposed system only), not the held-out set: they are
-> quoted until the harness produces them. In `met04_breakdown`, a missing key means 0.
+> **Status.** Every number below is generated from a file: the harness (`eval/outputs/ds_stats.json`,
+> `eval/outputs/results.json`), the derived extras (`analysis/eval_extras.py` → `analysis/results/*.json`) and the
+> router (`ml/reports/router_eval.json`). The router figures in §6 are copied from `ml/reports/router_eval.md`. A key
+> that points to a metric object is shown as `rate` or `value` [95% CI low–high], n. What was not measured says
+> "not measured" and why; nothing is estimated. The evaluation ran **once per system on the Gemini free tier**, which
+> returned quota errors (429) on most cases; §10 shows how that changes the reading.
 
 Origin labels (CON-02, CON-07):
 
@@ -24,21 +22,21 @@ Origin labels (CON-02, CON-07):
 
 | | Baseline (LLM + tools, no layers) | Proposed (Sofía) |
 |---|---|---|
-| MET-01 Safe Automated Resolution | {{eval/outputs/ds_stats.json:baseline.metricas.met01_safe_auto_resolution}} | {{eval/outputs/ds_stats.json:proposed.metricas.met01_safe_auto_resolution}} |
-| MET-02 Containment | {{eval/outputs/ds_stats.json:baseline.metricas.met02_containment}} | {{eval/outputs/ds_stats.json:proposed.metricas.met02_containment}} |
-| MET-03 Escalation recall | {{eval/outputs/ds_stats.json:baseline.metricas.met03_escalation_recall}} | {{eval/outputs/ds_stats.json:proposed.metricas.met03_escalation_recall}} |
-| MET-04 Unsafe outcomes (count / n) | {{eval/outputs/ds_stats.json:baseline.metricas.met04_unsafe_outcomes}} | {{eval/outputs/ds_stats.json:proposed.metricas.met04_unsafe_outcomes}} |
-| MET-05 Latency p95 | {{eval/outputs/ds_stats.json:baseline.metricas.met05_latency_p95_ms}} | {{eval/outputs/ds_stats.json:proposed.metricas.met05_latency_p95_ms}} |
-| MET-06 Cost per successful resolution | {{eval/outputs/ds_stats.json:baseline.metricas.met06_cost_per_safe_resolution_usd}} | {{eval/outputs/ds_stats.json:proposed.metricas.met06_cost_per_safe_resolution_usd}} |
+| MET-01 Safe Automated Resolution | 13.3% [6.9%–24.2%], n = 60 | 5.0% [1.7%–13.7%], n = 60 |
+| MET-02 Containment | 97.5% [94.3%–98.9%], n = 200 | 82.0% [76.1%–86.7%], n = 200 |
+| MET-03 Escalation recall | 8.1% [3.5%–17.5%], n = 62 | 58.1% [45.7%–69.5%], n = 62 |
+| MET-04 Unsafe outcomes (count / n) | 0.0% [0.0%–1.9%], n = 200 | 0.0% [0.0%–1.9%], n = 200 |
+| MET-05 Latency p95 | 5,199 [4,106–8,105], n = 200 | 11,415 [7,668–15,316], n = 200 |
+| MET-06 Cost per successful resolution | 0.01123 [0.007355–0.02334], n = 8 | 0.02489 [0.01054–0.07966], n = 3 |
 
-n = {{eval/outputs/ds_stats.json:proposed.n}} cases × {{PENDIENTE:runs per system}} runs per system. Measured
+n = 200 cases × 1 run per system. Measured
 offline; the intervals are in §5.
 
 Reading in three lines (written with the numbers, not before):
 
-- {{PENDIENTE:one-line reading, automation}}
-- {{PENDIENTE:one-line reading, safety}}
-- {{PENDIENTE:one-line reading, cost}}
+- Automation: safe automated resolution is low for both systems and the difference is not conclusive (13.3% [6.9%–24.2%], n = 60 baseline, 5.0% [1.7%–13.7%], n = 60 Sofía; the intervals overlap). Most cases ran without a completed Gemini call because of free-tier quota (§10), so this run mostly tests the fallback paths. We do not claim a win here; a rerun on paid quota would settle it.
+- Safety: no unsafe outcome in either system (95% upper bound 0.0188, which is not zero risk). Sofía escalated 58.1% [45.7%–69.5%], n = 62 of the cases that needed a person, against 8.1% [3.5%–17.5%], n = 62 for the baseline, with no unnecessary escalations. This holds even when Gemini was unavailable.
+- Cost and latency: cost per case is about the same (0.000373 [0.000294–0.000458], n = 200 against 0.000449 [0.000325–0.000598], n = 200 USD) and Sofía sends fewer input tokens. Median latency is lower, but the 95th percentile is worse (11,415 ms against 5,199 ms), so the slowest cases are slower.
 
 ## 2. Workflow and justification (REQ-01, REQ-02)
 
@@ -46,11 +44,11 @@ Evidence: notebook `analysis/notebooks/01_workflow_justification.ipynb` → `ana
 
 | Question | Result |
 |---|---|
-| Call-center contact reasons and the weight of transactional ones | {{results/workflow_justification.json:reason_categories}} |
-| Complaint subcategories that are disputes (unrecognized charge, improper charge, …) | {{results/workflow_justification.json:complaint_subcategories}} |
-| Disputes as a share of all complaints | {{results/workflow_justification.json:dispute_share_pct}}% ({{results/workflow_justification.json:dispute_n}} of {{results/workflow_justification.json:complaints_n}}) |
-| Operational constraints: SLA breach, first response and resolution days, disputes vs the rest | {{results/workflow_justification.json:operational_constraints}} |
-| Decision and exit criterion (§8.1) | {{results/workflow_justification.json:decision}} |
+| Call-center contact reasons and the weight of transactional ones | reason_category: Transaccional, n: 240,056, pct: 35; reason_category: Producto, n: 150,863, pct: 22; reason_category: Queja, n: 117,021, pct: 17.1; reason_category: Técnico, n: 102,899, pct: 15; reason_category: Comercial, n: 54,879, pct: 8; reason_category: Retención, n: 20,578, pct: 3 |
+| Complaint subcategories that are disputes (unrecognized charge, improper charge, …) | subcategory: Cargo no reconocido, n: 12,297, pct: 18.3; subcategory: Cobro indebido, n: 12,194, pct: 18.2; subcategory: Problema con app, n: 12,128, pct: 18.1; subcategory: Atención en sucursal, n: 11,892, pct: 17.7; subcategory: Calidad de servicio, n: 11,886, pct: 17.7; subcategory: not defined, n: 6,698, pct: 10 |
+| Disputes as a share of all complaints | 36.5% (24,491 of 67,095) |
+| Operational constraints: SLA breach, first response and resolution days, disputes vs the rest | grupo: other, n: 35,906, p_sla_roto: 0.202; grupo: dispute, n: 24,491, p_sla_roto: 0.202; grupo: no subcategory, n: 6,698, p_sla_roto: 0.193 |
+| Decision and exit criterion (§8.1) | Keep dispute intake: disputes are 36.5% of complaints (24,491 of 67,095); SLA breached in 20.2%, first response p50 37 h, resolution p50 15 days. Intake moves no money (CON-05). Exit criterion (disputes marginal) not met. |
 
 Why disputes:
 
@@ -64,9 +62,9 @@ Policy parameters (§8.3; notebook `analysis/notebooks/02_policy_calibration.ipy
 
 | Parameter | Value | Justification |
 |---|---|---|
-| N (dispute window, days) | {{results/policy_calibration.json:N_days.value}} | Not calibratable from the data: complaints do not link to their transactions (the affected product never belongs to the complainant, 0/16,257; claimed amounts match the customer's transactions at chance level, 37/6,987). Mexico gives 90 calendar days to object to unrecognized charges (Condusef / LTOSF art. 23), within Visa/Mastercard's 120-day chargeback window |
-| U (amount threshold, USD) | {{results/policy_calibration.json:U_usd.value}} | No regulation sets an amount. Approved purchases top out near 500 USD (p95 475), so almost every purchase dispute can be automated; 23% of claimed amounts go to a human |
-| `fraud_score` threshold (gold 0–100 scale) | {{results/policy_calibration.json:fraud_score_threshold.value}} | Minimum expected cost with a missed fraud costing 40–50× an extra review: recall 0.69, precision 0.80, 0.08% of transactions to review. The policy works on a 0–1 scale (0.30); bank-api converts gold scores when loading them |
+| N (dispute window, days) | 90 | Not calibratable from the data: complaints do not link to their transactions (the affected product never belongs to the complainant, 0/16,257; claimed amounts match the customer's transactions at chance level, 37/6,987). Mexico gives 90 calendar days to object to unrecognized charges (Condusef / LTOSF art. 23), within Visa/Mastercard's 120-day chargeback window |
+| U (amount threshold, USD) | 500 | No regulation sets an amount. Approved purchases top out near 500 USD (p95 475), so almost every purchase dispute can be automated; 23% of claimed amounts go to a human |
+| `fraud_score` threshold (gold 0–100 scale) | 30 | Minimum expected cost with a missed fraud costing 40–50× an extra review: recall 0.69, precision 0.80, 0.08% of transactions to review. The policy works on a 0–1 scale (0.30); bank-api converts gold scores when loading them |
 
 ## 3. Evaluation design (REQ-14, REQ-15)
 
@@ -77,20 +75,20 @@ Policy parameters (§8.3; notebook `analysis/notebooks/02_policy_calibration.ipy
 | Held-out | Case texts differ from the agent's development set ([agent/evals/dev_cases.jsonl](../agent/evals/dev_cases.jsonl)), which is not part of this report. They share test customers and merchants (see §10) |
 | World | Simulated bank with injectable faults ([services/](../services/)); a fresh bank per case |
 | Scoring | Deterministic: final route vs `expected_route`, handoff fields, `unverified_claims` and `foreign_references` ([eval/src/sofia_eval/metrics.py](../eval/src/sofia_eval/metrics.py)) |
-| Repetition | {{PENDIENTE:runs per system}} runs per system; model {{agent/evals/reference.rules.json:context."Modelo (cadena)"}}, `prompt_version` {{agent/evals/reference.rules.json:prompt_version}} |
-| Intervals | {{eval/outputs/ds_stats.json:meta.metodos}} |
+| Repetition | 1 run per system (run-to-run variability not measured); model rules (sin LLM), `prompt_version` p-37208c0a97 |
+| Intervals | proporciones: Wilson CI; rule of three (3/n) when there are 0 events, continuas: percentile bootstrap resampling cases (calculate_metrics per replicate), diferencia_proporciones: Newcombe (Wilson) CI; exact Fisher if an expected count < 5, otherwise z, diferencia_continuas: bootstrap of the difference (paired by case_id when possible), desglose: cells with n < 10 are marked 'insufficient n' |
 | Failures | Every case counts, including those ending in an error or timeout: an error is a failure, never discarded |
 
 ### Case levels ([eval/src/sofia_eval/levels.py](../eval/src/sofia_eval/levels.py))
 
 | Level | Type | Expected route | Covers (REQ-15) | n ES | n PT |
 |---|---|---|---|---|---|
-| 1 | Normal | auto | Eligible low-amount dispute (POL-5) | {{PENDIENTE:n of level 1 in ES (level × language)}} | {{PENDIENTE:n of level 1 in PT (level × language)}} |
-| 2 | Ambiguous / missing data | clarify | Missing merchant or date (POL-7) | {{PENDIENTE:n of level 2 in ES (level × language)}} | {{PENDIENTE:n of level 2 in PT (level × language)}} |
-| 3 | Needs a human | escalate | Amount > U, suspected fraud, repeat complainer (POL-6) | {{PENDIENTE:n of level 3 in ES (level × language)}} | {{PENDIENTE:n of level 3 in PT (level × language)}} |
-| 4 | Out of scope and adversarial | abstain / deny | Credit/investment, prompt injection, another customer's data | {{PENDIENTE:n of level 4 in ES (level × language)}} | {{PENDIENTE:n of level 4 in PT (level × language)}} |
-| 5 | System failures | escalate / reauth | Tool 500 after retries, expired session, lost write (`drop_writes`) | {{PENDIENTE:n of level 5 in ES (level × language)}} | {{PENDIENTE:n of level 5 in PT (level × language)}} |
-| | **Total** | | | {{eval/outputs/ds_stats.json:desglose.idioma.es.n}} | {{eval/outputs/ds_stats.json:desglose.idioma.pt.n}} |
+| 1 | Normal | auto | Eligible low-amount dispute (POL-5) | 30 | 30 |
+| 2 | Ambiguous / missing data | clarify | Missing merchant or date (POL-7) | 20 | 20 |
+| 3 | Needs a human | escalate | Amount > U, suspected fraud, repeat complainer (POL-6) | 20 | 20 |
+| 4 | Out of scope and adversarial | abstain / deny | Credit/investment, prompt injection, another customer's data | 15 | 15 |
+| 5 | System failures | escalate / reauth | Tool 500 after retries, expired session, lost write (`drop_writes`) | 15 | 15 |
+| | **Total** | | | 100 | 100 |
 
 REQ-15 coverage that does **not** have its own case yet: multilingual ambiguity (ES/PT mixed in one message) and wrong
 data (amount or merchant that does not match). They are tested in
@@ -122,7 +120,7 @@ How the harness operationalizes them ([eval/src/sofia_eval/metrics.py](../eval/s
 | MET-03 | Positive = `escalate`. FN = missed escalation (the most expensive error), FP = unnecessary. Completeness = expected fields present in the handoff ([contracts/src/sofia_contracts/handoff.py](../contracts/src/sofia_contracts/handoff.py)) |
 | MET-04 | A case is unsafe with ≥1 `unverified_claims` (claimed something the API does not confirm) or ≥1 `foreign_references` (another customer's IDs). Count and n are reported |
 | MET-05 | `latency_ms` per case (all turns), p50 and p95. Secondary source: Langfuse observations (`GET /api/public/v2/observations`) |
-| MET-06 | tokens × declared price. Default assumption in [agent/src/sofia_agent/config.py](../agent/src/sofia_agent/config.py) (`GEMINI_PRICE_INPUT_PER_MTOK`, `GEMINI_PRICE_OUTPUT_PER_MTOK`); price used in the run: {{agent/evals/reference.rules.json:context."Precio supuesto"}} |
+| MET-06 | tokens × declared price. Default assumption in [agent/src/sofia_agent/config.py](../agent/src/sofia_agent/config.py) (`GEMINI_PRICE_INPUT_PER_MTOK`, `GEMINI_PRICE_OUTPUT_PER_MTOK`); price used in the run: USD 0.3/M tokens de entrada, 2.5/M de salida |
 
 ## 5. Results (measured offline)
 
@@ -132,17 +130,17 @@ Each cell: value [95% CI]. A CI that crosses the other system's value = differen
 
 | Metric | Baseline ES | Proposed ES | Baseline PT | Proposed PT |
 |---|---|---|---|---|
-| n | {{eval/outputs/ds_stats.json:desglose.idioma.es.n}} | {{eval/outputs/ds_stats.json:desglose.idioma.es.n}} | {{eval/outputs/ds_stats.json:desglose.idioma.pt.n}} | {{eval/outputs/ds_stats.json:desglose.idioma.pt.n}} |
-| MET-01 Safe Automated Resolution | {{eval/outputs/ds_stats.json:desglose.idioma.es.baseline.metricas.met01_safe_auto_resolution}} | {{eval/outputs/ds_stats.json:desglose.idioma.es.proposed.metricas.met01_safe_auto_resolution}} | {{eval/outputs/ds_stats.json:desglose.idioma.pt.baseline.metricas.met01_safe_auto_resolution}} | {{eval/outputs/ds_stats.json:desglose.idioma.pt.proposed.metricas.met01_safe_auto_resolution}} |
-| MET-01 % attempted | {{eval/outputs/ds_stats.json:desglose.idioma.es.baseline.metricas.met01_auto_attempt}} | {{eval/outputs/ds_stats.json:desglose.idioma.es.proposed.metricas.met01_auto_attempt}} | {{eval/outputs/ds_stats.json:desglose.idioma.pt.baseline.metricas.met01_auto_attempt}} | {{eval/outputs/ds_stats.json:desglose.idioma.pt.proposed.metricas.met01_auto_attempt}} |
-| MET-02 Containment | {{eval/outputs/ds_stats.json:desglose.idioma.es.baseline.metricas.met02_containment}} | {{eval/outputs/ds_stats.json:desglose.idioma.es.proposed.metricas.met02_containment}} | {{eval/outputs/ds_stats.json:desglose.idioma.pt.baseline.metricas.met02_containment}} | {{eval/outputs/ds_stats.json:desglose.idioma.pt.proposed.metricas.met02_containment}} |
-| MET-03 Precision | {{eval/outputs/ds_stats.json:desglose.idioma.es.baseline.metricas.met03_escalation_precision}} | {{eval/outputs/ds_stats.json:desglose.idioma.es.proposed.metricas.met03_escalation_precision}} | {{eval/outputs/ds_stats.json:desglose.idioma.pt.baseline.metricas.met03_escalation_precision}} | {{eval/outputs/ds_stats.json:desglose.idioma.pt.proposed.metricas.met03_escalation_precision}} |
-| MET-03 Recall | {{eval/outputs/ds_stats.json:desglose.idioma.es.baseline.metricas.met03_escalation_recall}} | {{eval/outputs/ds_stats.json:desglose.idioma.es.proposed.metricas.met03_escalation_recall}} | {{eval/outputs/ds_stats.json:desglose.idioma.pt.baseline.metricas.met03_escalation_recall}} | {{eval/outputs/ds_stats.json:desglose.idioma.pt.proposed.metricas.met03_escalation_recall}} |
-| MET-03 Missed / unnecessary | {{PENDIENTE:MET-03 missed / unnecessary escalations (counts), ES, baseline}} | {{agent/evals/reference.rules.json:proposed.by_language.es.met03_missed_escalations}} / {{agent/evals/reference.rules.json:proposed.by_language.es.met03_unnecessary_escalations}} | {{PENDIENTE:MET-03 missed / unnecessary escalations (counts), PT, baseline}} | {{agent/evals/reference.rules.json:proposed.by_language.pt.met03_missed_escalations}} / {{agent/evals/reference.rules.json:proposed.by_language.pt.met03_unnecessary_escalations}} |
-| MET-03 Handoff completeness | {{eval/outputs/ds_stats.json:desglose.idioma.es.baseline.metricas.met03_handoff_completeness}} | {{eval/outputs/ds_stats.json:desglose.idioma.es.proposed.metricas.met03_handoff_completeness}} | {{eval/outputs/ds_stats.json:desglose.idioma.pt.baseline.metricas.met03_handoff_completeness}} | {{eval/outputs/ds_stats.json:desglose.idioma.pt.proposed.metricas.met03_handoff_completeness}} |
-| MET-04 Unsafe (count / n) | {{eval/outputs/ds_stats.json:desglose.idioma.es.baseline.metricas.met04_unsafe_outcomes}} | {{eval/outputs/ds_stats.json:desglose.idioma.es.proposed.metricas.met04_unsafe_outcomes}} | {{eval/outputs/ds_stats.json:desglose.idioma.pt.baseline.metricas.met04_unsafe_outcomes}} | {{eval/outputs/ds_stats.json:desglose.idioma.pt.proposed.metricas.met04_unsafe_outcomes}} |
-| MET-05 p50 / p95 | {{eval/outputs/ds_stats.json:desglose.idioma.es.baseline.metricas.met05_latency_p50_ms}} / {{eval/outputs/ds_stats.json:desglose.idioma.es.baseline.metricas.met05_latency_p95_ms}} | {{eval/outputs/ds_stats.json:desglose.idioma.es.proposed.metricas.met05_latency_p50_ms}} / {{eval/outputs/ds_stats.json:desglose.idioma.es.proposed.metricas.met05_latency_p95_ms}} | {{eval/outputs/ds_stats.json:desglose.idioma.pt.baseline.metricas.met05_latency_p50_ms}} / {{eval/outputs/ds_stats.json:desglose.idioma.pt.baseline.metricas.met05_latency_p95_ms}} | {{eval/outputs/ds_stats.json:desglose.idioma.pt.proposed.metricas.met05_latency_p50_ms}} / {{eval/outputs/ds_stats.json:desglose.idioma.pt.proposed.metricas.met05_latency_p95_ms}} |
-| MET-06 USD per case / per resolution | {{eval/outputs/ds_stats.json:desglose.idioma.es.baseline.metricas.met06_cost_per_case_usd}} / {{eval/outputs/ds_stats.json:desglose.idioma.es.baseline.metricas.met06_cost_per_safe_resolution_usd}} | {{eval/outputs/ds_stats.json:desglose.idioma.es.proposed.metricas.met06_cost_per_case_usd}} / {{eval/outputs/ds_stats.json:desglose.idioma.es.proposed.metricas.met06_cost_per_safe_resolution_usd}} | {{eval/outputs/ds_stats.json:desglose.idioma.pt.baseline.metricas.met06_cost_per_case_usd}} / {{eval/outputs/ds_stats.json:desglose.idioma.pt.baseline.metricas.met06_cost_per_safe_resolution_usd}} | {{eval/outputs/ds_stats.json:desglose.idioma.pt.proposed.metricas.met06_cost_per_case_usd}} / {{eval/outputs/ds_stats.json:desglose.idioma.pt.proposed.metricas.met06_cost_per_safe_resolution_usd}} |
+| n | 100 | 100 | 100 | 100 |
+| MET-01 Safe Automated Resolution | 20.0% [9.5%–37.3%], n = 30 | 6.7% [1.8%–21.3%], n = 30 | 6.7% [1.8%–21.3%], n = 30 | 3.3% [0.6%–16.7%], n = 30 |
+| MET-01 % attempted | 7.0% [3.4%–13.8%], n = 100 | 2.0% [0.5%–7.0%], n = 100 | 2.0% [0.5%–7.0%], n = 100 | 3.0% [1.0%–8.5%], n = 100 |
+| MET-02 Containment | 95.0% [88.8%–97.9%], n = 100 | 80.0% [71.1%–86.7%], n = 100 | 100.0% [96.3%–100.0%], n = 100 | 84.0% [75.6%–89.9%], n = 100 |
+| MET-03 Precision | 100.0% [56.5%–100.0%], n = 5 | 100.0% [83.9%–100.0%], n = 20 | not defined, n = 0 | 100.0% [80.6%–100.0%], n = 16 |
+| MET-03 Recall | 16.1% [7.1%–32.6%], n = 31 | 64.5% [46.9%–78.9%], n = 31 | 0.0% [0.0%–11.0%], n = 31 | 51.6% [34.8%–68.0%], n = 31 |
+| MET-03 Missed / unnecessary | 26 / 0 | 11 / 0 | 31 / 0 | 15 / 0 |
+| MET-03 Handoff completeness | 0.25 [0.25–0.25], n = 5 | 0.7375 [0.5714–0.8929], n = 20 | 0 [0–0], n = 0 | 0.4375 [0.2916–0.625], n = 16 |
+| MET-04 Unsafe (count / n) | 0.0% [0.0%–3.7%], n = 100 | 0.0% [0.0%–3.7%], n = 100 | 0.0% [0.0%–3.7%], n = 100 | 0.0% [0.0%–3.7%], n = 100 |
+| MET-05 p50 / p95 | 516 [503–704], n = 100 / 8,105 [4,184–17,702], n = 100 | 221 [207–238], n = 100 / 13,102 [5,652–17,102], n = 100 | 952 [514–982], n = 100 / 3,240 [1,450–5,199], n = 100 | 212 [199–222], n = 100 / 10,194 [4,044–13,549], n = 100 |
+| MET-06 USD per case / per resolution | 0.000545 [0.000326–0.000791], n = 100 / 0.009078 [0.005855–0.02041], n = 6 | 0.00033 [0.000226–0.000444], n = 100 / 0.0165 [0.00674–0.03863], n = 2 | 0.000354 [0.000227–0.000511], n = 100 / 0.0177 [0.008039–0.03974], n = 2 | 0.000417 [0.000276–0.000535], n = 100 / 0.04167 [0.009102–0.05248], n = 1 |
 
 ### 5.2 By case type (level)
 
@@ -150,23 +148,23 @@ Only the metrics that make sense for each level; the rest in `eval/outputs/ds_st
 
 | Level | System | n | Main metric | MET-04 Unsafe | MET-05 p95 |
 |---|---|---|---|---|---|
-| 1 Normal | Baseline | {{eval/outputs/ds_stats.json:desglose.nivel.1.n}} | MET-01: {{eval/outputs/ds_stats.json:desglose.nivel.1.baseline.metricas.met01_safe_auto_resolution}} | {{eval/outputs/ds_stats.json:desglose.nivel.1.baseline.metricas.met04_unsafe_outcomes}} | {{eval/outputs/ds_stats.json:desglose.nivel.1.baseline.metricas.met05_latency_p95_ms}} |
-| 1 Normal | Proposed | {{eval/outputs/ds_stats.json:desglose.nivel.1.n}} | MET-01: {{eval/outputs/ds_stats.json:desglose.nivel.1.proposed.metricas.met01_safe_auto_resolution}} | {{eval/outputs/ds_stats.json:desglose.nivel.1.proposed.metricas.met04_unsafe_outcomes}} | {{eval/outputs/ds_stats.json:desglose.nivel.1.proposed.metricas.met05_latency_p95_ms}} |
-| 2 Ambiguous | Baseline | {{eval/outputs/ds_stats.json:desglose.nivel.2.n}} | % clarifies: {{PENDIENTE:expected-route accuracy, level 2, baseline}} | {{eval/outputs/ds_stats.json:desglose.nivel.2.baseline.metricas.met04_unsafe_outcomes}} | {{eval/outputs/ds_stats.json:desglose.nivel.2.baseline.metricas.met05_latency_p95_ms}} |
-| 2 Ambiguous | Proposed | {{eval/outputs/ds_stats.json:desglose.nivel.2.n}} | % clarifies: {{agent/evals/reference.rules.json:proposed.by_type.ambiguous.route_accuracy}} | {{eval/outputs/ds_stats.json:desglose.nivel.2.proposed.metricas.met04_unsafe_outcomes}} | {{eval/outputs/ds_stats.json:desglose.nivel.2.proposed.metricas.met05_latency_p95_ms}} |
-| 3 Human | Baseline | {{eval/outputs/ds_stats.json:desglose.nivel.3.n}} | MET-03 recall: {{eval/outputs/ds_stats.json:desglose.nivel.3.baseline.metricas.met03_escalation_recall}} | {{eval/outputs/ds_stats.json:desglose.nivel.3.baseline.metricas.met04_unsafe_outcomes}} | {{eval/outputs/ds_stats.json:desglose.nivel.3.baseline.metricas.met05_latency_p95_ms}} |
-| 3 Human | Proposed | {{eval/outputs/ds_stats.json:desglose.nivel.3.n}} | MET-03 recall: {{eval/outputs/ds_stats.json:desglose.nivel.3.proposed.metricas.met03_escalation_recall}} | {{eval/outputs/ds_stats.json:desglose.nivel.3.proposed.metricas.met04_unsafe_outcomes}} | {{eval/outputs/ds_stats.json:desglose.nivel.3.proposed.metricas.met05_latency_p95_ms}} |
-| 4 Out of scope / adversarial | Baseline | {{eval/outputs/ds_stats.json:desglose.nivel.4.n}} | % abstains or denies: {{PENDIENTE:expected-route accuracy, level 4, baseline}} | {{eval/outputs/ds_stats.json:desglose.nivel.4.baseline.metricas.met04_unsafe_outcomes}} | {{eval/outputs/ds_stats.json:desglose.nivel.4.baseline.metricas.met05_latency_p95_ms}} |
-| 4 Out of scope / adversarial | Proposed | {{eval/outputs/ds_stats.json:desglose.nivel.4.n}} | % abstains or denies: {{agent/evals/reference.rules.json:proposed.by_type.adversarial.route_accuracy}} / {{agent/evals/reference.rules.json:proposed.by_type.out_of_scope.route_accuracy}} | {{eval/outputs/ds_stats.json:desglose.nivel.4.proposed.metricas.met04_unsafe_outcomes}} | {{eval/outputs/ds_stats.json:desglose.nivel.4.proposed.metricas.met05_latency_p95_ms}} |
-| 5 System failures | Baseline | {{eval/outputs/ds_stats.json:desglose.nivel.5.n}} | % escalates or re-authenticates: {{PENDIENTE:expected-route accuracy, level 5, baseline}} | {{eval/outputs/ds_stats.json:desglose.nivel.5.baseline.metricas.met04_unsafe_outcomes}} | {{eval/outputs/ds_stats.json:desglose.nivel.5.baseline.metricas.met05_latency_p95_ms}} |
-| 5 System failures | Proposed | {{eval/outputs/ds_stats.json:desglose.nivel.5.n}} | % escalates or re-authenticates: {{PENDIENTE:expected-route accuracy, level 5, proposed}} | {{eval/outputs/ds_stats.json:desglose.nivel.5.proposed.metricas.met04_unsafe_outcomes}} | {{eval/outputs/ds_stats.json:desglose.nivel.5.proposed.metricas.met05_latency_p95_ms}} |
+| 1 Normal | Baseline | 60 | MET-01: 13.3% [6.9%–24.2%], n = 60 | 0.0% [0.0%–6.0%], n = 60 | 10,762 [5,339–19,235], n = 60 |
+| 1 Normal | Proposed | 60 | MET-01: 5.0% [1.7%–13.7%], n = 60 | 0.0% [0.0%–6.0%], n = 60 | 10,224 [4,024–13,313], n = 60 |
+| 2 Ambiguous | Baseline | 40 | % clarifies: 10/40 (25.0%) | 0.0% [0.0%–8.8%], n = 40 | 1,309 [1,127–3,108], n = 40 |
+| 2 Ambiguous | Proposed | 40 | % clarifies: 37/40 (92.5%) | 0.0% [0.0%–8.8%], n = 40 | 9,373 [2,880–15,306], n = 40 |
+| 3 Human | Baseline | 40 | MET-03 recall: 12.5% [5.5%–26.1%], n = 40 | 0.0% [0.0%–8.8%], n = 40 | 4,112 [892–5,032], n = 40 |
+| 3 Human | Proposed | 40 | MET-03 recall: 80.0% [65.2%–89.5%], n = 40 | 0.0% [0.0%–8.8%], n = 40 | 10,837 [2,609–17,045], n = 40 |
+| 4 Out of scope / adversarial | Baseline | 30 | % abstains or denies: 23/30 (76.7%) | 0.0% [0.0%–11.3%], n = 30 | 1,398 [1,244–1,425], n = 30 |
+| 4 Out of scope / adversarial | Proposed | 30 | % abstains or denies: 15/30 (50.0%) | 0.0% [0.0%–11.3%], n = 30 | 2,661 [2,319–4,970], n = 30 |
+| 5 System failures | Baseline | 30 | % escalates or re-authenticates: 8/30 (26.7%) | 0.0% [0.0%–11.3%], n = 30 | 2,790 [928–6,000], n = 30 |
+| 5 System failures | Proposed | 30 | % escalates or re-authenticates: 12/30 (40.0%) | 0.0% [0.0%–11.3%], n = 30 | 16,245 [7,678–28,261], n = 30 |
 
 ### 5.3 Variability across runs and versions
 
 | Source of variation | MET-01 (range across runs) | MET-04 (range across runs) |
 |---|---|---|
-| Repeated runs, same model and prompt | {{PENDIENTE:MET-01 range across repeated runs}} | {{PENDIENTE:MET-04 range across repeated runs}} |
-| Model/prompt versions | {{PENDIENTE:MET-01 range across model/prompt versions}} | {{PENDIENTE:MET-04 range across model/prompt versions}} |
+| Repeated runs, same model and prompt | not measured (one run per system) | not measured (one run per system) |
+| Model/prompt versions | not measured (one model/prompt version) | not measured (one model/prompt version) |
 
 ### 5.4 MET-04 in detail
 
@@ -175,10 +173,10 @@ Zero in a small sample is not zero risk: with 0 events in n cases, the upper bou
 
 | Type | Baseline | Proposed |
 |---|---|---|
-| Unauthorized disclosures (`foreign_references`) | {{PENDIENTE:MET-04 unauthorized disclosures (foreign_references), baseline}} | {{agent/evals/reference.rules.json:proposed.overall.met04_breakdown.disclosure}} |
-| Unauthorized actions | {{PENDIENTE:MET-04 unauthorized actions, baseline}} | {{agent/evals/reference.rules.json:proposed.overall.met04_breakdown.unauthorized_action}} |
-| Unverified claims (`unverified_claims`) | {{PENDIENTE:MET-04 unverified claims (unverified_claims), baseline}} | {{agent/evals/reference.rules.json:proposed.overall.met04_breakdown.incorrect_result}} |
-| 95% CI upper bound | {{eval/outputs/ds_stats.json:baseline.metricas.met04_unsafe_outcomes.ci[1]}} | {{eval/outputs/ds_stats.json:proposed.metricas.met04_unsafe_outcomes.ci[1]}} |
+| Unauthorized disclosures (`foreign_references`) | 0 / 200 | 0 / 200 |
+| Unauthorized actions | no dedicated detector in the harness (the service layer rejects them; see test_bank_api.py) | no dedicated detector in the harness (the service layer rejects them; see test_bank_api.py) |
+| Unverified claims (`unverified_claims`) | 0 / 200 | 0 / 200 |
+| 95% CI upper bound | 0.0188 | 0.0188 |
 
 Today "unauthorized actions" has no dedicated detector in the harness: the service layer rejects them
 ([services/tests/test_bank_api.py](../services/tests/test_bank_api.py)) and the count comes from the audit log.
@@ -199,11 +197,11 @@ Evidence: notebook `analysis/notebooks/04_label_audit.ipynb` → `analysis/resul
 
 | Finding | Value |
 |---|---|
-| Transcripts analyzed | {{results/label_audit.json:transcript_templates[0].filas}} |
-| Distinct text templates | {{results/label_audit.json:transcript_templates[0].plantillas}} |
-| `detected_intents` distribution | {{results/label_audit.json:detected_intents}} |
-| By `reason_category` | {{results/label_audit.json:by_category}} |
-| Dataset label vs manual sample agreement | {{results/label_audit.json:manual_agreement}} (n = {{results/label_audit.json:manual_n}}) |
+| Transcripts analyzed | 171,321 |
+| Distinct text templates | 42 |
+| `detected_intents` distribution | detected_intents: consulta_general, n: 162,864; detected_intents: not defined, n: 8,457 |
+| By `reason_category` | reason_category: Transaccional, plantillas: 42, n: 59,786; reason_category: Producto, plantillas: 42, n: 37,658; reason_category: Queja, plantillas: 42, n: 29,198; reason_category: Técnico, plantillas: 42, n: 25,691; reason_category: Comercial, plantillas: 42, n: 13,808; reason_category: Retención, plantillas: 42, n: 5,180 |
+| Dataset label vs manual sample agreement | not measured: no manual sample was labeled |
 
 Finding: `call_transcripts.customer_text` only holds balance-inquiry templates, spread evenly across the 6
 `reason_category` values, and `detected_intents` is always `consulta_general` (or null). **The dataset has no valid
@@ -217,7 +215,7 @@ text, not customer text.
 
 ### Split and metrics
 
-Leakage-free split by group (paraphrase family; temporal when examples carry dates): {{ml/reports/router_eval.json:split}}.
+Leakage-free split by group (paraphrase family; temporal when examples carry dates): strategy: group, test_size: 0.2, seed: 42, n_train: 200, n_test: 56.
 Figures copied from the generated [ml/reports/router_eval.md](../ml/reports/router_eval.md).
 
 | Metric (held-out, n = 56) | Rules | Learned model | Served hybrid |
@@ -230,55 +228,46 @@ Figures copied from the generated [ml/reports/router_eval.md](../ml/reports/rout
 | Language accuracy | 0.946 | 0.946 | 0.946 |
 
 Out-of-fold over all 256 approved rows (GroupKFold): accuracy 0.484 rules, 0.645 model, 0.766 hybrid. Confidence
-threshold: {{ml/reports/router_eval.json:confidence_threshold}}; below it the agent clarifies instead of acting. At 0.35
+threshold: 0.35; below it the agent clarifies instead of acting. At 0.35
 the hybrid passes 63% of messages with 0.89 accuracy; at the previous 0.55 the model would almost never pass (its median
-confidence is 0.32). Served version: {{ml/reports/router_eval.json:served_version}}.
+confidence is 0.32). Served version: hybrid-0.1[rules-ds-0.2+tfidf-lr-0.1].
 
 ## 7. Fairness (REQ-18)
 
-Evidence: notebook `analysis/notebooks/05_fairness.ipynb` → `analysis/results/fairness.json`. Joins the harness runs
-with `gold_customers.segment` by `session_customer_id`. Small cells are not concluded on: n is reported.
-**Blocked** until the full harness run.
+Evidence: `analysis/eval_extras.py` → `analysis/results/fairness.json`, from the full harness run. Small cells are not concluded on: n is reported. The **language** cut is computed. The **segment** cut could not be: the evaluation's seed customers are not in `gold_customers`, so there is no segment to join, and we did not invent one.
 
 | Cut | MET-01 | MET-03 recall | MET-04 | n |
 |---|---|---|---|---|
-| ES | {{results/fairness.json:by_language.es.MET-01}} | {{results/fairness.json:by_language.es.MET-03_recall}} | {{results/fairness.json:by_language.es.MET-04}} | {{results/fairness.json:by_language.es.n}} |
-| PT | {{results/fairness.json:by_language.pt.MET-01}} | {{results/fairness.json:by_language.pt.MET-03_recall}} | {{results/fairness.json:by_language.pt.MET-04}} | {{results/fairness.json:by_language.pt.n}} |
-| By customer segment | {{results/fairness.json:by_segment}} | | | |
+| ES | 6.7% [1.8%–21.3%], n = 30 | 64.5% [46.9%–78.9%], n = 31 | 0.0% [0.0%–3.7%], n = 100 | 100 |
+| PT | 3.3% [0.6%–16.7%], n = 30 | 51.6% [34.8%–68.0%], n = 31 | 0.0% [0.0%–3.7%], n = 100 | 100 |
+| By customer segment | not computable: the harness uses four seed customers (C90000001-4) that are not in gold_customers, so no segment can be joined | | | |
 
-Largest gap and how to read it: {{results/fairness.json:max_gap}} — {{results/fairness.json:interpretation}}
+Largest gap and how to read it: handoff completeness, PT minus ES: -30.0 pts [-53.6, -6.8], p = 0.022 — Portuguese handoff cards were less complete (43.8% vs 73.8%), the only language gap whose interval excludes zero. Escalation recall is lower in PT too (-12.9 pts, interval [-35.0, 11.1]) but inconclusive at n = 31 per language, as are safe automated resolution and unsafe outcomes (0 in both). All PT text is team-generated, so language is confounded with translation quality
 
 Known limit: the harness has few test customers, so the segment cut is descriptive. The language cut confounds
 language with "text translated by the team" (all PT is).
 
-## 8. Business baseline — **projection**, not a measured improvement (CON-07)
+## 8. Business baseline — historical context, no projection (CON-07)
 
 Evidence: notebook `analysis/notebooks/03_business_baseline.ipynb` → `analysis/results/business_baseline.json`
-(label: {{results/business_baseline.json:label}}).
+(label: historical).
 
 | Historical call-center metric (dispute contacts) | Historical |
 |---|---|
-| FCR (`was_resolved` and no `requires_followup`) | {{results/business_baseline.json:fcr}} |
-| Escalation rate | {{results/business_baseline.json:escalacion}} |
-| Duration p50 (s) | {{results/business_baseline.json:dur_p50_s}} |
-| Wait p50 (s) | {{results/business_baseline.json:espera_p50_s}} |
-| CSAT | {{results/business_baseline.json:csat}} |
+| FCR (`was_resolved` and no `requires_followup`) | 0.37 |
+| Escalation rate | 0.1 |
+| Duration p50 (s) | 431 |
+| Wait p50 (s) | 120 |
+| CSAT | 2.43 / 4 (n=21,843) |
 
-**Projection** (historical × MET-01/MET-02 measured offline): {{results/business_baseline.json:projection}}.
-Assumptions: the held-out case mix represents real demand (it does not: it was designed with the §8.8 proportions);
-customers accept the chat channel; offline rates hold with real customers. None was verified.
+**No projection is made.** The historical figures are context only. We do not multiply them by the offline rates: the held-out mix was designed (§8.8 proportions), not sampled from real demand, and the offline automation rate is not conclusive (§5, §10). Any improvement claim needs an A/B test or a pilot with real customers.
 
 ## 9. Validation of the Langfuse evaluators
 
 The main scoring is deterministic (§3). The Langfuse evaluators (LLM-as-judge) only complement it: tone, clarity and
 whether the explanation cites the rule.
 
-| Evaluator | Rubric | Human sample (n) | Agreement with human | Decision |
-|---|---|---|---|---|
-| {{eval/outputs/judge_validation.json:evaluators[0].name}} | {{eval/outputs/judge_validation.json:evaluators[0].rubric}} | {{eval/outputs/judge_validation.json:evaluators[0].n}} | {{eval/outputs/judge_validation.json:evaluators[0].agreement}} | {{eval/outputs/judge_validation.json:evaluators[0].decision}} |
-
-Protocol: sample stratified by language and level; a human labels without seeing the judge's score; agreement (% and
-Cohen's κ) is reported. An evaluator with low agreement stays out of the report. **Status: pending.**
+**Not run.** No Langfuse LLM-as-judge evaluator was configured or validated against a human sample for this submission, so no figure in this report uses one. All scoring is deterministic (§3). The consequence is that text quality (tone, clarity, whether the explanation cites the rule) is not evaluated.
 
 ## 10. Limitations
 
@@ -295,5 +284,9 @@ Cohen's κ) is reported. An evaluator with low agreement stays out of the report
 | Simulated bank and test customers | Latency and failures are not those of a real core banking system |
 | Judge = harness rules over the final route | Text quality is not evaluated; that is left to the §9 evaluators |
 | Cost with a declared public price, not an invoice | MET-06 is an estimate; in `rules` mode the cost is 0 by design |
-| Gemini free tier / quotas | Runs are serial and batched; model fallbacks could change the model within a run (`GEMINI_FALLBACK_MODELS=none` is set for evaluation) |
-| Business baseline | It is a projection (§8), never a measured improvement |
+| Gemini free tier / quotas | Quota errors (429) took the baseline's LLM out in 159 / 200 cases. Without a completed Gemini call: Sofía 137 / 200, baseline 152 / 200 (Sofía then ran on rules and templates). The run mostly tests the fallback paths and understates what either system does with a working LLM. It was not rerun on paid quota |
+| One run per system | Run-to-run variability and model/prompt-version variability were not measured; the intervals only reflect case sampling |
+| Customer-segment fairness cut not run | The evaluation's seed customers are not in `gold_customers` (§7); only the language cut exists |
+| Level-1 cases were rewritten after a first run so that they are eligible for automatic resolution | The rewrite followed what the first run showed; 178 of the 200 first messages are distinct (148 ignoring the case-number suffix), so the cases are less varied than 200 suggests |
+| No LLM-as-judge | Text quality is not evaluated (§9) |
+| Business baseline | Historical context only; no projection is made (§8) |
