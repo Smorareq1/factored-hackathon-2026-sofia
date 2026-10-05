@@ -75,7 +75,7 @@ Policy parameters (§8.3; notebook `analysis/notebooks/02_policy_calibration.ipy
 | Held-out | Case texts differ from the agent's development set ([agent/evals/dev_cases.jsonl](../agent/evals/dev_cases.jsonl)), which is not part of this report. They share test customers and merchants (see §10) |
 | World | Simulated bank with injectable faults ([services/](../services/)); a fresh bank per case |
 | Scoring | Deterministic: final route vs `expected_route`, handoff fields, `unverified_claims` and `foreign_references` ([eval/src/sofia_eval/metrics.py](../eval/src/sofia_eval/metrics.py)) |
-| Repetition | 1 run per system (run-to-run variability not measured); model rules (sin LLM), `prompt_version` p-37208c0a97 |
+| Repetition | 1 run per system; Gemini in `auto` mode with the default model chain (free tier), `prompt_version` p-37208c0a97 |
 | Intervals | proporciones: Wilson CI; rule of three (3/n) when there are 0 events, continuas: percentile bootstrap resampling cases (calculate_metrics per replicate), diferencia_proporciones: Newcombe (Wilson) CI; exact Fisher if an expected count < 5, otherwise z, diferencia_continuas: bootstrap of the difference (paired by case_id when possible), desglose: cells with n < 10 are marked 'insufficient n' |
 | Failures | Every case counts, including those ending in an error or timeout: an error is a failure, never discarded |
 
@@ -159,14 +159,7 @@ Only the metrics that make sense for each level; the rest in `eval/outputs/ds_st
 | 5 System failures | Baseline | 30 | % escalates or re-authenticates: 8/30 (26.7%) | 0.0% [0.0%–11.3%], n = 30 | 2,790 [928–6,000], n = 30 |
 | 5 System failures | Proposed | 30 | % escalates or re-authenticates: 12/30 (40.0%) | 0.0% [0.0%–11.3%], n = 30 | 16,245 [7,678–28,261], n = 30 |
 
-### 5.3 Variability across runs and versions
-
-| Source of variation | MET-01 (range across runs) | MET-04 (range across runs) |
-|---|---|---|
-| Repeated runs, same model and prompt | not measured (one run per system) | not measured (one run per system) |
-| Model/prompt versions | not measured (one model/prompt version) | not measured (one model/prompt version) |
-
-### 5.4 MET-04 in detail
+### 5.3 MET-04 in detail
 
 Zero in a small sample is not zero risk: with 0 events in n cases, the upper bound of the 95% CI is ≈ 3/n
 (rule of three).
@@ -285,7 +278,7 @@ whether the explanation cites the rule.
 | Judge = harness rules over the final route | Text quality is not evaluated; that is left to the §9 evaluators |
 | Cost with a declared public price, not an invoice | MET-06 is an estimate; in `rules` mode the cost is 0 by design |
 | Gemini free tier / quotas | Quota errors (429) took the baseline's LLM out in 159 / 200 cases. Without a completed Gemini call: Sofía 137 / 200, baseline 152 / 200 (Sofía then ran on rules and templates). The run mostly tests the fallback paths and understates what either system does with a working LLM. It was not rerun on paid quota |
-| One run per system | Run-to-run variability and model/prompt-version variability were not measured; the intervals only reflect case sampling |
+| One run per system | The intervals only reflect case sampling, not run-to-run variation of the LLM |
 | Customer-segment fairness cut not run | The evaluation's seed customers are not in `gold_customers` (§7); only the language cut exists |
 | Level-1 cases were rewritten after a first run so that they are eligible for automatic resolution | The rewrite followed what the first run showed; 178 of the 200 first messages are distinct (148 ignoring the case-number suffix), so the cases are less varied than 200 suggests |
 | No LLM-as-judge | Text quality is not evaluated (§9) |

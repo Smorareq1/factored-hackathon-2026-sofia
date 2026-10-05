@@ -114,7 +114,7 @@ denies unauthorized actions do not depend on sample size.
 
 **How did you build the intervals?**
 `proporciones: Wilson CI; rule of three (3/n) when there are 0 events, continuas: percentile bootstrap resampling cases (calculate_metrics per replicate), diferencia_proporciones: Newcombe (Wilson) CI; exact Fisher if an expected count < 5, otherwise z, diferencia_continuas: bootstrap of the difference (paired by case_id when possible), desglose: cells with n < 10 are marked 'insufficient n'`. The principle: we resample cases, not turns (the turns of one
-conversation are not independent), per language. Each system was run once, so the LLM's run-to-run variability was not measured and the intervals only reflect case sampling. Baseline and Sofía run on the **same** cases, so the difference can be compared case by case.
+conversation are not independent), per language. Each system was run once, so the intervals only reflect case sampling, not the LLM's run-to-run variation. Baseline and Sofía run on the **same** cases, so the difference can be compared case by case.
 *(Confirm against the actual method in `ds_stats.json` before the defense.)*
 
 **High containment is not good if the system does not resolve.**
