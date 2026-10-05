@@ -271,3 +271,11 @@ async def test_retry_is_idempotent(start):
     state = await conv.say("Sí, confirmo")
     assert state["situation"] == "dispute_created"
     assert sum(1 for d in conv.bank_state.disputes.values() if d.transaction_id == "TX-MX-0001") == 1
+
+
+async def test_short_pt_message_beats_the_default_ui_hint(start):
+    """The UI always sends its selector (default "es"); one PT-only marker should still answer in PT."""
+    conv = await start("AR-DEMO-004")
+    state = await conv.say("Me transfere para um humano", language_hint="es")
+    assert state["language"] == "pt"
+    assert state["route"] == "escalate"
