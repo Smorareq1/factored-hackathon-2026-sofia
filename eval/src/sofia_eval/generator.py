@@ -7,6 +7,11 @@ Proporciones exactas de §8.8:
 - Nivel 4: Fuera de alcance y Adversarial    -> 15% (30 casos: 15 ES / 15 PT)
 - Nivel 5: Fallas de sistema (Resiliencia)   -> 15% (30 casos: 15 ES / 15 PT)
 Total: 200 casos (100 ES, 100 PT).
+
+Nivel 1 apunta solo a transacciones auto-resolubles (Rappi y Spotify para C90000001; Mercado Libre para C90000004).
+Una versión anterior apuntaba 27 casos a cargos que la política rechaza con razón (Cinépolis/Netflix duplicados, Walmart
+ya disputado), lo que topaba MET-01 en ~55%; se reescribieron conservando la intención. Limitación: solo 118 de los 200
+primeros mensajes son distintos; el resto son copias con sufijo "(caso #N)".
 """
 
 from sofia_contracts.eval_case import EvalCase, InjectedFault
@@ -21,20 +26,20 @@ def generate_benchmark_cases() -> list[EvalCase]:
     es_l1_templates = [
         ("Rappi", "Hola, veo un cargo de 349 pesos en Rappi que no reconozco.", "Sí, confirmo la disputa."),
         (
-            "Cinépolis",
-            "Quiero revisar el cargo de Cinépolis por 189.50 de hace unos días.",
+            "Spotify",
+            "Quiero revisar el cargo de Spotify por 89 pesos de hace unos días.",
             "Confirmo que deseo registrar la disputa.",
         ),
         ("Spotify", "Desconozco una compra de Spotify de 89 pesos.", "Sí, adelante con el registro de la disputa."),
         (
-            "Walmart",
-            "Veo un consumo en Walmart de 1250 pesos que no realicé.",
+            "Rappi",
+            "Veo un consumo en Rappi de 349 pesos que no realicé.",
             "Sí, confirmo la apertura de la disputa.",
         ),
         ("Rappi", "Desconozco un cargo de Rappi de 349 MXN.", "Confirmo."),
         ("Spotify", "Quiero abrir disputa por 89 pesos en Spotify.", "Sí, confirmo."),
-        ("Cinépolis", "No reconozco el cargo de Cinépolis por 189.50.", "Sí, confirmo la disputa."),
-        ("Walmart", "Cargo no reconocido en Walmart por 1250.", "Confirmo que la registres."),
+        ("Spotify", "No reconozco el cargo de Spotify por 89.", "Sí, confirmo la disputa."),
+        ("Rappi", "Cargo no reconocido en Rappi por 349.", "Confirmo que la registres."),
         ("Rappi", "Me cobraron 349 en Rappi y yo no pedí nada.", "Sí, confirmo."),
         ("Spotify", "Aparece un cobro de Spotify de 89 pesos.", "Sí, adelante."),
     ]
@@ -55,8 +60,8 @@ def generate_benchmark_cases() -> list[EvalCase]:
 
     pt_l1_templates = [
         (
-            "Netflix",
-            "Olá, tenho uma cobrança da Netflix de 4500 pesos que não reconheço.",
+            "Mercado Libre",
+            "Olá, tenho uma cobrança do Mercado Libre de 18500 pesos que não reconheço.",
             "Sim, confirmo a abertura da disputa.",
         ),
         (
@@ -64,13 +69,17 @@ def generate_benchmark_cases() -> list[EvalCase]:
             "Quero abrir uma disputa para a compra do Mercado Libre de 18500 pesos.",
             "Confirmo os detalhes para registrar a disputa.",
         ),
-        ("Netflix", "Não reconheço o débito da Netflix de 4500 pesos no meu extrato.", "Sim, confirmo a contestação."),
+        (
+            "Mercado Libre",
+            "Não reconheço o débito do Mercado Libre de 18500 pesos no meu extrato.",
+            "Sim, confirmo a contestação.",
+        ),
         ("Mercado Libre", "Cobrança indevida no Mercado Libre por 18500 pesos.", "Confirmo o registro."),
-        ("Netflix", "Cobrança não autorizada na Netflix de 4500.", "Sim, confirmo."),
+        ("Mercado Libre", "Cobrança não autorizada no Mercado Libre de 18500.", "Sim, confirmo."),
         ("Mercado Libre", "Desconheço a compra de 18500 pesos no Mercado Libre.", "Sim, por favor registre."),
-        ("Netflix", "Quero contestar a cobrança da Netflix.", "Confirmo."),
+        ("Mercado Libre", "Quero contestar a cobrança do Mercado Libre.", "Confirmo."),
         ("Mercado Libre", "Preciso contestar o valor de 18500 no Mercado Libre.", "Sim, confirmo a disputa."),
-        ("Netflix", "Aparece um valor de 4500 da Netflix que não usei.", "Confirmo."),
+        ("Mercado Libre", "Aparece um valor de 18500 do Mercado Libre que não usei.", "Confirmo."),
         ("Mercado Libre", "Quero abrir contestação da compra no Mercado Libre de 18500.", "Sim, confirmo."),
     ]
     for i in range(30):
