@@ -222,16 +222,16 @@ Figures copied from the generated [ml/reports/router_eval.md](../ml/reports/rout
 
 | Metric (held-out, n = 56) | Rules | Learned model | Served hybrid |
 |---|---|---|---|
-| Accuracy | 0.482 | 0.643 | **0.750** |
-| Macro-F1 | 0.377 | 0.641 | **0.728** |
-| `needs_human` recall (the most expensive error) | 0.0 | 0.7 | 0.7 |
-| Macro-F1 ES | 0.392 | 0.571 | 0.677 |
-| Macro-F1 PT | 0.36 | 0.716 | 0.778 |
+| Accuracy | 0.536 | 0.643 | **0.768** |
+| Macro-F1 | 0.476 | 0.641 | **0.746** |
+| `needs_human` recall (the most expensive error) | 0.3 | 0.7 | 0.8 |
+| Macro-F1 ES | 0.515 | 0.571 | 0.715 |
+| Macro-F1 PT | 0.431 | 0.716 | 0.778 |
 | Language accuracy | 0.946 | 0.946 | 0.946 |
 
-Out-of-fold over all 256 approved rows (GroupKFold): accuracy 0.449 rules, 0.645 model, 0.766 hybrid. Confidence
+Out-of-fold over all 256 approved rows (GroupKFold): accuracy 0.484 rules, 0.645 model, 0.766 hybrid. Confidence
 threshold: {{ml/reports/router_eval.json:confidence_threshold}}; below it the agent clarifies instead of acting. At 0.35
-the hybrid passes 60% of messages with 0.89 accuracy; at the previous 0.55 the model would almost never pass (its median
+the hybrid passes 63% of messages with 0.89 accuracy; at the previous 0.55 the model would almost never pass (its median
 confidence is 0.32). Served version: {{ml/reports/router_eval.json:served_version}}.
 
 ## 7. Fairness (REQ-18)

@@ -1,9 +1,9 @@
 """Served intent router (§8.6, §9.3): keyword rules first, the trained model for what the rules do not cover.
 
-Out-of-fold on the approved corpus (GroupKFold by family, 256 rows): rules 0.449 accuracy, model 0.645,
-hybrid 0.766. The rules are precise when they match (confidence >= 0.65: 0.865 accuracy on 41% of messages);
+Out-of-fold on the approved corpus (GroupKFold by family, 256 rows): rules 0.484 accuracy, model 0.645,
+hybrid 0.766. The rules are precise when they match (confidence >= 0.65: 0.868 accuracy on 45% of messages);
 the model covers the rest. The agent clarifies below its router threshold, set by DS to
-`RECOMMENDED_CONFIDENCE_THRESHOLD` (agent/src/sofia_agent/purpose/purpose.yaml): at 0.35 the hybrid passes 60% of
+`RECOMMENDED_CONFIDENCE_THRESHOLD` (agent/src/sofia_agent/purpose/purpose.yaml): at 0.35 the hybrid passes 63% of
 messages with 0.89 accuracy.
 
 The model is trained at startup from the shipped corpus (under a second), so the service needs no binary artifact.

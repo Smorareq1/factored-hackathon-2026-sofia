@@ -136,6 +136,16 @@ def test_selection(text, choice):
         ("Quero falar com um atendente", "needs_human"),
         ("Quiero un préstamo", "out_of_scope"),
         ("muéstrame mis últimos movimientos", "transaction_inquiry"),
+        # ES/PT parity and conjugated human requests (REQ-05, REQ-18)
+        ("Quero abrir uma disputa para a compra do Mercado Libre", "dispute_new"),
+        ("Desconheço a compra de 18500 pesos", "dispute_new"),
+        ("Cargo no reconocido en Walmart por 1250", "dispute_new"),
+        ("Disputo el cargo de Rappi", "dispute_new"),
+        ("Comunícame con un asesor humano", "needs_human"),
+        ("Pásame con una persona, por favor", "needs_human"),
+        ("Necesito un humano", "needs_human"),
+        ("Me transfere para um humano", "needs_human"),
+        ("Me passa para uma pessoa", "needs_human"),
     ],
 )
 def test_local_router(text, intent):

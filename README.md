@@ -105,8 +105,8 @@ and case type, with n and CIs: [docs/evaluation-report.md](docs/evaluation-repor
 | MET-06 Cost per case / per resolution | {{eval/outputs/ds_stats.json:baseline.metricas.met06_cost_per_case_usd}} / {{eval/outputs/ds_stats.json:baseline.metricas.met06_cost_per_safe_resolution_usd}} | {{eval/outputs/ds_stats.json:proposed.metricas.met06_cost_per_case_usd}} / {{eval/outputs/ds_stats.json:proposed.metricas.met06_cost_per_safe_resolution_usd}} |
 
 n = {{eval/outputs/ds_stats.json:proposed.n}} cases (ES {{eval/outputs/ds_stats.json:desglose.idioma.es.n}}, PT {{eval/outputs/ds_stats.json:desglose.idioma.pt.n}}).
-Learned router vs rules (REQ-13), held-out n = 56: macro-F1 0.377 (rules) → 0.641 (model) → **0.728 (served hybrid)**;
-accuracy 0.482 → 0.750 ([router_eval.md](ml/reports/router_eval.md)). The call-center business baseline is a
+Learned router vs rules (REQ-13), held-out n = 56: macro-F1 0.476 (rules) → 0.641 (model) → **0.746 (served hybrid)**;
+accuracy 0.536 → 0.768 ([router_eval.md](ml/reports/router_eval.md)). The call-center business baseline is a
 **projection**, not a measured improvement (CON-07).
 
 ## Traceability REQ-01..REQ-19

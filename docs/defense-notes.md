@@ -62,12 +62,12 @@ with real customers, and we say so; the next step is labeling real messages in s
 **Why macro-F1 and `needs_human` recall?**
 Macro-F1 because the classes are imbalanced and `out_of_scope` or `needs_human` matter as much as the majority class.
 `needs_human` recall because letting through a case that should go to a human is the most expensive error; an
-unnecessary one costs an agent a few minutes. Result on the held-out test: 0.0 (rules) → 0.7 (learned model and served
-hybrid); macro-F1 0.377 → 0.728.
+unnecessary one costs an agent a few minutes. Result on the held-out test: 0.3 (rules) → 0.7 (learned model) → 0.8 (served
+hybrid); macro-F1 0.476 → 0.746.
 
 **Why rules plus a model, instead of just the model?**
-Because it measured better. The keyword rules are precise when they match (0.865 accuracy on 41% of messages) and the
-model covers what they miss; out-of-fold on the 256 approved rows, rules 0.449, model 0.645, hybrid 0.766.
+Because it measured better. The keyword rules are precise when they match (0.868 accuracy on 45% of messages) and the
+model covers what they miss; out-of-fold on the 256 approved rows, rules 0.484, model 0.645, hybrid 0.766.
 `router_version` records which part answered each message.
 
 **What if the router gets it wrong?**

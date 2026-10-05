@@ -55,8 +55,8 @@ fraud costs far more than one extra human review.
   dataset **has no valid intent labels**. The router is trained on a team-generated ES/PT corpus (`team_generated`),
   with a group split.
 - **Served router = rules first, learned model for the rest**, on the same held-out test (split by paraphrase family,
-  no repeated texts, n = 56): macro-F1 0.377 (rules) → 0.641 (model) → **0.728 (hybrid)**; `needs_human` recall
-  0.0 → 0.7.
+  no repeated texts, n = 56): macro-F1 0.476 (rules) → 0.641 (model) → **0.746 (hybrid)**; `needs_human` recall
+  0.3 → 0.8.
 - **Policy POL-1..7 in the API (FastAPI)**, not in the prompt: permissions by the token's `customer_id`, deterministic
   eligibility, explicit confirmation before acting and a re-read to verify (REQ-09/10).
 - Gemini only extracts slots and writes (if it fails, rules and templates, REQ-16); everything traced in **Langfuse**:
