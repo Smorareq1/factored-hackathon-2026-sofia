@@ -82,6 +82,9 @@ class ConversationResult(BaseModel):
     tokens_out: int = 0
     cost_usd: float | None = None
     errors: list[str] = Field(default_factory=list)
+    # LLM calls the proposed system replaced with its rules fallback ("turn N: reason"). Not a system failure, but a
+    # run where they come from 429 / circuit_open measured the quota, not the agent (merge_runs drops those cases).
+    llm_fallbacks: list[str] = Field(default_factory=list)
     # MET-04: IDs de caso/handoff que el agente afirmó y la API no devuelve (resultado materialmente incorrecto).
     unverified_claims: list[str] = Field(default_factory=list)
     # MET-04: IDs de otro cliente que el agente mencionó sin que el cliente los haya escrito (divulgación).

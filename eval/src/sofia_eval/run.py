@@ -9,6 +9,7 @@ import asyncio
 import json
 import logging
 import os
+import subprocess
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
@@ -17,6 +18,7 @@ from sofia_agent.runner import Harness
 from sofia_contracts.eval_case import ConversationResult, EvalCase
 from sofia_eval.ds_stats import build_ds_stats, save_ds_stats
 from sofia_eval.levels import get_benchmark_cases, load_cases_from_dir, save_benchmark_cases
+from sofia_eval.quota import is_rate_limited
 from sofia_eval.report import build_evaluation_report, save_reports
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
@@ -43,7 +45,21 @@ def load_segments(gold_dir: Path) -> dict[str, str]:
     return dict(zip(df["customer_id"].to_list(), df["segment"].to_list(), strict=True))
 
 
-def run_metadata(versions: list[str], n_cases: int) -> dict[str, str | int | list[str]]:
+def _git_sha() -> str:
+    try:
+        # Fixed argv, no user input: the run records which commit it measured.
+        sha = subprocess.run(
+            ["git", "rev-parse", "--short", "HEAD"], capture_output=True, text=True, check=True  # noqa: S607
+        ).stdout
+        dirty = subprocess.run(
+            ["git", "status", "--porcelain", "--untracked-files=no"], capture_output=True, text=True  # noqa: S607
+        )
+        return sha.strip() + ("-dirty" if dirty.stdout.strip() else "")
+    except (OSError, subprocess.CalledProcessError):
+        return "unknown"
+
+
+def run_metadata(versions: list[str], n_cases: int) -> dict[str, object]:
     """Qué se corrió (§6: variabilidad por versión de modelo/prompt). Sin secretos."""
     return {
         "started_at": datetime.now(UTC).isoformat(timespec="seconds"),
@@ -52,7 +68,7 @@ def run_metadata(versions: list[str], n_cases: int) -> dict[str, str | int | lis
         "llm_mode": os.getenv("SOFIA_LLM_MODE", "auto"),
         "gemini_model": os.getenv("GEMINI_MODEL") or "default",
         "gemini_fallback_models": os.getenv("GEMINI_FALLBACK_MODELS") or "default",
-        "git_sha": os.getenv("GIT_SHA", "unknown"),
+        "git_sha": os.getenv("GIT_SHA") or _git_sha(),
     }
 
 
@@ -79,6 +95,11 @@ async def _run_version_batched(
             logger.warning("Error leyendo checkpoint previo de %s: %s", results_file, exc)
             results = []
 
+    # A checkpointed conversation that hit the quota did not measure the system: it runs again.
+    limited = [r.case_id for r in results if is_rate_limited(r)]
+    if limited:
+        logger.warning("%s: %d casos del checkpoint con 429/fallback por cuota se re-ejecutan.", version, len(limited))
+        results = [r for r in results if not is_rate_limited(r)]
     done_ids = {r.case_id for r in results}
     pending = [c for c in cases if c.case_id not in done_ids]
 
@@ -154,6 +175,18 @@ async def run_evaluation(
                 harness, cases, "baseline", out, batch_size=batch_size, delay_s=delay, resume=resume
             )
 
+    meta["rate_limited"] = {
+        v: [r.case_id for r in rs if is_rate_limited(r)]
+        for v, rs in (("proposed", proposed_results), ("baseline", baseline_results))
+    }
+    n_limited = sum(len(ids) for ids in meta["rate_limited"].values())
+    if n_limited:
+        logger.error(
+            "%d conversaciones midieron la cuota del proveedor y no el sistema (meta.rate_limited). No publicar estas "
+            "cifras: correr de nuevo con --resume (re-ejecuta solo esos casos) o filtrarlas con merge_runs.",
+            n_limited,
+        )
+
     md_report, summary = build_evaluation_report(
         cases,
         proposed_results,
@@ -185,6 +218,7 @@ async def run_evaluation(
                 "unverified_claims": r.unverified_claims,
                 "foreign_references": r.foreign_references,
                 "errors": r.errors,
+                "llm_fallbacks": r.llm_fallbacks,
             }
             for r in proposed_results
         ],
@@ -206,6 +240,7 @@ async def run_evaluation(
                 "unverified_claims": r.unverified_claims,
                 "foreign_references": r.foreign_references,
                 "errors": r.errors,
+                "llm_fallbacks": r.llm_fallbacks,
             }
             for r in baseline_results
         ],
