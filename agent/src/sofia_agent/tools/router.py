@@ -16,7 +16,7 @@ from sofia_agent.text import fold
 from sofia_contracts.common import Language
 from sofia_contracts.router import Intent, IntentPrediction, RouterRequest
 
-LOCAL_ROUTER_VERSION = "rules-local-0.1"
+LOCAL_ROUTER_VERSION = "rules-local-0.2"
 
 _RULES: dict[Intent, list[str]] = {
     "needs_human": [
@@ -39,6 +39,7 @@ _RULES: dict[Intent, list[str]] = {
     "dispute_new": [
         r"\bno (la |lo |las |los )?reconozco\b",
         r"\bdesconozco\b",
+        r"\bno reconocid[oa]s?\b",
         r"\bme (cobraron|hicieron un cargo|descontaron)",
         r"\b(cobro|cargo|cobranza)s? (doble|duplicad\w*|dos veces|indebid\w*|raro|extran\w*|desconocid\w*|de mas)",
         r"\b(dos|2) veces\b",
@@ -47,6 +48,10 @@ _RULES: dict[Intent, list[str]] = {
         r"\bno (hice|realice|autorice) (esa|esta|ese|este)",
         r"\bno (me )?llego\b|\bno recibi\b",
         r"\bnao reconheco\b",
+        # PT counterparts of the ES rules above (REQ-18 parity): desconozco, abrir una disputa, no reconocido.
+        r"\bdesconheco\b",
+        r"\babrir (uma )?(disputa|contestacao|reclamacao)",
+        r"\bnao reconhecid[oa]s?\b",
         r"\b(me )?cobraram\b",
         r"\bcobranca (duplicada|em dobro|indevida|errada|estranha|desconhecida)",
         r"\bduas vezes\b",

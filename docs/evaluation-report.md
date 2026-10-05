@@ -187,7 +187,7 @@ Today "unauthorized actions" has no dedicated detector in the harness: the servi
 
 | Component | Version | Where |
 |---|---|---|
-| Baseline | Keyword rules (`rules-ds-0.1`) | [ml/src/sofia_ml/baseline_rules.py](../ml/src/sofia_ml/baseline_rules.py) |
+| Baseline | Keyword rules (`rules-ds-0.2`) | [ml/src/sofia_ml/baseline_rules.py](../ml/src/sofia_ml/baseline_rules.py) |
 | Learned model | Character n-gram TF-IDF + logistic regression (`tfidf-lr-0.1`) on a **team-generated** ES/PT corpus (`ml/data/intent_corpus.jsonl`, CON-02) | [ml/src/sofia_ml/train.py](../ml/src/sofia_ml/train.py) |
 | Served | Hybrid (`hybrid-0.1`): rules when they match (confidence ≥ 0.65), the model for the rest; trained at startup from the corpus | [ml/src/sofia_ml/router.py](../ml/src/sofia_ml/router.py), [serve.py](../ml/src/sofia_ml/serve.py) |
 | Contract | `POST /predict` per §9.3; `router_version` says which part answered (`…/rules` or `…/model`) | [contracts/src/sofia_contracts/router.py](../contracts/src/sofia_contracts/router.py) |

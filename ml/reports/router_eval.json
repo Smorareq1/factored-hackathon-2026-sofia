@@ -7,7 +7,7 @@
     "n_test": 56
   },
   "systems": {
-    "rules-ds-0.1": {
+    "rules-ds-0.2": {
       "n": 56,
       "accuracy": 0.482,
       "macro_f1": 0.377,
@@ -367,7 +367,7 @@
         }
       }
     },
-    "hybrid-0.1[rules-ds-0.1+tfidf-lr-0.1]": {
+    "hybrid-0.1[rules-ds-0.2+tfidf-lr-0.1]": {
       "n": 56,
       "accuracy": 0.75,
       "macro_f1": 0.728,
@@ -548,6 +548,6 @@
       }
     }
   },
-  "served_version": "hybrid-0.1[rules-ds-0.1+tfidf-lr-0.1]",
+  "served_version": "hybrid-0.1[rules-ds-0.2+tfidf-lr-0.1]",
   "confidence_threshold": 0.35
 }
