@@ -1,12 +1,12 @@
 # Definition of Done (brief §13) — owner: OPS
 
 Delivery checklist. Reviewed at integration 2 (10-02) and before submission (10-05). Each item carries its evidence or
-what is missing. Status as of 2026-10-04 (develop `3b2f295`).
+what is missing. Final status at submission, 2026-10-06 (develop `cbf3248`).
 
 ## Delivery
 
 - [ ] **REQ-01..REQ-19 with linked evidence in the README.** The table exists ([Traceability](README.md#traceability-req-01req-19));
-  some rows are still `pending` / `partial` (REQ-02, REQ-06, REQ-17) and close with the full harness run.
+  rows still marked `partial` / `pending` (REQ-02, REQ-06, REQ-13..15, REQ-17, REQ-18) are declared as such on purpose.
 - [ ] **DEL-01..DEL-07 ready; DEL-08 prepared in case we reach the Top 5.**
   - [x] DEL-01 Public repo with reproducible setup: [README](README.md#getting-started)
   - [x] DEL-02 Deployed demo: https://frontend-i6dmh3qssa-uc.a.run.app
@@ -37,7 +37,7 @@ what is missing. Status as of 2026-10-04 (develop `3b2f295`).
   - [x] bank-api `/admin/*` and `/session/test` closed in the cloud (SIM): 403 unless `X-Admin-Key` = secret
     `admin-api-key`
   - [ ] End-to-end test of the frontend against the deployed bank-api (OPS + AG)
-  - [ ] Tested from an external network in the agreed window, with `MIN_INSTANCES=1`
+  - [x] `MIN_INSTANCES=1` on all 4 services for the judging window (2026-10-06); back to 0 afterwards
 
 ## Evaluation
 
