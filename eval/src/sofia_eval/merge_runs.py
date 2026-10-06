@@ -8,9 +8,10 @@
         --output-dir eval/outputs/merged
 
 Each input dir holds `results_proposed.jsonl` / `results_baseline.jsonl` as written by `run.py`. A conversation that
-failed because of the provider's rate limit (an error mentioning 429 / RESOURCE_EXHAUSTED) is a quota event, not a
-system failure: it is left out and listed in `meta.merge.rate_limited`. With `--prune`, those lines are also removed
-from the input files, so `run.py`'s resume runs those cases again.
+failed because of the provider's rate limit (a 429 / RESOURCE_EXHAUSTED in `errors`, or a proposed-system rules
+fallback caused by one; see `quota.py`) is a quota event, not a system failure: it is left out and listed in
+`meta.merge.rate_limited`. With `--prune`, those lines are also removed from the input files, so `run.py`'s resume runs
+those cases again.
 """
 
 import argparse
@@ -23,17 +24,12 @@ from sofia_contracts.eval_case import ConversationResult, EvalCase
 from sofia_eval.ds_stats import build_ds_stats, save_ds_stats
 from sofia_eval.levels import load_cases_from_dir
 from sofia_eval.metrics import calculate_metrics
+from sofia_eval.quota import is_rate_limited
 from sofia_eval.run import load_segments
 
 log = logging.getLogger("sofia_eval.merge_runs")
 
 VERSIONS = ("proposed", "baseline")
-RATE_LIMIT_MARKERS = ("429", "resource_exhausted", "rate limit", "quota")
-
-
-def is_rate_limited(result: ConversationResult) -> bool:
-    return any(marker in error.lower() for error in result.errors for marker in RATE_LIMIT_MARKERS)
-
 
 def read_results(path: Path) -> list[ConversationResult]:
     if not path.exists():

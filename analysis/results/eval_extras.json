@@ -1,0 +1,47 @@
+{
+  "label": "measured offline, derived from eval/outputs/results.json (one run, n = 200)",
+  "runs_per_system": 1,
+  "level_language_n": {
+    "1.es": 30,
+    "1.pt": 30,
+    "2.es": 20,
+    "2.pt": 20,
+    "3.es": 20,
+    "3.pt": 20,
+    "4.es": 15,
+    "4.pt": 15,
+    "5.es": 15,
+    "5.pt": 15
+  },
+  "route_accuracy": {
+    "baseline.2": "10/40 (25.0%)",
+    "baseline.4": "23/30 (76.7%)",
+    "baseline.5": "8/30 (26.7%)",
+    "proposed.2": "37/40 (92.5%)",
+    "proposed.4": "15/30 (50.0%)",
+    "proposed.5": "12/30 (40.0%)"
+  },
+  "met03_missed_unnecessary": {
+    "baseline.es": "26 / 0",
+    "baseline.pt": "31 / 0",
+    "proposed.es": "11 / 0",
+    "proposed.pt": "15 / 0"
+  },
+  "met04": {
+    "baseline": {
+      "disclosure": "0 / 200",
+      "unverified_claims": "0 / 200",
+      "unauthorized_action": "no dedicated detector in the harness (the service layer rejects them; see test_bank_api.py)"
+    },
+    "proposed": {
+      "disclosure": "0 / 200",
+      "unverified_claims": "0 / 200",
+      "unauthorized_action": "no dedicated detector in the harness (the service layer rejects them; see test_bank_api.py)"
+    }
+  },
+  "capacity": {
+    "baseline_cases_with_quota_error": "159 / 200",
+    "proposed_cases_without_completed_gemini_call": "137 / 200",
+    "baseline_cases_without_completed_gemini_call": "152 / 200"
+  }
+}

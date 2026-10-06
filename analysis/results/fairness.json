@@ -1,0 +1,111 @@
+{
+  "label": "measured offline; language cut from ds_stats.json; PT text is team-generated",
+  "by_language": {
+    "es": {
+      "MET-01": {
+        "k": 2,
+        "n": 30,
+        "rate": 0.0667,
+        "ci": [
+          0.0185,
+          0.2132
+        ],
+        "ci_method": "wilson",
+        "n_insuficiente": false,
+        "mejor_si": "higher"
+      },
+      "MET-03_recall": {
+        "k": 20,
+        "n": 31,
+        "rate": 0.6452,
+        "ci": [
+          0.4695,
+          0.7888
+        ],
+        "ci_method": "wilson",
+        "n_insuficiente": false,
+        "mejor_si": "higher"
+      },
+      "MET-04": {
+        "k": 0,
+        "n": 100,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.037
+        ],
+        "ci_method": "wilson",
+        "n_insuficiente": false,
+        "rule_of_three_upper": 0.03,
+        "mejor_si": "lower"
+      },
+      "handoff_completeness": {
+        "value": 0.7375,
+        "n": 20,
+        "ci": [
+          0.5714,
+          0.8929
+        ],
+        "ci_method": "bootstrap_percentile",
+        "n_insuficiente": false,
+        "mejor_si": "higher"
+      },
+      "n": 100
+    },
+    "pt": {
+      "MET-01": {
+        "k": 1,
+        "n": 30,
+        "rate": 0.0333,
+        "ci": [
+          0.0059,
+          0.1667
+        ],
+        "ci_method": "wilson",
+        "n_insuficiente": false,
+        "mejor_si": "higher"
+      },
+      "MET-03_recall": {
+        "k": 16,
+        "n": 31,
+        "rate": 0.5161,
+        "ci": [
+          0.3484,
+          0.6803
+        ],
+        "ci_method": "wilson",
+        "n_insuficiente": false,
+        "mejor_si": "higher"
+      },
+      "MET-04": {
+        "k": 0,
+        "n": 100,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.037
+        ],
+        "ci_method": "wilson",
+        "n_insuficiente": false,
+        "rule_of_three_upper": 0.03,
+        "mejor_si": "lower"
+      },
+      "handoff_completeness": {
+        "value": 0.4375,
+        "n": 16,
+        "ci": [
+          0.291645,
+          0.625
+        ],
+        "ci_method": "bootstrap_percentile",
+        "n_insuficiente": false,
+        "mejor_si": "higher"
+      },
+      "n": 100
+    }
+  },
+  "by_segment": "not computable: the harness uses four seed customers (C90000001-4) that are not in gold_customers, so no segment can be joined",
+  "max_gap": "handoff completeness, PT minus ES: -30.0 pts [-53.6, -6.8], p = 0.022",
+  "interpretation": "Portuguese handoff cards were less complete (43.8% vs 73.8%), the only language gap whose interval excludes zero. Escalation recall is lower in PT too (-12.9 pts, interval [-35.0, 11.1]) but inconclusive at n = 31 per language, as are safe automated resolution and unsafe outcomes (0 in both). All PT text is team-generated, so language is confounded with translation quality",
+  "summary": "ES and PT match on safety (0 unsafe in 100 cases each) and are inconclusive on automation and escalation recall; the one gap that holds is handoff completeness (PT lower). The segment cut could not be run"
+}

@@ -69,6 +69,7 @@ class _Run:
     turns: list[TurnResult] = field(default_factory=list)
     tool_calls: list[ToolCallRecord] = field(default_factory=list)
     errors: list[str] = field(default_factory=list)
+    llm_fallbacks: list[str] = field(default_factory=list)
     handoff: Handoff | None = None
     goal_status: str | None = None
     latency_ms: int = 0
@@ -167,6 +168,7 @@ class Harness:
             tokens_out=spent.tokens_out,
             cost_usd=round(spent.cost_usd, 6),
             errors=run.errors,
+            llm_fallbacks=run.llm_fallbacks,
             unverified_claims=claims,
             foreign_references=foreign,
         )
@@ -302,6 +304,9 @@ class Harness:
             case_id=run.case.case_id,
         )
         state = outcome.state
+        run.llm_fallbacks.extend(
+            f"turn {turn}: {e.params.get('reason', '')}" for e in state.get("events") or [] if e.code == "llm_fallback"
+        )
         run.tool_calls = list(state.get("tool_log") or [])
         run.handoff = state.get("handoff")
         goal = state.get("goal")

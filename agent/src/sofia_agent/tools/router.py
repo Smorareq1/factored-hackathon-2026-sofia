@@ -16,15 +16,18 @@ from sofia_agent.text import fold
 from sofia_contracts.common import Language
 from sofia_contracts.router import Intent, IntentPrediction, RouterRequest
 
-LOCAL_ROUTER_VERSION = "rules-local-0.1"
+LOCAL_ROUTER_VERSION = "rules-local-0.2"
 
 _RULES: dict[Intent, list[str]] = {
     "needs_human": [
-        r"\b(hablar|comunicar\w*|pasar\w*|transferir\w*) (con|a) (un|una|el|la)? ?"
+        # Any conjugation of the verb (comunícame, pásame, me pasas, transfiéreme), not just the infinitive.
+        r"\b(habla\w*|comunica\w*|pasa\w*|transfier\w*|transferir\w*|deriva\w*) (con|a) (un|una|el|la)? ?"
         r"(agente|persona|humano|asesor\w*|ejecutiv\w*|operador\w*)",
         r"\b(agente|persona) (humano|humana|real)\b",
-        r"\bquiero (un|una) (humano|persona|asesor\w*)\b",
+        r"\b(quiero|necesito) (un|una|a un|a una) (humano|persona|asesor\w*|agente)\b",
         r"\bfalar com (um|uma|o|a)? ?(atendente|pessoa|humano|agente|gerente)",
+        r"\b(transfer\w*|pass\w*|encaminh\w*) (para|com) (um|uma|o|a)? ?(atendente|pessoa|humano|agente|gerente)",
+        r"\b(quero|preciso de) (um|uma) (humano|pessoa|atendente|agente)\b",
         r"\b(atendente|atendimento) humano\b",
         r"\bpessoa real\b",
     ],
@@ -39,14 +42,19 @@ _RULES: dict[Intent, list[str]] = {
     "dispute_new": [
         r"\bno (la |lo |las |los )?reconozco\b",
         r"\bdesconozco\b",
+        r"\bno reconocid[oa]s?\b",
         r"\bme (cobraron|hicieron un cargo|descontaron)",
         r"\b(cobro|cargo|cobranza)s? (doble|duplicad\w*|dos veces|indebid\w*|raro|extran\w*|desconocid\w*|de mas)",
         r"\b(dos|2) veces\b",
-        r"\b(disputar|reclamar|objetar|impugnar)\b",
+        r"\b(disputar|disputo|reclamar|objetar|impugnar|impugno)\b",
         r"\babrir (una )?(disputa|reclamacion|aclaracion)",
         r"\bno (hice|realice|autorice) (esa|esta|ese|este)",
         r"\bno (me )?llego\b|\bno recibi\b",
         r"\bnao reconheco\b",
+        # PT counterparts of the ES rules above (REQ-18 parity): desconozco, abrir una disputa, no reconocido.
+        r"\bdesconheco\b",
+        r"\babrir (uma )?(disputa|contestacao|reclamacao)",
+        r"\bnao reconhecid[oa]s?\b",
         r"\b(me )?cobraram\b",
         r"\bcobranca (duplicada|em dobro|indevida|errada|estranha|desconhecida)",
         r"\bduas vezes\b",

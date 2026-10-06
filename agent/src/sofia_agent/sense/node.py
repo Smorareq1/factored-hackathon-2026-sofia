@@ -32,6 +32,10 @@ async def sense(state: AgentState, deps: Deps, trail: Trail) -> dict[str, Any]:
         language, confidence, source = guess.language, guess.confidence, "detector"
     elif state.get("language"):
         language, confidence, source = state["language"], 0.5, "previous_turn"
+    elif guess.pt_score != guess.es_score:
+        # Poca evidencia pero de un solo lado ("Me transfere para um humano"): gana al selector de la UI, que
+        # llega siempre (por defecto "es") y no distingue una elección del cliente de su valor inicial.
+        language, confidence, source = ("pt" if guess.pt_score > guess.es_score else "es"), 0.5, "detector_weak"
     elif state.get("language_hint"):
         language, confidence, source = state["language_hint"], 0.5, "ui_hint"
     else:

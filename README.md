@@ -2,7 +2,7 @@
 
 **Sofía** is a banking agent that takes in transaction disputes in Spanish and Portuguese. Factored AI & Data Hackathon 2026.
 
-> Development README. The final version (rationale, architecture, results, limitations, path to production; DEL-05) is edited by DS with input from each owner.
+> Offline results come from one run per system on the Gemini free tier, which returned quota errors on most cases. Read the results with the limitations in [report §10](docs/evaluation-report.md#10-limitations).
 
 ## Workflow and scope (REQ-01)
 
@@ -97,30 +97,30 @@ and case type, with n and CIs: [docs/evaluation-report.md](docs/evaluation-repor
 
 | Metric | Baseline | Proposed |
 |---|---|---|
-| MET-01 Safe Automated Resolution | {{eval/outputs/ds_stats.json:baseline.metricas.met01_safe_auto_resolution}} | {{eval/outputs/ds_stats.json:proposed.metricas.met01_safe_auto_resolution}} |
-| MET-02 Containment | {{eval/outputs/ds_stats.json:baseline.metricas.met02_containment}} | {{eval/outputs/ds_stats.json:proposed.metricas.met02_containment}} |
-| MET-03 Escalation recall | {{eval/outputs/ds_stats.json:baseline.metricas.met03_escalation_recall}} | {{eval/outputs/ds_stats.json:proposed.metricas.met03_escalation_recall}} |
-| MET-04 Unsafe outcomes (count / n) | {{eval/outputs/ds_stats.json:baseline.metricas.met04_unsafe_outcomes}} | {{eval/outputs/ds_stats.json:proposed.metricas.met04_unsafe_outcomes}} |
-| MET-05 Latency p50 / p95 | {{eval/outputs/ds_stats.json:baseline.metricas.met05_latency_p50_ms}} / {{eval/outputs/ds_stats.json:baseline.metricas.met05_latency_p95_ms}} | {{eval/outputs/ds_stats.json:proposed.metricas.met05_latency_p50_ms}} / {{eval/outputs/ds_stats.json:proposed.metricas.met05_latency_p95_ms}} |
-| MET-06 Cost per case / per resolution | {{eval/outputs/ds_stats.json:baseline.metricas.met06_cost_per_case_usd}} / {{eval/outputs/ds_stats.json:baseline.metricas.met06_cost_per_safe_resolution_usd}} | {{eval/outputs/ds_stats.json:proposed.metricas.met06_cost_per_case_usd}} / {{eval/outputs/ds_stats.json:proposed.metricas.met06_cost_per_safe_resolution_usd}} |
+| MET-01 Safe Automated Resolution | 13.3% [6.9%–24.2%], n = 60 | 5.0% [1.7%–13.7%], n = 60 |
+| MET-02 Containment | 97.5% [94.3%–98.9%], n = 200 | 82.0% [76.1%–86.7%], n = 200 |
+| MET-03 Escalation recall | 8.1% [3.5%–17.5%], n = 62 | 58.1% [45.7%–69.5%], n = 62 |
+| MET-04 Unsafe outcomes (count / n) | 0.0% [0.0%–1.9%], n = 200 | 0.0% [0.0%–1.9%], n = 200 |
+| MET-05 Latency p50 / p95 | 556 [512–942], n = 200 / 5,199 [4,106–8,105], n = 200 | 216 [208–223], n = 200 / 11,415 [7,668–15,316], n = 200 |
+| MET-06 Cost per case / per resolution | 0.000449 [0.000325–0.000598], n = 200 / 0.01123 [0.007355–0.02334], n = 8 | 0.000373 [0.000294–0.000458], n = 200 / 0.02489 [0.01054–0.07966], n = 3 |
 
-n = {{eval/outputs/ds_stats.json:proposed.n}} cases (ES {{eval/outputs/ds_stats.json:desglose.idioma.es.n}}, PT {{eval/outputs/ds_stats.json:desglose.idioma.pt.n}}).
-Learned router vs rules (REQ-13), held-out n = 56: macro-F1 0.377 (rules) → 0.641 (model) → **0.728 (served hybrid)**;
-accuracy 0.482 → 0.750 ([router_eval.md](ml/reports/router_eval.md)). The call-center business baseline is a
-**projection**, not a measured improvement (CON-07).
+n = 200 cases (ES 100, PT 100).
+Learned router vs rules (REQ-13), held-out n = 56: macro-F1 0.476 (rules) → 0.641 (model) → **0.746 (served hybrid)**;
+accuracy 0.536 → 0.768 ([router_eval.md](ml/reports/router_eval.md)). The call-center business baseline is
+historical context only: no projection is made (CON-07).
 
 ## Traceability REQ-01..REQ-19
 
-As of 2026-10-04. "Partial" and "pending" say what is missing.
+As of 2026-10-05. "Partial" and "pending" say what is missing.
 
 | REQ | Status | Evidence |
 |---|---|---|
 | REQ-01 One workflow | met | [Workflow and scope](#workflow-and-scope-req-01) · [purpose.yaml](agent/src/sofia_agent/purpose/purpose.yaml) · `test_out_of_scope_abstains_and_offers_human` in [test_paths.py](agent/tests/test_paths.py) |
-| REQ-02 Data-backed justification | partial | Volume, contact reasons, demand, quality and the complaint→transaction link in [01_workflow_justification](analysis/notebooks/01_workflow_justification.ipynb); N, U and fraud threshold with regulation (MX/AR, Visa/MC) and a cost curve in [02_policy_calibration](analysis/notebooks/02_policy_calibration.ipynb) → [policy_calibration.json](analysis/results/policy_calibration.json). Missing: written conclusion and operational constraints; [report §2](docs/evaluation-report.md#2-workflow-and-justification-req-01-req-02) |
+| REQ-02 Data-backed justification | met | Volume, contact reasons, demand, quality, the complaint→transaction link, operational constraints and the written decision (exit criterion not met) in [01_workflow_justification](analysis/notebooks/01_workflow_justification.ipynb) → [workflow_justification.json](analysis/results/workflow_justification.json); N, U and fraud threshold with regulation (MX/AR, Visa/MC) and a cost curve in [02_policy_calibration](analysis/notebooks/02_policy_calibration.ipynb) → [policy_calibration.json](analysis/results/policy_calibration.json); [report §2](docs/evaluation-report.md#2-workflow-and-justification-req-01-req-02) |
 | REQ-03 Automated path | met | `test_auto_path_es_confirms_creates_and_verifies`, `test_auto_path_pt` in [test_paths.py](agent/tests/test_paths.py) · level 1 in [levels.py](eval/src/sofia_eval/levels.py) · [demo](#deployed-demo-del-02) |
 | REQ-04 Clarify or abstain | met | `test_duplicate_charge_clarifies_with_cards_then_selection`, `test_two_failed_clarifications_escalate_pol7`, `test_out_of_scope_abstains_and_offers_human` in [test_paths.py](agent/tests/test_paths.py) · levels 2 and 4 in [levels.py](eval/src/sofia_eval/levels.py) |
 | REQ-05 Structured handoff | met | Contract [handoff.py](contracts/src/sofia_contracts/handoff.py) · [orchestrate/handoff.py](agent/src/sofia_agent/orchestrate/handoff.py) · `test_high_amount_goes_to_human_with_structured_handoff` in [test_paths.py](agent/tests/test_paths.py) · human console [console/page.tsx](frontend/app/console/page.tsx) |
-| REQ-06 ES and PT | partial | Templates [es.yaml](agent/prompts/templates/es.yaml) / [pt.yaml](agent/prompts/templates/pt.yaml) · cases [es](eval/cases/es/cases.jsonl) / [pt](eval/cases/pt/cases.jsonl) · missing: per-language metrics in [report §5.1](docs/evaluation-report.md#51-by-language) |
+| REQ-06 ES and PT | met | Templates [es.yaml](agent/prompts/templates/es.yaml) / [pt.yaml](agent/prompts/templates/pt.yaml) · cases [es](eval/cases/es/cases.jsonl) / [pt](eval/cases/pt/cases.jsonl) · per-language metrics in [report §5.1](docs/evaluation-report.md#51-by-language) |
 | REQ-07 Conversational context | met | `test_slots_accumulate_across_turns`, `test_asking_for_a_person_escalates_keeping_context` in [test_paths.py](agent/tests/test_paths.py) |
 | REQ-08 Grounded answers | met | Grounding and output guard in [guards.py](agent/src/sofia_agent/govern/guards.py) · `test_grounding_check_rejects`, `test_hallucinated_number_falls_back_to_template` in [test_govern.py](agent/tests/test_govern.py) |
 | REQ-09 Verify actions | met | `verify` node in [orchestrate/nodes.py](agent/src/sofia_agent/orchestrate/nodes.py) · `test_unverified_action_is_not_claimed_and_escalates` in [test_paths.py](agent/tests/test_paths.py) · `drop_writes` in [test_bank_api.py](services/tests/test_bank_api.py) |
@@ -128,11 +128,11 @@ As of 2026-10-04. "Partial" and "pending" say what is missing.
 | REQ-11 Trusted authentication | met | Session + OTP in [auth/service.py](services/src/sofia_services/auth/service.py) · `test_auth_full_flow` in [test_bank_api.py](services/tests/test_bank_api.py) · `test_wrong_otp_is_rejected` in [test_api.py](agent/tests/test_api.py) |
 | REQ-12 Data pipeline with contracts | met | [data/README.md](data/README.md) · [contracts.py](data/src/sofia_data/contracts.py), [quality.py](data/src/sofia_data/quality.py), [lineage.py](data/src/sofia_data/lineage.py) · [test_pipeline.py](data/tests/test_pipeline.py) |
 | REQ-13 Learned component vs baseline | partial | Label audit: the dataset has no valid intents ([04_label_audit](analysis/notebooks/04_label_audit.ipynb), [corpus_audit.md](ml/reports/corpus_audit.md)) → team ES/PT corpus (CON-02) with a leakage-free group split ([split.py](ml/src/sofia_ml/split.py)); rules vs model vs served hybrid on held-out: [router_eval.md](ml/reports/router_eval.md); hybrid served in [router.py](ml/src/sofia_ml/router.py). Missing: human review of the corpus (8 rows in adjudication, PT); [report §6](docs/evaluation-report.md#6-learned-router-vs-rules-baseline-req-13) |
-| REQ-14 Held-out vs baseline | partial | Harness [run.py](eval/src/sofia_eval/run.py) + [metrics.py](eval/src/sofia_eval/metrics.py) · baseline [baseline/agent.py](agent/src/sofia_agent/baseline/agent.py) · missing: full run, n and CIs in [report §5](docs/evaluation-report.md#5-results-measured-offline) |
+| REQ-14 Held-out vs baseline | met | Harness [run.py](eval/src/sofia_eval/run.py) + [metrics.py](eval/src/sofia_eval/metrics.py) · baseline [baseline/agent.py](agent/src/sofia_agent/baseline/agent.py) · full run, n and CIs in [report §5](docs/evaluation-report.md#5-results-measured-offline); one run per system, Gemini free tier |
 | REQ-15 Adversarial cases | partial | Levels 4 and 5 in [levels.py](eval/src/sofia_eval/levels.py) · `test_expired_session_requests_reauth`, `test_tool_down_after_retries_escalates`, `test_foreign_transaction_id_is_denied_without_revealing_pol1` in [test_paths.py](agent/tests/test_paths.py) · missing in the harness: mixed ES/PT and wrong data |
 | REQ-16 Path to operation | met | Tracing [tracing.py](agent/src/sofia_agent/tracing.py) + [test_tracing.py](agent/tests/test_tracing.py) · retries and fallback [test_llm_chain.py](agent/tests/test_llm_chain.py), `test_retry_is_idempotent` · audit [audit/logger.py](services/src/sofia_services/audit/logger.py) · [infra/README.md](infra/README.md) |
-| REQ-17 Honesty about what is missing | partial | [Limitations: infra and data](#limitations-and-path-to-production-infra-and-data) · [agent, ML and evaluation](#limitations-and-path-to-production-agent-ml-and-evaluation) · [report §10](docs/evaluation-report.md#10-limitations) · missing: close with the results |
-| REQ-18 Fairness | pending | Notebook `05_fairness` waits for the evaluation run; target: [report §7](docs/evaluation-report.md#7-fairness-req-18) |
+| REQ-17 Honesty about what is missing | met | [Limitations: infra and data](#limitations-and-path-to-production-infra-and-data) · [agent, ML and evaluation](#limitations-and-path-to-production-agent-ml-and-evaluation) · [report §10](docs/evaluation-report.md#10-limitations) · closed with the results (quota impact, single run, no judge, no segment cut) |
+| REQ-18 Fairness | partial | Language cut done ([fairness.json](analysis/results/fairness.json), [report §7](docs/evaluation-report.md#7-fairness-req-18)); segment cut not computable: the seed customers are not in the gold data |
 | REQ-19 Auditable explanations | met | Per-layer events [trail.py](agent/src/sofia_agent/govern/trail.py) / [events.py](contracts/src/sofia_contracts/events.py) · audit [audit/logger.py](services/src/sofia_services/audit/logger.py) · reason citing the rule in `test_declined_transaction_is_not_disputable_pol2`, `test_old_transaction_denied_pol3_offers_human` in [test_paths.py](agent/tests/test_paths.py) |
 
 ## Limitations and path to production (infra and data)

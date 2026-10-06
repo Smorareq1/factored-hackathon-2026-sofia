@@ -126,6 +126,7 @@ The language detector stays undecided on 44 short rows; that is a detector limit
 | Privacy findings | 0 values from the dataset |
 | Model disagreements that are not errors | 91 flags, 0 changes |
 
-Router on corpus v2 (grouped held-out, n = 56; [router_eval.md](router_eval.md)): rules macro-F1 0.377,
-`needs_human` recall 0.0; TF-IDF + LR 0.641 / 0.7; served hybrid (rules first, model for the rest) 0.728 / 0.7. Small
+Router on corpus v2 (grouped held-out, n = 56; [router_eval.md](router_eval.md)): rules macro-F1 0.476,
+`needs_human` recall 0.3; TF-IDF + LR 0.641 / 0.7; served hybrid (rules first, model for the rest) 0.746 / 0.8
+(rules-ds-0.2; with rules-ds-0.1 it was 0.377 / 0.0 and 0.728 / 0.7). Small
 n: indicative figures until the human review.
