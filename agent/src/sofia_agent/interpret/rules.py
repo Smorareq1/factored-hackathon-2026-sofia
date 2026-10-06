@@ -209,6 +209,18 @@ _NO = re.compile(
 )
 _YES_START = re.compile(rf"^{_YES_HEAD}\b")
 _NO_START = re.compile(r"^(no|nao)\b")
+# "Sí, confirmo la disputa de este cargo" también es consentimiento explícito: empieza afirmando y lo que sigue solo
+# repite la acción. Cualquier negación, condición o cambio de objeto lo deja ambiguo y se vuelve a preguntar.
+_RESTATES_ACTION = re.compile(
+    r"\b(confirm\w*|registr\w*|disput\w*|contest\w*|reclam\w*|abr\w*|abertura|adelante|proced\w*|segu\w*|pode|dale"
+    r"|hacelo|hazlo|crea\w*|cria\w*|levant\w*)\b"
+)
+_HEDGE = re.compile(
+    r"\b(no|nao|pero|mas|sino|senao|aunque|embora|solo si|so se|otra|otro|outra|outro|cambi\w*|mud\w*|espera\w*"
+    r"|momento|todavia|ainda|duda|duvida|antes|ignora\w*|olvida\w*|esquec\w*)\b"
+)
+# "cargo no reconocido" describe el cargo, no niega la confirmación.
+_DESCRIPTIVE_NEGATION = re.compile(r"\b(no|nao) (reconoc\w*|reconhec\w*|autoriz\w*)\b")
 
 
 def _compact(text: str) -> str:
@@ -221,6 +233,13 @@ def read_confirmation(text: str) -> Confirmation:
         return "yes"
     if _NO.match(compact):
         return "no"
+    if (
+        _YES_START.match(compact)
+        and "?" not in text
+        and _RESTATES_ACTION.search(compact)
+        and not _HEDGE.search(_DESCRIPTIVE_NEGATION.sub(" ", compact))
+    ):
+        return "yes"
     if _YES_START.match(compact) or _NO_START.match(compact):
         return "ambiguous"  # "sí, pero…", "no sé": se vuelve a preguntar
     return "none"

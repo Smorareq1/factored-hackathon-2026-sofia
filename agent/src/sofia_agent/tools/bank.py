@@ -12,6 +12,7 @@ import time
 from collections.abc import Iterator
 from contextlib import contextmanager
 from datetime import date
+from decimal import Decimal
 from typing import Any
 
 import httpx
@@ -70,9 +71,11 @@ class BankClient:
         max_retries: int = 2,
         backoff_s: float = 0.2,
         enforce_allowlist: bool = True,
+        admin_key: str | None = None,
     ) -> None:
         self._http = http
         self._token = token
+        self._admin_key = admin_key
         self._max_retries = max_retries
         self._backoff_s = backoff_s
         # El baseline de sistema (§8.7) corre SIN esta guarda: es parte de lo que se compara.
@@ -151,7 +154,8 @@ class BankClient:
     async def harness_session(self, customer_id: str) -> SessionToken:
         """Solo sandbox: sesión directa para el cliente de un caso de evaluación (§9.5)."""
         body = HarnessSessionRequest(customer_id=customer_id)
-        response = await self._call("POST", "/session/test", json=body.model_dump(), record=False)
+        headers = {"X-Admin-Key": self._admin_key} if self._admin_key else None
+        response = await self._call("POST", "/session/test", json=body.model_dump(), headers=headers, record=False)
         if response is None:
             raise ToolRejectedError("POST", "/session/test", 404, "customer_not_found")
         return SessionToken.model_validate(response.json())
@@ -164,9 +168,25 @@ class BankClient:
 
     # ───────────────────────── lecturas ─────────────────────────
     async def list_transactions(
-        self, *, since: date | None = None, until: date | None = None, merchant: str | None = None, limit: int = 50
+        self,
+        *,
+        since: date | None = None,
+        until: date | None = None,
+        merchant: str | None = None,
+        amount: Decimal | None = None,
+        limit: int = 50,
     ) -> list[Transaction]:
-        params = {k: v for k, v in {"since": since, "until": until, "merchant": merchant, "limit": limit}.items() if v}
+        params = {
+            k: v
+            for k, v in {
+                "since": since,
+                "until": until,
+                "merchant": merchant,
+                "amount": amount,
+                "limit": limit,
+            }.items()
+            if v is not None
+        }
         response = await self._call("GET", "/transactions", params={k: str(v) for k, v in params.items()})
         return TransactionList.model_validate(response.json()).items if response else []
 

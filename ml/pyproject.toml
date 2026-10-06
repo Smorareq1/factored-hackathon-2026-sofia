@@ -1,7 +1,7 @@
 [project]
 name = "sofia-ml"
 version = "0.1.0"
-description = "Router de intención + idioma (§8.6, §9.3): entrenamiento, evaluación vs baseline y servicio HTTP. Dueño: DS."
+description = "Intent + language router (§8.6, §9.3): training, evaluation vs baseline and HTTP service. Owner: DS."
 requires-python = ">=3.12"
 dependencies = [
     "sofia-contracts",
@@ -20,3 +20,10 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/sofia_ml"]
+
+# The router trains at startup from the corpus, so it ships inside the package (Cloud Run has no repo checkout).
+[tool.hatch.build.targets.sdist.force-include]
+"data/intent_corpus.jsonl" = "data/intent_corpus.jsonl"
+
+[tool.hatch.build.targets.wheel.force-include]
+"data/intent_corpus.jsonl" = "sofia_ml/data/intent_corpus.jsonl"

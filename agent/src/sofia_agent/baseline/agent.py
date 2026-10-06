@@ -152,7 +152,9 @@ class _ListDisputes(BaseModel):
 
 class _Transfer(BaseModel):
     reason: str = Field(description="Motivo breve del traspaso")
-    summary: str = Field(description="Resumen del pedido del cliente para el agente humano")
+    summary: str = Field(
+        description="Resumen del pedido para el agente humano, en el idioma del cliente (español o portugués)"
+    )
 
 
 def _tx_json(tx: Transaction) -> dict[str, Any]:
@@ -437,7 +439,7 @@ class _LLMDownError(Exception):
 
 def make_baseline(settings: Settings, prompts: PromptBook) -> BaselineAgent | None:
     """Mismo modelo, misma temperatura y misma cadena de respaldo que el propuesto. Sin LLM no hay baseline."""
-    if not settings.use_gemini or settings.gemini_api_key is None:
+    if not settings.use_gemini:
         return None
     from langchain_google_genai import ChatGoogleGenerativeAI
 
@@ -448,7 +450,7 @@ def make_baseline(settings: Settings, prompts: PromptBook) -> BaselineAgent | No
             model,
             ChatGoogleGenerativeAI(
                 model=model,
-                google_api_key=settings.gemini_api_key.get_secret_value(),
+                **settings.gemini_client_kwargs,
                 temperature=0,
                 max_retries=0 if len(models) > 1 else 1,
                 timeout=max(settings.llm_timeout_s, MIN_SERVER_DEADLINE_S),

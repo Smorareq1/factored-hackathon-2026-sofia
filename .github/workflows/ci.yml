@@ -1,0 +1,76 @@
+# CI de S.O.F.I.A. (§11 OPS): lint + tests + chequeo de secretos en cada PR.
+# Python corre sobre el workspace de uv con el mismo uv.lock que los contenedores.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main, staging, develop]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python:
+    name: Python · ruff + pytest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+          enable-cache: true
+      - name: Instalar workspace
+        run: uv sync --frozen --all-packages
+      - name: Ruff
+        run: uv run ruff check --output-format=github .
+      - name: Pytest
+        # Un pytest por paquete: cada uno tiene su conftest y su raíz de imports.
+        run: |
+          set -e
+          for dir in contracts/tests data/tests services/tests ml/tests agent/tests eval/tests; do
+            if [ -d "$dir" ]; then
+              echo "::group::pytest $dir"
+              uv run pytest -q "$dir"
+              echo "::endgroup::"
+            fi
+          done
+        env:
+          SOFIA_ENV: ci
+          SOFIA_LLM_MODE: rules
+
+  frontend:
+    name: Frontend · eslint + build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+        env:
+          NEXT_PUBLIC_AGENT_URL: http://localhost:8001
+
+  secrets:
+    name: Secretos · gitleaks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Gitleaks
+        # CLI en contenedor: no requiere licencia de la action ni tokens extra.
+        run: |
+          docker run --rm -v "$PWD:/repo" ghcr.io/gitleaks/gitleaks:v8.21.2 \
+            git /repo --redact --verbose --config /repo/.gitleaks.toml

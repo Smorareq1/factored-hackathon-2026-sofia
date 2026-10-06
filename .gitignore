@@ -62,14 +62,18 @@ data/bronze/**
 data/silver/**
 data/gold/**
 data/cache/**
+data/_state/**
+data/fixture/**
 !data/raw/.gitkeep
 !data/bronze/.gitkeep
 !data/silver/.gitkeep
 !data/gold/.gitkeep
-data/**/*.parquet
-data/**/*.csv
-data/**/*.tsv
-data/**/*.jsonl
+/data/**/*.parquet
+/data/**/*.csv
+/data/**/*.tsv
+/data/**/*.jsonl
+!ml/data/**
+!ml/data/intent_corpus.jsonl
 *.parquet
 *.duckdb
 *.duckdb.wal
@@ -88,7 +92,11 @@ ml/cache/
 **/.cache/
 
 # --- Corridas del harness (eval/). Los casos JSON de §9.5 sí se versionan ---
-eval/outputs/
+eval/outputs/*
+!eval/outputs/ds_stats.json
+!eval/outputs/results.json
+!eval/outputs/summary.json
+!eval/outputs/EVALUATION_REPORT.md
 eval/runs/
 eval/cache/
 

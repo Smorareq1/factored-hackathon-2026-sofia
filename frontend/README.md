@@ -1,51 +1,54 @@
-# frontend/ — dueño: AG
+# frontend/ — owner: AG
 
-Next.js 16 (App Router) + TypeScript + Tailwind v4. Sin librerías de UI ni de iconos ni de gráficas: todo es del sistema de diseño propio (Sofía DS).
+Next.js 16 (App Router) + TypeScript + Tailwind v4. No UI, icon or chart libraries: everything comes from our own design system (Sofía DS). The interface text the customer and the human agent see is in Spanish and Portuguese.
 
-| Ruta | Pantalla |
+| Route | Screen |
 | --- | --- |
-| `/` | Login demo con OTP simulado (REQ-11) |
-| `/chat` | Chat del cliente ES/PT + caja de cristal con los eventos de cada capa del agente (REQ-19). Selector Sofía / Baseline (§8.7) si el agente tiene LLM |
-| `/console` | Consola del agente humano: tablero de la cola, lista y ficha §9.4 (sin transcript, REQ-05) + feedback de la ficha (LEARN → score en la traza) |
-| `/design` | Sofía DS en vivo: tokens, formas, iconos, átomos, moléculas, gráficas, organismos y movimiento |
+| `/` | Demo login with simulated OTP (REQ-11) |
+| `/chat` | ES/PT customer chat + glass box with the events of each agent layer (REQ-19). Sofía / Baseline selector (§8.7) when the agent has an LLM |
+| `/console` | Human agent console: queue board, list and §9.4 card (no transcript, REQ-05) + feedback on the card (LEARN → score on the trace). The card also shows the contract's extra fields: `schema_version`, `customer_claim`, `system_version` and `created_at` |
+| `/design` | Sofía DS live: tokens, shapes, icons, atoms, molecules, charts, organisms and motion |
 
-## Sofía DS (diseño atómico)
+## Sofía DS (atomic design)
 
-Dirección visual: **colores sólidos y figuras geométricas**, con la disciplina de las páginas de producto (titulares grandes con
-interletra cerrada, planos de color, botones píldora). Sin degradados, sin vidrio/blur, sin sombras difusas ni pasteles: los planos
-se separan por color. Identidades: **cobalto = Sofía**, **amarillo sol = persona** (agente humano, baseline, LEARN), **tinta = cliente**.
+Visual direction: **solid colors and geometric shapes**, with the discipline of product pages (large headlines with tight
+letter spacing, flat color fields, pill buttons). No gradients, no glass/blur, no diffuse shadows or pastels: areas are
+separated by color. Identities: **cobalt = Sofía**, **sun yellow = person** (human agent, baseline, LEARN), **ink = customer**.
 
 ```
-app/globals.css            tokens (color, figuras, movimiento) + tema "night" (caja de cristal, panel de ingreso, ficha)
+app/globals.css            tokens (color, shapes, motion) + "night" theme (glass box, login panel, card)
 components/
-├── atoms/                 Icon (+ icon-set: 52 iconos propios), Shape (10 figuras), Button, IconButton, Badge,
+├── atoms/                 Icon (+ icon-set: 52 custom icons), Shape (10 shapes), Button, IconButton, Badge,
 │                          StatusDot, Meter, Avatar, Flag, SofiaMark, Spinner, Card, Input…
 ├── molecules/             figures (FigureFrieze, CustomerFigure, FigureCluster), LayerTile, OtpInput, SmsToast, Stepper,
 │   │                      Segmented, CustomerTile, CandidateOption,
 │   │                      TransactionTicket, CaseReceipt, LayerTrack, PolicyLadder, FactRow, JsonView…
-│   └── charts/            Sparkline, ColumnChart, BarList, SplitBar, RingGauge (SVG propio)
+│   └── charts/            Sparkline, ColumnChart, BarList, SplitBar, RingGauge (custom SVG)
 ├── organisms/             ChatThread, Composer, GlassBox, TurnWaterfall, AuthPanel, QueueOverview,
 │                          HandoffQueue, HandoffSheet, FeedbackForm (LEARN)
 ├── templates/             AuthShell, WorkspaceShell, AppHeader
-└── screens/               login, chat, console, design (estado + llamadas a la API)
+└── screens/               login, chat, console, design (state + API calls)
 ```
 
-Reglas:
+Rules:
 
-- Los componentes usan **tokens semánticos** (`bg-surface`, `text-ink-2`, `border-line`, `bg-brand-soft`…), nunca hex sueltos. El tema `data-theme="night"` cambia solo los tokens.
-- Iconos: grilla de 24 px, trazo 1.75, `currentColor`. Uno nuevo se agrega en `atoms/icon-set.tsx`.
-- Figuras (`atoms/shape.tsx`): grilla de 100 × 100, colores `--fig-*`. Son decorativas (`aria-hidden`), nunca llevan significado solas.
-- Caja de cristal: cada capa tiene su figura (`LAYER_SHAPE`: meta = círculo, percepción = anillo, interpretación = triángulo, decisión = rombo, acción = cuadrado, guarda = arco, aprendizaje = hoja) sobre el color de su estado (cobalto ok, sol advertencia, rojo error, blanco corriendo). La misma figura se enciende en el chat mientras Sofía piensa. El texto sobre rellenos de estado usa los tokens `on-*` (blanco en claro, tinta en noche).
-- Gráficas: las series `--series-1` (cobalto) y `--series-2` (frambuesa) tienen contraste ≥ 3:1 contra la superficie en ambos temas y se distinguen con daltonismo (azul frente a rosa). El texto va siempre en tinta, nunca del color de la serie.
-- Movimiento: `ease-out-soft` / `ease-spring`, `animate-*` definidos en `globals.css` (titulares que suben desde una máscara, piezas que giran de a un cuarto de vuelta, cuadrado ↔ círculo). Todo respeta `prefers-reduced-motion`.
-- Cada nivel importa solo de niveles inferiores (átomos ← moléculas ← organismos ← plantillas ← pantallas).
+- Components use **semantic tokens** (`bg-surface`, `text-ink-2`, `border-line`, `bg-brand-soft`…), never loose hex values. The `data-theme="night"` theme only changes the tokens.
+- Icons: 24 px grid, 1.75 stroke, `currentColor`. A new one is added in `atoms/icon-set.tsx`.
+- Shapes (`atoms/shape.tsx`): 100 × 100 grid, `--fig-*` colors. They are decorative (`aria-hidden`) and never carry meaning on their own.
+- Glass box: each layer has its shape (`LAYER_SHAPE`: purpose = circle, sense = ring, interpret = triangle, decide = diamond, act = square, govern = arc, learn = leaf) over its state color (cobalt ok, sun warning, red error, white running). The same shape lights up in the chat while Sofía thinks. Text on state fills uses the `on-*` tokens (white in light, ink in night).
+- Charts: series `--series-1` (cobalt) and `--series-2` (raspberry) have ≥ 3:1 contrast against the surface in both themes and stay distinguishable with color blindness (blue vs pink). Text is always ink, never the series color.
+- Motion: `ease-out-soft` / `ease-spring`, `animate-*` defined in `globals.css` (headlines rising from a mask, pieces turning a quarter at a time, square ↔ circle). Everything respects `prefers-reduced-motion`.
+- Each level only imports from lower levels (atoms ← molecules ← organisms ← templates ← screens).
 
-## Correr
+## Running
 
-Con Docker, desde la raíz: `docker compose -f containers/local/compose.yaml --env-file .env up -d --build frontend` (http://localhost:3000). La imagen trae el código horneado: después de cambiar código hay que reconstruirla (o usar `compose watch`).
+With Docker, from the root: `docker compose -f containers/local/compose.yaml --env-file .env up -d --build frontend` (http://localhost:3000). The image has the code baked in: after changing code, rebuild it (or use `compose watch`).
 
-Sin Docker: `cp .env.example .env.local && npm install && npm run dev`.
+Without Docker: `cp .env.example .env.local && npm install && npm run dev`.
 
-Chequeos: `npx tsc --noEmit && npx eslint . && npx next build`.
+The "view trace" link builds `{NEXT_PUBLIC_LANGFUSE_URL}/project/{NEXT_PUBLIC_LANGFUSE_PROJECT_ID}/traces/{trace_id}`.
+Locally the project is `sofia-local`. In the cloud the real id must be baked in (`LANGFUSE_PROJECT_ID` in `.env`; `deploy.sh` passes it to the build). Without `NEXT_PUBLIC_LANGFUSE_URL` the link is not shown.
 
-> Next 16 trae cambios que rompen compatibilidad: ver `AGENTS.md` antes de escribir código.
+Checks: `npx tsc --noEmit && npx eslint . && npx next build`.
+
+> Next 16 has breaking changes: read `AGENTS.md` before writing code.
