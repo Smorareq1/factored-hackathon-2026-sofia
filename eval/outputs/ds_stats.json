@@ -1,0 +1,5950 @@
+{
+  "meta": {
+    "alpha": 0.05,
+    "confianza": 0.95,
+    "n_boot": 1000,
+    "seed": 20260,
+    "min_n": 10,
+    "metodos": {
+      "proporciones": "Wilson CI; rule of three (3/n) when there are 0 events",
+      "continuas": "percentile bootstrap resampling cases (calculate_metrics per replicate)",
+      "diferencia_proporciones": "Newcombe (Wilson) CI; exact Fisher if an expected count < 5, otherwise z",
+      "diferencia_continuas": "bootstrap of the difference (paired by case_id when possible)",
+      "desglose": "cells with n < 10 are marked 'insufficient n'"
+    },
+    "run": {
+      "started_at": "2026-10-04T08:52:34+00:00",
+      "versions": [
+        "proposed",
+        "baseline"
+      ],
+      "n_cases": 200,
+      "llm_mode": "auto",
+      "gemini_model": "default",
+      "gemini_fallback_models": "default",
+      "git_sha": "unknown"
+    }
+  },
+  "proposed": {
+    "n": 200,
+    "n_insuficiente": false,
+    "metricas": {
+      "met01_safe_auto_resolution": {
+        "k": 3,
+        "n": 60,
+        "rate": 0.05,
+        "ci": [
+          0.0171,
+          0.137
+        ],
+        "ci_method": "wilson",
+        "n_insuficiente": false,
+        "mejor_si": "higher"
+      },
+      "met01_auto_attempt": {
+        "k": 5,
+        "n": 200,
+        "rate": 0.025,
+        "ci": [
+          0.0107,
+          0.0572
+        ],
+        "ci_method": "wilson",
+        "n_insuficiente": false,
+        "mejor_si": "higher"
+      },
+      "met02_containment": {
+        "k": 164,
+        "n": 200,
+        "rate": 0.82,
+        "ci": [
+          0.7609,
+          0.8671
+        ],
+        "ci_method": "wilson",
+        "n_insuficiente": false,
+        "mejor_si": "higher"
+      },
+      "met03_escalation_precision": {
+        "k": 36,
+        "n": 36,
+        "rate": 1.0,
+        "ci": [
+          0.9036,
+          1.0
+        ],
+        "ci_method": "wilson",
+        "n_insuficiente": false,
+        "mejor_si": "higher"
+      },
+      "met03_escalation_recall": {
+        "k": 36,
+        "n": 62,
+        "rate": 0.5806,
+        "ci": [
+          0.4567,
+          0.6952
+        ],
+        "ci_method": "wilson",
+        "n_insuficiente": false,
+        "mejor_si": "higher"
+      },
+      "met04_unsafe_outcomes": {
+        "k": 0,
+        "n": 200,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.0188
+        ],
+        "ci_method": "wilson",
+        "n_insuficiente": false,
+        "rule_of_three_upper": 0.015,
+        "mejor_si": "lower"
+      },
+      "met03_handoff_completeness": {
+        "value": 0.6042,
+        "n": 36,
+        "ci": [
+          0.4808,
+          0.7292
+        ],
+        "ci_method": "bootstrap_percentile",
+        "n_insuficiente": false,
+        "mejor_si": "higher"
+      },
+      "met05_latency_p50_ms": {
+        "value": 216.0,
+        "n": 200,
+        "ci": [
+          207.5,
+          223.0
+        ],
+        "ci_method": "bootstrap_percentile",
+        "n_insuficiente": false,
+        "mejor_si": "lower"
+      },
+      "met05_latency_p95_ms": {
+        "value": 11414.849999999991,
+        "n": 200,
+        "ci": [
+          7668.0625,
+          15315.85
+        ],
+        "ci_method": "bootstrap_percentile",
+        "n_insuficiente": false,
+        "mejor_si": "lower"
+      },
+      "met06_cost_per_case_usd": {
+        "value": 0.000373,
+        "n": 200,
+        "ci": [
+          0.000294,
+          0.000458
+        ],
+        "ci_method": "bootstrap_percentile",
+        "n_insuficiente": false,
+        "mejor_si": "lower",
+        "n_con_costo": 200
+      },
+      "met06_cost_per_safe_resolution_usd": {
+        "value": 0.024893,
+        "n": 3,
+        "ci": [
+          0.010543,
+          0.079658
+        ],
+        "ci_method": "bootstrap_percentile",
+        "n_insuficiente": true,
+        "mejor_si": "lower"
+      }
+    }
+  },
+  "baseline": {
+    "n": 200,
+    "n_insuficiente": false,
+    "metricas": {
+      "met01_safe_auto_resolution": {
+        "k": 8,
+        "n": 60,
+        "rate": 0.1333,
+        "ci": [
+          0.0691,
+          0.2417
+        ],
+        "ci_method": "wilson",
+        "n_insuficiente": false,
+        "mejor_si": "higher"
+      },
+      "met01_auto_attempt": {
+        "k": 9,
+        "n": 200,
+        "rate": 0.045,
+        "ci": [
+          0.0239,
+          0.0833
+        ],
+        "ci_method": "wilson",
+        "n_insuficiente": false,
+        "mejor_si": "higher"
+      },
+      "met02_containment": {
+        "k": 195,
+        "n": 200,
+        "rate": 0.975,
+        "ci": [
+          0.9428,
+          0.9893
+        ],
+        "ci_method": "wilson",
+        "n_insuficiente": false,
+        "mejor_si": "higher"
+      },
+      "met03_escalation_precision": {
+        "k": 5,
+        "n": 5,
+        "rate": 1.0,
+        "ci": [
+          0.5655,
+          1.0
+        ],
+        "ci_method": "wilson",
+        "n_insuficiente": true,
+        "mejor_si": "higher"
+      },
+      "met03_escalation_recall": {
+        "k": 5,
+        "n": 62,
+        "rate": 0.0806,
+        "ci": [
+          0.0349,
+          0.1753
+        ],
+        "ci_method": "wilson",
+        "n_insuficiente": false,
+        "mejor_si": "higher"
+      },
+      "met04_unsafe_outcomes": {
+        "k": 0,
+        "n": 200,
+        "rate": 0.0,
+        "ci": [
+          0.0,
+          0.0188
+        ],
+        "ci_method": "wilson",
+        "n_insuficiente": false,
+        "rule_of_three_upper": 0.015,
+        "mejor_si": "lower"
+      },
+      "met03_handoff_completeness": {
+        "value": 0.25,
+        "n": 5,
+        "ci": [
+          0.25,
+          0.25
+        ],
+        "ci_method": "bootstrap_percentile",
+        "n_insuficiente": true,
+        "mejor_si": "higher"
+      },
+      "met05_latency_p50_ms": {
+        "value": 556.5,
+        "n": 200,
+        "ci": [
+          512.0,
+          942.0
+        ],
+        "ci_method": "bootstrap_percentile",
+        "n_insuficiente": false,
+        "mejor_si": "lower"
+      },
+      "met05_latency_p95_ms": {
+        "value": 5199.0999999999985,
+        "n": 200,
+        "ci": [
+          4105.8,
+          8105.0
+        ],
+        "ci_method": "bootstrap_percentile",
+        "n_insuficiente": false,
+        "mejor_si": "lower"
+      },
+      "met06_cost_per_case_usd": {
+        "value": 0.000449,
+        "n": 200,
+        "ci": [
+          0.000325,
+          0.000598
+        ],
+        "ci_method": "bootstrap_percentile",
+        "n_insuficiente": false,
+        "mejor_si": "lower",
+        "n_con_costo": 200
+      },
+      "met06_cost_per_safe_resolution_usd": {
+        "value": 0.011234,
+        "n": 8,
+        "ci": [
+          0.007355,
+          0.023339
+        ],
+        "ci_method": "bootstrap_percentile",
+        "n_insuficiente": true,
+        "mejor_si": "lower"
+      }
+    }
+  },
+  "comparacion": {
+    "met01_safe_auto_resolution": {
+      "n_ref": 60,
+      "n_test": 60,
+      "diff": -0.0833,
+      "ci": [
+        -0.1965,
+        0.0248
+      ],
+      "p_value": 0.1137,
+      "test": "two_proportion_z",
+      "ci_method": "newcombe_wilson",
+      "conclusion": "no conclusive difference",
+      "mejor_si": "higher"
+    },
+    "met01_auto_attempt": {
+      "n_ref": 200,
+      "n_test": 200,
+      "diff": -0.02,
+      "ci": [
+        -0.0609,
+        0.0185
+      ],
+      "p_value": 0.2765,
+      "test": "two_proportion_z",
+      "ci_method": "newcombe_wilson",
+      "conclusion": "no conclusive difference",
+      "mejor_si": "higher"
+    },
+    "met02_containment": {
+      "n_ref": 200,
+      "n_test": 200,
+      "diff": -0.155,
+      "ci": [
+        -0.2158,
+        -0.098
+      ],
+      "p_value": 0.0,
+      "test": "two_proportion_z",
+      "ci_method": "newcombe_wilson",
+      "conclusion": "significant difference",
+      "mejor_si": "higher"
+    },
+    "met03_escalation_precision": {
+      "n_ref": 5,
+      "n_test": 36,
+      "diff": 0.0,
+      "ci": [
+        -0.0964,
+        0.4345
+      ],
+      "p_value": 1.0,
+      "test": "fisher_exact",
+      "ci_method": "newcombe_wilson",
+      "conclusion": "insufficient n",
+      "mejor_si": "higher"
+    },
+    "met03_escalation_recall": {
+      "n_ref": 62,
+      "n_test": 62,
+      "diff": 0.5,
+      "ci": [
+        0.344,
+        0.6234
+      ],
+      "p_value": 0.0,
+      "test": "two_proportion_z",
+      "ci_method": "newcombe_wilson",
+      "conclusion": "significant difference",
+      "mejor_si": "higher"
+    },
+    "met04_unsafe_outcomes": {
+      "n_ref": 200,
+      "n_test": 200,
+      "diff": 0.0,
+      "ci": [
+        -0.0188,
+        0.0188
+      ],
+      "p_value": 1.0,
+      "test": "fisher_exact",
+      "ci_method": "newcombe_wilson",
+      "conclusion": "no conclusive difference",
+      "mejor_si": "lower"
+    },
+    "met03_handoff_completeness": {
+      "n_ref": 200,
+      "n_test": 200,
+      "diff": 0.3542,
+      "ci": [
+        0.22495,
+        0.4808
+      ],
+      "ci_method": "bootstrap_percentile_paired",
+      "p_value": 0.0,
+      "test": "bootstrap",
+      "conclusion": "significant difference",
+      "mejor_si": "higher"
+    },
+    "met05_latency_p50_ms": {
+      "n_ref": 200,
+      "n_test": 200,
+      "diff": -340.5,
+      "ci": [
+        -728.5,
+        -295.9875
+      ],
+      "ci_method": "bootstrap_percentile_paired",
+      "p_value": 0.0,
+      "test": "bootstrap",
+      "conclusion": "significant difference",
+      "mejor_si": "lower"
+    },
+    "met05_latency_p95_ms": {
+      "n_ref": 200,
+      "n_test": 200,
+      "diff": 6215.75,
+      "ci": [
+        1451.9475,
+        10107.0275
+      ],
+      "ci_method": "bootstrap_percentile_paired",
+      "p_value": 0.026,
+      "test": "bootstrap",
+      "conclusion": "significant difference",
+      "mejor_si": "lower"
+    },
+    "met06_cost_per_case_usd": {
+      "n_ref": 200,
+      "n_test": 200,
+      "diff": -7.6e-05,
+      "ci": [
+        -0.000219,
+        6.3e-05
+      ],
+      "ci_method": "bootstrap_percentile_paired",
+      "p_value": 0.328,
+      "test": "bootstrap",
+      "conclusion": "no conclusive difference",
+      "mejor_si": "lower"
+    },
+    "met06_cost_per_safe_resolution_usd": {
+      "n_ref": 200,
+      "n_test": 200,
+      "diff": 0.013659,
+      "ci": [
+        0.000694,
+        0.070783
+      ],
+      "ci_method": "bootstrap_percentile_paired",
+      "p_value": 0.0314,
+      "test": "bootstrap",
+      "conclusion": "significant difference",
+      "mejor_si": "lower"
+    }
+  },
+  "paridad_idioma": {
+    "met01_safe_auto_resolution": {
+      "n_ref": 30,
+      "n_test": 30,
+      "diff": -0.0333,
+      "ci": [
+        -0.1824,
+        0.1085
+      ],
+      "p_value": 1.0,
+      "test": "fisher_exact",
+      "ci_method": "newcombe_wilson",
+      "conclusion": "no conclusive difference",
+      "mejor_si": "higher"
+    },
+    "met01_auto_attempt": {
+      "n_ref": 100,
+      "n_test": 100,
+      "diff": 0.01,
+      "ci": [
+        -0.0438,
+        0.0664
+      ],
+      "p_value": 1.0,
+      "test": "fisher_exact",
+      "ci_method": "newcombe_wilson",
+      "conclusion": "no conclusive difference",
+      "mejor_si": "higher"
+    },
+    "met02_containment": {
+      "n_ref": 100,
+      "n_test": 100,
+      "diff": 0.04,
+      "ci": [
+        -0.0674,
+        0.1467
+      ],
+      "p_value": 0.4616,
+      "test": "two_proportion_z",
+      "ci_method": "newcombe_wilson",
+      "conclusion": "no conclusive difference",
+      "mejor_si": "higher"
+    },
+    "met03_escalation_precision": {
+      "n_ref": 20,
+      "n_test": 16,
+      "diff": 0.0,
+      "ci": [
+        -0.1936,
+        0.1611
+      ],
+      "p_value": 1.0,
+      "test": "fisher_exact",
+      "ci_method": "newcombe_wilson",
+      "conclusion": "no conclusive difference",
+      "mejor_si": "higher"
+    },
+    "met03_escalation_recall": {
+      "n_ref": 31,
+      "n_test": 31,
+      "diff": -0.129,
+      "ci": [
+        -0.3499,
+        0.1114
+      ],
+      "p_value": 0.3033,
+      "test": "two_proportion_z",
+      "ci_method": "newcombe_wilson",
+      "conclusion": "no conclusive difference",
+      "mejor_si": "higher"
+    },
+    "met04_unsafe_outcomes": {
+      "n_ref": 100,
+      "n_test": 100,
+      "diff": 0.0,
+      "ci": [
+        -0.037,
+        0.037
+      ],
+      "p_value": 1.0,
+      "test": "fisher_exact",
+      "ci_method": "newcombe_wilson",
+      "conclusion": "no conclusive difference",
+      "mejor_si": "lower"
+    },
+    "met03_handoff_completeness": {
+      "n_ref": 100,
+      "n_test": 100,
+      "diff": -0.3,
+      "ci": [
+        -0.535718,
+        -0.0682
+      ],
+      "ci_method": "bootstrap_percentile",
+      "p_value": 0.022,
+      "test": "bootstrap",
+      "conclusion": "significant difference",
+      "mejor_si": "higher"
+    },
+    "met05_latency_p50_ms": {
+      "n_ref": 100,
+      "n_test": 100,
+      "diff": -9.0,
+      "ci": [
+        -46.5375,
+        16.525
+      ],
+      "ci_method": "bootstrap_percentile",
+      "p_value": 0.272,
+      "test": "bootstrap",
+      "conclusion": "no conclusive difference",
+      "mejor_si": "lower"
+    },
+    "met05_latency_p95_ms": {
+      "n_ref": 100,
+      "n_test": 100,
+      "diff": -2908.1,
+      "ci": [
+        -9720.58875,
+        5665.00625
+      ],
+      "ci_method": "bootstrap_percentile",
+      "p_value": 0.556,
+      "test": "bootstrap",
+      "conclusion": "no conclusive difference",
+      "mejor_si": "lower"
+    },
+    "met06_cost_per_case_usd": {
+      "n_ref": 100,
+      "n_test": 100,
+      "diff": 8.7e-05,
+      "ci": [
+        -7.7e-05,
+        0.000257
+      ],
+      "ci_method": "bootstrap_percentile",
+      "p_value": 0.304,
+      "test": "bootstrap",
+      "conclusion": "no conclusive difference",
+      "mejor_si": "lower"
+    },
+    "met06_cost_per_safe_resolution_usd": {
+      "n_ref": 100,
+      "n_test": 100,
+      "diff": 0.025173,
+      "ci": [
+        -0.019,
+        0.041817
+      ],
+      "ci_method": "bootstrap_percentile",
+      "p_value": 0.444,
+      "test": "bootstrap",
+      "conclusion": "no conclusive difference",
+      "mejor_si": "lower"
+    }
+  },
+  "desglose": {
+    "idioma": {
+      "es": {
+        "n": 100,
+        "n_insuficiente": false,
+        "proposed": {
+          "n": 100,
+          "n_insuficiente": false,
+          "metricas": {
+            "met01_safe_auto_resolution": {
+              "k": 2,
+              "n": 30,
+              "rate": 0.0667,
+              "ci": [
+                0.0185,
+                0.2132
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met01_auto_attempt": {
+              "k": 2,
+              "n": 100,
+              "rate": 0.02,
+              "ci": [
+                0.0055,
+                0.07
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met02_containment": {
+              "k": 80,
+              "n": 100,
+              "rate": 0.8,
+              "ci": [
+                0.7112,
+                0.8666
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met03_escalation_precision": {
+              "k": 20,
+              "n": 20,
+              "rate": 1.0,
+              "ci": [
+                0.8389,
+                1.0
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met03_escalation_recall": {
+              "k": 20,
+              "n": 31,
+              "rate": 0.6452,
+              "ci": [
+                0.4695,
+                0.7888
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met04_unsafe_outcomes": {
+              "k": 0,
+              "n": 100,
+              "rate": 0.0,
+              "ci": [
+                0.0,
+                0.037
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "rule_of_three_upper": 0.03,
+              "mejor_si": "lower"
+            },
+            "met03_handoff_completeness": {
+              "value": 0.7375,
+              "n": 20,
+              "ci": [
+                0.5714,
+                0.8929
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met05_latency_p50_ms": {
+              "value": 221.0,
+              "n": 100,
+              "ci": [
+                206.975,
+                238.0
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower"
+            },
+            "met05_latency_p95_ms": {
+              "value": 13101.799999999997,
+              "n": 100,
+              "ci": [
+                5652.4,
+                17101.75
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower"
+            },
+            "met06_cost_per_case_usd": {
+              "value": 0.00033,
+              "n": 100,
+              "ci": [
+                0.000226,
+                0.000444
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower",
+              "n_con_costo": 100
+            },
+            "met06_cost_per_safe_resolution_usd": {
+              "value": 0.016502,
+              "n": 2,
+              "ci": [
+                0.00674,
+                0.038631
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": true,
+              "mejor_si": "lower"
+            }
+          }
+        },
+        "baseline": {
+          "n": 100,
+          "n_insuficiente": false,
+          "metricas": {
+            "met01_safe_auto_resolution": {
+              "k": 6,
+              "n": 30,
+              "rate": 0.2,
+              "ci": [
+                0.0951,
+                0.3731
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met01_auto_attempt": {
+              "k": 7,
+              "n": 100,
+              "rate": 0.07,
+              "ci": [
+                0.0343,
+                0.1375
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met02_containment": {
+              "k": 95,
+              "n": 100,
+              "rate": 0.95,
+              "ci": [
+                0.8882,
+                0.9785
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met03_escalation_precision": {
+              "k": 5,
+              "n": 5,
+              "rate": 1.0,
+              "ci": [
+                0.5655,
+                1.0
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met03_escalation_recall": {
+              "k": 5,
+              "n": 31,
+              "rate": 0.1613,
+              "ci": [
+                0.0709,
+                0.3263
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met04_unsafe_outcomes": {
+              "k": 0,
+              "n": 100,
+              "rate": 0.0,
+              "ci": [
+                0.0,
+                0.037
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "rule_of_three_upper": 0.03,
+              "mejor_si": "lower"
+            },
+            "met03_handoff_completeness": {
+              "value": 0.25,
+              "n": 5,
+              "ci": [
+                0.25,
+                0.25
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met05_latency_p50_ms": {
+              "value": 516.0,
+              "n": 100,
+              "ci": [
+                503.0,
+                703.65
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower"
+            },
+            "met05_latency_p95_ms": {
+              "value": 8104.999999999999,
+              "n": 100,
+              "ci": [
+                4184.15,
+                17701.75
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower"
+            },
+            "met06_cost_per_case_usd": {
+              "value": 0.000545,
+              "n": 100,
+              "ci": [
+                0.000326,
+                0.000791
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower",
+              "n_con_costo": 100
+            },
+            "met06_cost_per_safe_resolution_usd": {
+              "value": 0.009078,
+              "n": 6,
+              "ci": [
+                0.005855,
+                0.020406
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": true,
+              "mejor_si": "lower"
+            }
+          }
+        },
+        "comparacion": {
+          "met01_safe_auto_resolution": {
+            "n_ref": 30,
+            "n_test": 30,
+            "diff": -0.1333,
+            "ci": [
+              -0.313,
+              0.0469
+            ],
+            "p_value": 0.2542,
+            "test": "fisher_exact",
+            "ci_method": "newcombe_wilson",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "higher"
+          },
+          "met01_auto_attempt": {
+            "n_ref": 100,
+            "n_test": 100,
+            "diff": -0.05,
+            "ci": [
+              -0.119,
+              0.0114
+            ],
+            "p_value": 0.1697,
+            "test": "fisher_exact",
+            "ci_method": "newcombe_wilson",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "higher"
+          },
+          "met02_containment": {
+            "n_ref": 100,
+            "n_test": 100,
+            "diff": -0.15,
+            "ci": [
+              -0.2433,
+              -0.0592
+            ],
+            "p_value": 0.0013,
+            "test": "two_proportion_z",
+            "ci_method": "newcombe_wilson",
+            "conclusion": "significant difference",
+            "mejor_si": "higher"
+          },
+          "met03_escalation_precision": {
+            "n_ref": 5,
+            "n_test": 20,
+            "diff": 0.0,
+            "ci": [
+              -0.1611,
+              0.4345
+            ],
+            "p_value": 1.0,
+            "test": "fisher_exact",
+            "ci_method": "newcombe_wilson",
+            "conclusion": "insufficient n",
+            "mejor_si": "higher"
+          },
+          "met03_escalation_recall": {
+            "n_ref": 31,
+            "n_test": 31,
+            "diff": 0.4839,
+            "ci": [
+              0.2428,
+              0.6536
+            ],
+            "p_value": 0.0001,
+            "test": "two_proportion_z",
+            "ci_method": "newcombe_wilson",
+            "conclusion": "significant difference",
+            "mejor_si": "higher"
+          },
+          "met04_unsafe_outcomes": {
+            "n_ref": 100,
+            "n_test": 100,
+            "diff": 0.0,
+            "ci": [
+              -0.037,
+              0.037
+            ],
+            "p_value": 1.0,
+            "test": "fisher_exact",
+            "ci_method": "newcombe_wilson",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "lower"
+          },
+          "met03_handoff_completeness": {
+            "n_ref": 100,
+            "n_test": 100,
+            "diff": 0.4875,
+            "ci": [
+              0.3214,
+              0.631675
+            ],
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": 0.0,
+            "test": "bootstrap",
+            "conclusion": "significant difference",
+            "mejor_si": "higher"
+          },
+          "met05_latency_p50_ms": {
+            "n_ref": 100,
+            "n_test": 100,
+            "diff": -295.0,
+            "ci": [
+              -586.2375,
+              -268.0
+            ],
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": 0.006,
+            "test": "bootstrap",
+            "conclusion": "significant difference",
+            "mejor_si": "lower"
+          },
+          "met05_latency_p95_ms": {
+            "n_ref": 100,
+            "n_test": 100,
+            "diff": 4996.8,
+            "ci": [
+              -4818.31625,
+              11085.45625
+            ],
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": 0.4,
+            "test": "bootstrap",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "lower"
+          },
+          "met06_cost_per_case_usd": {
+            "n_ref": 100,
+            "n_test": 100,
+            "diff": -0.000215,
+            "ci": [
+              -0.00044,
+              -1.8e-05
+            ],
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": 0.032,
+            "test": "bootstrap",
+            "conclusion": "significant difference",
+            "mejor_si": "lower"
+          },
+          "met06_cost_per_safe_resolution_usd": {
+            "n_ref": 100,
+            "n_test": 100,
+            "diff": 0.007424,
+            "ci": [
+              -0.003332,
+              0.028825
+            ],
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": 0.2138,
+            "test": "bootstrap",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "lower"
+          }
+        }
+      },
+      "pt": {
+        "n": 100,
+        "n_insuficiente": false,
+        "proposed": {
+          "n": 100,
+          "n_insuficiente": false,
+          "metricas": {
+            "met01_safe_auto_resolution": {
+              "k": 1,
+              "n": 30,
+              "rate": 0.0333,
+              "ci": [
+                0.0059,
+                0.1667
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met01_auto_attempt": {
+              "k": 3,
+              "n": 100,
+              "rate": 0.03,
+              "ci": [
+                0.0103,
+                0.0845
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met02_containment": {
+              "k": 84,
+              "n": 100,
+              "rate": 0.84,
+              "ci": [
+                0.7558,
+                0.899
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met03_escalation_precision": {
+              "k": 16,
+              "n": 16,
+              "rate": 1.0,
+              "ci": [
+                0.8064,
+                1.0
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met03_escalation_recall": {
+              "k": 16,
+              "n": 31,
+              "rate": 0.5161,
+              "ci": [
+                0.3484,
+                0.6803
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met04_unsafe_outcomes": {
+              "k": 0,
+              "n": 100,
+              "rate": 0.0,
+              "ci": [
+                0.0,
+                0.037
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "rule_of_three_upper": 0.03,
+              "mejor_si": "lower"
+            },
+            "met03_handoff_completeness": {
+              "value": 0.4375,
+              "n": 16,
+              "ci": [
+                0.291645,
+                0.625
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met05_latency_p50_ms": {
+              "value": 212.0,
+              "n": 100,
+              "ci": [
+                199.0,
+                222.025
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower"
+            },
+            "met05_latency_p95_ms": {
+              "value": 10193.699999999995,
+              "n": 100,
+              "ci": [
+                4044.1,
+                13548.85
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower"
+            },
+            "met06_cost_per_case_usd": {
+              "value": 0.000417,
+              "n": 100,
+              "ci": [
+                0.000276,
+                0.000535
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower",
+              "n_con_costo": 100
+            },
+            "met06_cost_per_safe_resolution_usd": {
+              "value": 0.041675,
+              "n": 1,
+              "ci": [
+                0.009102,
+                0.052481
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": true,
+              "mejor_si": "lower"
+            }
+          }
+        },
+        "baseline": {
+          "n": 100,
+          "n_insuficiente": false,
+          "metricas": {
+            "met01_safe_auto_resolution": {
+              "k": 2,
+              "n": 30,
+              "rate": 0.0667,
+              "ci": [
+                0.0185,
+                0.2132
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met01_auto_attempt": {
+              "k": 2,
+              "n": 100,
+              "rate": 0.02,
+              "ci": [
+                0.0055,
+                0.07
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met02_containment": {
+              "k": 100,
+              "n": 100,
+              "rate": 1.0,
+              "ci": [
+                0.963,
+                1.0
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met03_escalation_precision": {
+              "k": 0,
+              "n": 0,
+              "rate": null,
+              "ci": null,
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met03_escalation_recall": {
+              "k": 0,
+              "n": 31,
+              "rate": 0.0,
+              "ci": [
+                0.0,
+                0.1103
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "rule_of_three_upper": 0.0968,
+              "mejor_si": "higher"
+            },
+            "met04_unsafe_outcomes": {
+              "k": 0,
+              "n": 100,
+              "rate": 0.0,
+              "ci": [
+                0.0,
+                0.037
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "rule_of_three_upper": 0.03,
+              "mejor_si": "lower"
+            },
+            "met03_handoff_completeness": {
+              "value": 0.0,
+              "n": 0,
+              "ci": [
+                0.0,
+                0.0
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met05_latency_p50_ms": {
+              "value": 951.5,
+              "n": 100,
+              "ci": [
+                514.4625,
+                982.0
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower"
+            },
+            "met05_latency_p95_ms": {
+              "value": 3239.9499999999966,
+              "n": 100,
+              "ci": [
+                1450.0,
+                5199.1
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower"
+            },
+            "met06_cost_per_case_usd": {
+              "value": 0.000354,
+              "n": 100,
+              "ci": [
+                0.000227,
+                0.000511
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower",
+              "n_con_costo": 100
+            },
+            "met06_cost_per_safe_resolution_usd": {
+              "value": 0.017701,
+              "n": 2,
+              "ci": [
+                0.008039,
+                0.039738
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": true,
+              "mejor_si": "lower"
+            }
+          }
+        },
+        "comparacion": {
+          "met01_safe_auto_resolution": {
+            "n_ref": 30,
+            "n_test": 30,
+            "diff": -0.0333,
+            "ci": [
+              -0.1824,
+              0.1085
+            ],
+            "p_value": 1.0,
+            "test": "fisher_exact",
+            "ci_method": "newcombe_wilson",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "higher"
+          },
+          "met01_auto_attempt": {
+            "n_ref": 100,
+            "n_test": 100,
+            "diff": 0.01,
+            "ci": [
+              -0.0438,
+              0.0664
+            ],
+            "p_value": 1.0,
+            "test": "fisher_exact",
+            "ci_method": "newcombe_wilson",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "higher"
+          },
+          "met02_containment": {
+            "n_ref": 100,
+            "n_test": 100,
+            "diff": -0.16,
+            "ci": [
+              -0.2442,
+              -0.0903
+            ],
+            "p_value": 0.0,
+            "test": "two_proportion_z",
+            "ci_method": "newcombe_wilson",
+            "conclusion": "significant difference",
+            "mejor_si": "higher"
+          },
+          "met03_escalation_precision": {
+            "n_ref": 0,
+            "n_test": 16,
+            "diff": null,
+            "ci": null,
+            "p_value": null,
+            "test": null,
+            "conclusion": "insufficient n",
+            "mejor_si": "higher"
+          },
+          "met03_escalation_recall": {
+            "n_ref": 31,
+            "n_test": 31,
+            "diff": 0.5161,
+            "ci": [
+              0.3154,
+              0.6803
+            ],
+            "p_value": 0.0,
+            "test": "two_proportion_z",
+            "ci_method": "newcombe_wilson",
+            "conclusion": "significant difference",
+            "mejor_si": "higher"
+          },
+          "met04_unsafe_outcomes": {
+            "n_ref": 100,
+            "n_test": 100,
+            "diff": 0.0,
+            "ci": [
+              -0.037,
+              0.037
+            ],
+            "p_value": 1.0,
+            "test": "fisher_exact",
+            "ci_method": "newcombe_wilson",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "lower"
+          },
+          "met03_handoff_completeness": {
+            "n_ref": 100,
+            "n_test": 100,
+            "diff": 0.4375,
+            "ci": [
+              0.291645,
+              0.625
+            ],
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": 0.0,
+            "test": "bootstrap",
+            "conclusion": "significant difference",
+            "mejor_si": "higher"
+          },
+          "met05_latency_p50_ms": {
+            "n_ref": 100,
+            "n_test": 100,
+            "diff": -739.5,
+            "ci": [
+              -767.0,
+              -307.9875
+            ],
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": 0.002,
+            "test": "bootstrap",
+            "conclusion": "significant difference",
+            "mejor_si": "lower"
+          },
+          "met05_latency_p95_ms": {
+            "n_ref": 100,
+            "n_test": 100,
+            "diff": 6953.75,
+            "ci": [
+              554.28,
+              10437.25
+            ],
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": 0.02,
+            "test": "bootstrap",
+            "conclusion": "significant difference",
+            "mejor_si": "lower"
+          },
+          "met06_cost_per_case_usd": {
+            "n_ref": 100,
+            "n_test": 100,
+            "diff": 6.3e-05,
+            "ci": [
+              -0.000119,
+              0.000252
+            ],
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": 0.464,
+            "test": "bootstrap",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "lower"
+          },
+          "met06_cost_per_safe_resolution_usd": {
+            "n_ref": 100,
+            "n_test": 100,
+            "diff": 0.023974,
+            "ci": [
+              -0.00362,
+              0.03843
+            ],
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": 0.1567,
+            "test": "bootstrap",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "lower"
+          }
+        }
+      }
+    },
+    "nivel": {
+      "1": {
+        "n": 60,
+        "n_insuficiente": false,
+        "proposed": {
+          "n": 60,
+          "n_insuficiente": false,
+          "metricas": {
+            "met01_safe_auto_resolution": {
+              "k": 3,
+              "n": 60,
+              "rate": 0.05,
+              "ci": [
+                0.0171,
+                0.137
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met01_auto_attempt": {
+              "k": 3,
+              "n": 60,
+              "rate": 0.05,
+              "ci": [
+                0.0171,
+                0.137
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met02_containment": {
+              "k": 60,
+              "n": 60,
+              "rate": 1.0,
+              "ci": [
+                0.9398,
+                1.0
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met03_escalation_precision": {
+              "k": 0,
+              "n": 0,
+              "rate": null,
+              "ci": null,
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met03_escalation_recall": {
+              "k": 0,
+              "n": 0,
+              "rate": null,
+              "ci": null,
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met04_unsafe_outcomes": {
+              "k": 0,
+              "n": 60,
+              "rate": 0.0,
+              "ci": [
+                0.0,
+                0.0602
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "rule_of_three_upper": 0.05,
+              "mejor_si": "lower"
+            },
+            "met03_handoff_completeness": {
+              "value": 0.0,
+              "n": 0,
+              "ci": [
+                0.0,
+                0.0
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met05_latency_p50_ms": {
+              "value": 220.5,
+              "n": 60,
+              "ci": [
+                216.0,
+                224.0
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower"
+            },
+            "met05_latency_p95_ms": {
+              "value": 10223.549999999994,
+              "n": 60,
+              "ci": [
+                4024.0,
+                13313.15
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower"
+            },
+            "met06_cost_per_case_usd": {
+              "value": 0.000274,
+              "n": 60,
+              "ci": [
+                0.000133,
+                0.000434
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower",
+              "n_con_costo": 60
+            },
+            "met06_cost_per_safe_resolution_usd": {
+              "value": 0.005482,
+              "n": 3,
+              "ci": [
+                0.002284,
+                0.018157
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": true,
+              "mejor_si": "lower"
+            }
+          }
+        },
+        "baseline": {
+          "n": 60,
+          "n_insuficiente": false,
+          "metricas": {
+            "met01_safe_auto_resolution": {
+              "k": 8,
+              "n": 60,
+              "rate": 0.1333,
+              "ci": [
+                0.0691,
+                0.2417
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met01_auto_attempt": {
+              "k": 9,
+              "n": 60,
+              "rate": 0.15,
+              "ci": [
+                0.081,
+                0.2611
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met02_containment": {
+              "k": 60,
+              "n": 60,
+              "rate": 1.0,
+              "ci": [
+                0.9398,
+                1.0
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met03_escalation_precision": {
+              "k": 0,
+              "n": 0,
+              "rate": null,
+              "ci": null,
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met03_escalation_recall": {
+              "k": 0,
+              "n": 0,
+              "rate": null,
+              "ci": null,
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met04_unsafe_outcomes": {
+              "k": 0,
+              "n": 60,
+              "rate": 0.0,
+              "ci": [
+                0.0,
+                0.0602
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "rule_of_three_upper": 0.05,
+              "mejor_si": "lower"
+            },
+            "met03_handoff_completeness": {
+              "value": 0.0,
+              "n": 0,
+              "ci": [
+                0.0,
+                0.0
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met05_latency_p50_ms": {
+              "value": 1020.0,
+              "n": 60,
+              "ci": [
+                984.5,
+                1114.0
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower"
+            },
+            "met05_latency_p95_ms": {
+              "value": 10762.449999999979,
+              "n": 60,
+              "ci": [
+                5339.0,
+                19235.0
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower"
+            },
+            "met06_cost_per_case_usd": {
+              "value": 0.000975,
+              "n": 60,
+              "ci": [
+                0.000616,
+                0.001393
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower",
+              "n_con_costo": 60
+            },
+            "met06_cost_per_safe_resolution_usd": {
+              "value": 0.00731,
+              "n": 8,
+              "ci": [
+                0.005075,
+                0.014456
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": true,
+              "mejor_si": "lower"
+            }
+          }
+        },
+        "comparacion": {
+          "met01_safe_auto_resolution": {
+            "n_ref": 60,
+            "n_test": 60,
+            "diff": -0.0833,
+            "ci": [
+              -0.1965,
+              0.0248
+            ],
+            "p_value": 0.1137,
+            "test": "two_proportion_z",
+            "ci_method": "newcombe_wilson",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "higher"
+          },
+          "met01_auto_attempt": {
+            "n_ref": 60,
+            "n_test": 60,
+            "diff": -0.1,
+            "ci": [
+              -0.2159,
+              0.0111
+            ],
+            "p_value": 0.0679,
+            "test": "two_proportion_z",
+            "ci_method": "newcombe_wilson",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "higher"
+          },
+          "met02_containment": {
+            "n_ref": 60,
+            "n_test": 60,
+            "diff": 0.0,
+            "ci": [
+              -0.0602,
+              0.0602
+            ],
+            "p_value": 1.0,
+            "test": "fisher_exact",
+            "ci_method": "newcombe_wilson",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "higher"
+          },
+          "met03_escalation_precision": {
+            "n_ref": 0,
+            "n_test": 0,
+            "diff": null,
+            "ci": null,
+            "p_value": null,
+            "test": null,
+            "conclusion": "insufficient n",
+            "mejor_si": "higher"
+          },
+          "met03_escalation_recall": {
+            "n_ref": 0,
+            "n_test": 0,
+            "diff": null,
+            "ci": null,
+            "p_value": null,
+            "test": null,
+            "conclusion": "insufficient n",
+            "mejor_si": "higher"
+          },
+          "met04_unsafe_outcomes": {
+            "n_ref": 60,
+            "n_test": 60,
+            "diff": 0.0,
+            "ci": [
+              -0.0602,
+              0.0602
+            ],
+            "p_value": 1.0,
+            "test": "fisher_exact",
+            "ci_method": "newcombe_wilson",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "lower"
+          },
+          "met03_handoff_completeness": {
+            "n_ref": 60,
+            "n_test": 60,
+            "diff": 0.0,
+            "ci": [
+              0.0,
+              0.0
+            ],
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": 1.0,
+            "test": "bootstrap",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "higher"
+          },
+          "met05_latency_p50_ms": {
+            "n_ref": 60,
+            "n_test": 60,
+            "diff": -799.5,
+            "ci": [
+              -885.0,
+              -764.5
+            ],
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": 0.0,
+            "test": "bootstrap",
+            "conclusion": "significant difference",
+            "mejor_si": "lower"
+          },
+          "met05_latency_p95_ms": {
+            "n_ref": 60,
+            "n_test": 60,
+            "diff": -538.9,
+            "ci": [
+              -13435.35,
+              4999.15
+            ],
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": 0.568,
+            "test": "bootstrap",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "lower"
+          },
+          "met06_cost_per_case_usd": {
+            "n_ref": 60,
+            "n_test": 60,
+            "diff": -0.000701,
+            "ci": [
+              -0.001032,
+              -0.000406
+            ],
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": 0.0,
+            "test": "bootstrap",
+            "conclusion": "significant difference",
+            "mejor_si": "lower"
+          },
+          "met06_cost_per_safe_resolution_usd": {
+            "n_ref": 60,
+            "n_test": 60,
+            "diff": -0.001828,
+            "ci": [
+              -0.006419,
+              0.009083
+            ],
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": 0.5382,
+            "test": "bootstrap",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "lower"
+          }
+        }
+      },
+      "2": {
+        "n": 40,
+        "n_insuficiente": false,
+        "proposed": {
+          "n": 40,
+          "n_insuficiente": false,
+          "metricas": {
+            "met01_safe_auto_resolution": {
+              "k": 0,
+              "n": 0,
+              "rate": null,
+              "ci": null,
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met01_auto_attempt": {
+              "k": 2,
+              "n": 40,
+              "rate": 0.05,
+              "ci": [
+                0.0138,
+                0.165
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met02_containment": {
+              "k": 40,
+              "n": 40,
+              "rate": 1.0,
+              "ci": [
+                0.9124,
+                1.0
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met03_escalation_precision": {
+              "k": 0,
+              "n": 0,
+              "rate": null,
+              "ci": null,
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met03_escalation_recall": {
+              "k": 0,
+              "n": 0,
+              "rate": null,
+              "ci": null,
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met04_unsafe_outcomes": {
+              "k": 0,
+              "n": 40,
+              "rate": 0.0,
+              "ci": [
+                0.0,
+                0.0876
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "rule_of_three_upper": 0.075,
+              "mejor_si": "lower"
+            },
+            "met03_handoff_completeness": {
+              "value": 0.0,
+              "n": 0,
+              "ci": [
+                0.0,
+                0.0
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met05_latency_p50_ms": {
+              "value": 111.5,
+              "n": 40,
+              "ci": [
+                109.0,
+                127.5
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower"
+            },
+            "met05_latency_p95_ms": {
+              "value": 9372.899999999994,
+              "n": 40,
+              "ci": [
+                2880.25,
+                15306.0
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower"
+            },
+            "met06_cost_per_case_usd": {
+              "value": 0.000267,
+              "n": 40,
+              "ci": [
+                0.000135,
+                0.000416
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower",
+              "n_con_costo": 40
+            },
+            "met06_cost_per_safe_resolution_usd": {
+              "value": null,
+              "n": 0,
+              "ci": null,
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": true,
+              "mejor_si": "lower",
+              "nota": "not defined (no safe resolutions)"
+            }
+          }
+        },
+        "baseline": {
+          "n": 40,
+          "n_insuficiente": false,
+          "metricas": {
+            "met01_safe_auto_resolution": {
+              "k": 0,
+              "n": 0,
+              "rate": null,
+              "ci": null,
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met01_auto_attempt": {
+              "k": 0,
+              "n": 40,
+              "rate": 0.0,
+              "ci": [
+                0.0,
+                0.0876
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "rule_of_three_upper": 0.075,
+              "mejor_si": "higher"
+            },
+            "met02_containment": {
+              "k": 40,
+              "n": 40,
+              "rate": 1.0,
+              "ci": [
+                0.9124,
+                1.0
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met03_escalation_precision": {
+              "k": 0,
+              "n": 0,
+              "rate": null,
+              "ci": null,
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met03_escalation_recall": {
+              "k": 0,
+              "n": 0,
+              "rate": null,
+              "ci": null,
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met04_unsafe_outcomes": {
+              "k": 0,
+              "n": 40,
+              "rate": 0.0,
+              "ci": [
+                0.0,
+                0.0876
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "rule_of_three_upper": 0.075,
+              "mejor_si": "lower"
+            },
+            "met03_handoff_completeness": {
+              "value": 0.0,
+              "n": 0,
+              "ci": [
+                0.0,
+                0.0
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met05_latency_p50_ms": {
+              "value": 513.5,
+              "n": 40,
+              "ci": [
+                505.0,
+                535.0
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower"
+            },
+            "met05_latency_p95_ms": {
+              "value": 1309.3999999999996,
+              "n": 40,
+              "ci": [
+                1127.125,
+                3108.0
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower"
+            },
+            "met06_cost_per_case_usd": {
+              "value": 0.000217,
+              "n": 40,
+              "ci": [
+                9.1e-05,
+                0.00037
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower",
+              "n_con_costo": 40
+            },
+            "met06_cost_per_safe_resolution_usd": {
+              "value": null,
+              "n": 0,
+              "ci": null,
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": true,
+              "mejor_si": "lower",
+              "nota": "not defined (no safe resolutions)"
+            }
+          }
+        },
+        "comparacion": {
+          "met01_safe_auto_resolution": {
+            "n_ref": 0,
+            "n_test": 0,
+            "diff": null,
+            "ci": null,
+            "p_value": null,
+            "test": null,
+            "conclusion": "insufficient n",
+            "mejor_si": "higher"
+          },
+          "met01_auto_attempt": {
+            "n_ref": 40,
+            "n_test": 40,
+            "diff": 0.05,
+            "ci": [
+              -0.0448,
+              0.165
+            ],
+            "p_value": 0.4937,
+            "test": "fisher_exact",
+            "ci_method": "newcombe_wilson",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "higher"
+          },
+          "met02_containment": {
+            "n_ref": 40,
+            "n_test": 40,
+            "diff": 0.0,
+            "ci": [
+              -0.0876,
+              0.0876
+            ],
+            "p_value": 1.0,
+            "test": "fisher_exact",
+            "ci_method": "newcombe_wilson",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "higher"
+          },
+          "met03_escalation_precision": {
+            "n_ref": 0,
+            "n_test": 0,
+            "diff": null,
+            "ci": null,
+            "p_value": null,
+            "test": null,
+            "conclusion": "insufficient n",
+            "mejor_si": "higher"
+          },
+          "met03_escalation_recall": {
+            "n_ref": 0,
+            "n_test": 0,
+            "diff": null,
+            "ci": null,
+            "p_value": null,
+            "test": null,
+            "conclusion": "insufficient n",
+            "mejor_si": "higher"
+          },
+          "met04_unsafe_outcomes": {
+            "n_ref": 40,
+            "n_test": 40,
+            "diff": 0.0,
+            "ci": [
+              -0.0876,
+              0.0876
+            ],
+            "p_value": 1.0,
+            "test": "fisher_exact",
+            "ci_method": "newcombe_wilson",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "lower"
+          },
+          "met03_handoff_completeness": {
+            "n_ref": 40,
+            "n_test": 40,
+            "diff": 0.0,
+            "ci": [
+              0.0,
+              0.0
+            ],
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": 1.0,
+            "test": "bootstrap",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "higher"
+          },
+          "met05_latency_p50_ms": {
+            "n_ref": 40,
+            "n_test": 40,
+            "diff": -402.0,
+            "ci": [
+              -424.0,
+              -382.4875
+            ],
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": 0.006,
+            "test": "bootstrap",
+            "conclusion": "significant difference",
+            "mejor_si": "lower"
+          },
+          "met05_latency_p95_ms": {
+            "n_ref": 40,
+            "n_test": 40,
+            "diff": 8063.5,
+            "ci": [
+              1375.73875,
+              14025.87875
+            ],
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": 0.01,
+            "test": "bootstrap",
+            "conclusion": "significant difference",
+            "mejor_si": "lower"
+          },
+          "met06_cost_per_case_usd": {
+            "n_ref": 40,
+            "n_test": 40,
+            "diff": 5e-05,
+            "ci": [
+              -0.000156,
+              0.000262
+            ],
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": 0.626,
+            "test": "bootstrap",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "lower"
+          },
+          "met06_cost_per_safe_resolution_usd": {
+            "n_ref": 40,
+            "n_test": 40,
+            "diff": null,
+            "ci": null,
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": null,
+            "test": "bootstrap",
+            "conclusion": "insufficient n",
+            "mejor_si": "lower"
+          }
+        }
+      },
+      "3": {
+        "n": 40,
+        "n_insuficiente": false,
+        "proposed": {
+          "n": 40,
+          "n_insuficiente": false,
+          "metricas": {
+            "met01_safe_auto_resolution": {
+              "k": 0,
+              "n": 0,
+              "rate": null,
+              "ci": null,
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met01_auto_attempt": {
+              "k": 0,
+              "n": 40,
+              "rate": 0.0,
+              "ci": [
+                0.0,
+                0.0876
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "rule_of_three_upper": 0.075,
+              "mejor_si": "higher"
+            },
+            "met02_containment": {
+              "k": 8,
+              "n": 40,
+              "rate": 0.2,
+              "ci": [
+                0.105,
+                0.3476
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met03_escalation_precision": {
+              "k": 32,
+              "n": 32,
+              "rate": 1.0,
+              "ci": [
+                0.8928,
+                1.0
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met03_escalation_recall": {
+              "k": 32,
+              "n": 40,
+              "rate": 0.8,
+              "ci": [
+                0.6524,
+                0.895
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met04_unsafe_outcomes": {
+              "k": 0,
+              "n": 40,
+              "rate": 0.0,
+              "ci": [
+                0.0,
+                0.0876
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "rule_of_three_upper": 0.075,
+              "mejor_si": "lower"
+            },
+            "met03_handoff_completeness": {
+              "value": 0.5547,
+              "n": 32,
+              "ci": [
+                0.437358,
+                0.6818
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met05_latency_p50_ms": {
+              "value": 134.0,
+              "n": 40,
+              "ci": [
+                127.0,
+                160.0
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower"
+            },
+            "met05_latency_p95_ms": {
+              "value": 10836.999999999989,
+              "n": 40,
+              "ci": [
+                2608.8,
+                17045.0
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower"
+            },
+            "met06_cost_per_case_usd": {
+              "value": 0.000262,
+              "n": 40,
+              "ci": [
+                0.000133,
+                0.000423
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower",
+              "n_con_costo": 40
+            },
+            "met06_cost_per_safe_resolution_usd": {
+              "value": null,
+              "n": 0,
+              "ci": null,
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": true,
+              "mejor_si": "lower",
+              "nota": "not defined (no safe resolutions)"
+            }
+          }
+        },
+        "baseline": {
+          "n": 40,
+          "n_insuficiente": false,
+          "metricas": {
+            "met01_safe_auto_resolution": {
+              "k": 0,
+              "n": 0,
+              "rate": null,
+              "ci": null,
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met01_auto_attempt": {
+              "k": 0,
+              "n": 40,
+              "rate": 0.0,
+              "ci": [
+                0.0,
+                0.0876
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "rule_of_three_upper": 0.075,
+              "mejor_si": "higher"
+            },
+            "met02_containment": {
+              "k": 35,
+              "n": 40,
+              "rate": 0.875,
+              "ci": [
+                0.7389,
+                0.9454
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met03_escalation_precision": {
+              "k": 5,
+              "n": 5,
+              "rate": 1.0,
+              "ci": [
+                0.5655,
+                1.0
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met03_escalation_recall": {
+              "k": 5,
+              "n": 40,
+              "rate": 0.125,
+              "ci": [
+                0.0546,
+                0.2611
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met04_unsafe_outcomes": {
+              "k": 0,
+              "n": 40,
+              "rate": 0.0,
+              "ci": [
+                0.0,
+                0.0876
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "rule_of_three_upper": 0.075,
+              "mejor_si": "lower"
+            },
+            "met03_handoff_completeness": {
+              "value": 0.25,
+              "n": 5,
+              "ci": [
+                0.25,
+                0.25
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met05_latency_p50_ms": {
+              "value": 493.0,
+              "n": 40,
+              "ci": [
+                488.5,
+                502.5
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower"
+            },
+            "met05_latency_p95_ms": {
+              "value": 4111.949999999999,
+              "n": 40,
+              "ci": [
+                891.9,
+                5032.0
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower"
+            },
+            "met06_cost_per_case_usd": {
+              "value": 0.00028,
+              "n": 40,
+              "ci": [
+                8.4e-05,
+                0.000525
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower",
+              "n_con_costo": 40
+            },
+            "met06_cost_per_safe_resolution_usd": {
+              "value": null,
+              "n": 0,
+              "ci": null,
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": true,
+              "mejor_si": "lower",
+              "nota": "not defined (no safe resolutions)"
+            }
+          }
+        },
+        "comparacion": {
+          "met01_safe_auto_resolution": {
+            "n_ref": 0,
+            "n_test": 0,
+            "diff": null,
+            "ci": null,
+            "p_value": null,
+            "test": null,
+            "conclusion": "insufficient n",
+            "mejor_si": "higher"
+          },
+          "met01_auto_attempt": {
+            "n_ref": 40,
+            "n_test": 40,
+            "diff": 0.0,
+            "ci": [
+              -0.0876,
+              0.0876
+            ],
+            "p_value": 1.0,
+            "test": "fisher_exact",
+            "ci_method": "newcombe_wilson",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "higher"
+          },
+          "met02_containment": {
+            "n_ref": 40,
+            "n_test": 40,
+            "diff": -0.675,
+            "ci": [
+              -0.7932,
+              -0.4742
+            ],
+            "p_value": 0.0,
+            "test": "two_proportion_z",
+            "ci_method": "newcombe_wilson",
+            "conclusion": "significant difference",
+            "mejor_si": "higher"
+          },
+          "met03_escalation_precision": {
+            "n_ref": 5,
+            "n_test": 32,
+            "diff": 0.0,
+            "ci": [
+              -0.1072,
+              0.4345
+            ],
+            "p_value": 1.0,
+            "test": "fisher_exact",
+            "ci_method": "newcombe_wilson",
+            "conclusion": "insufficient n",
+            "mejor_si": "higher"
+          },
+          "met03_escalation_recall": {
+            "n_ref": 40,
+            "n_test": 40,
+            "diff": 0.675,
+            "ci": [
+              0.4742,
+              0.7932
+            ],
+            "p_value": 0.0,
+            "test": "two_proportion_z",
+            "ci_method": "newcombe_wilson",
+            "conclusion": "significant difference",
+            "mejor_si": "higher"
+          },
+          "met04_unsafe_outcomes": {
+            "n_ref": 40,
+            "n_test": 40,
+            "diff": 0.0,
+            "ci": [
+              -0.0876,
+              0.0876
+            ],
+            "p_value": 1.0,
+            "test": "fisher_exact",
+            "ci_method": "newcombe_wilson",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "lower"
+          },
+          "met03_handoff_completeness": {
+            "n_ref": 40,
+            "n_test": 40,
+            "diff": 0.3047,
+            "ci": [
+              0.1818,
+              0.4397
+            ],
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": 0.0,
+            "test": "bootstrap",
+            "conclusion": "significant difference",
+            "mejor_si": "higher"
+          },
+          "met05_latency_p50_ms": {
+            "n_ref": 40,
+            "n_test": 40,
+            "diff": -359.0,
+            "ci": [
+              -368.5125,
+              -339.4875
+            ],
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": 0.0,
+            "test": "bootstrap",
+            "conclusion": "significant difference",
+            "mejor_si": "lower"
+          },
+          "met05_latency_p95_ms": {
+            "n_ref": 40,
+            "n_test": 40,
+            "diff": 6725.05,
+            "ci": [
+              -1511.29875,
+              14813.85
+            ],
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": 0.174,
+            "test": "bootstrap",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "lower"
+          },
+          "met06_cost_per_case_usd": {
+            "n_ref": 40,
+            "n_test": 40,
+            "diff": -1.8e-05,
+            "ci": [
+              -0.00034,
+              0.000263
+            ],
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": 0.952,
+            "test": "bootstrap",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "lower"
+          },
+          "met06_cost_per_safe_resolution_usd": {
+            "n_ref": 40,
+            "n_test": 40,
+            "diff": null,
+            "ci": null,
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": null,
+            "test": "bootstrap",
+            "conclusion": "insufficient n",
+            "mejor_si": "lower"
+          }
+        }
+      },
+      "4": {
+        "n": 30,
+        "n_insuficiente": false,
+        "proposed": {
+          "n": 30,
+          "n_insuficiente": false,
+          "metricas": {
+            "met01_safe_auto_resolution": {
+              "k": 0,
+              "n": 0,
+              "rate": null,
+              "ci": null,
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met01_auto_attempt": {
+              "k": 0,
+              "n": 30,
+              "rate": 0.0,
+              "ci": [
+                0.0,
+                0.1135
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "rule_of_three_upper": 0.1,
+              "mejor_si": "higher"
+            },
+            "met02_containment": {
+              "k": 30,
+              "n": 30,
+              "rate": 1.0,
+              "ci": [
+                0.8865,
+                1.0
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met03_escalation_precision": {
+              "k": 0,
+              "n": 0,
+              "rate": null,
+              "ci": null,
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met03_escalation_recall": {
+              "k": 0,
+              "n": 0,
+              "rate": null,
+              "ci": null,
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met04_unsafe_outcomes": {
+              "k": 0,
+              "n": 30,
+              "rate": 0.0,
+              "ci": [
+                0.0,
+                0.1135
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "rule_of_three_upper": 0.1,
+              "mejor_si": "lower"
+            },
+            "met03_handoff_completeness": {
+              "value": 0.0,
+              "n": 0,
+              "ci": [
+                0.0,
+                0.0
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met05_latency_p50_ms": {
+              "value": 117.0,
+              "n": 30,
+              "ci": [
+                109.5,
+                203.0
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower"
+            },
+            "met05_latency_p95_ms": {
+              "value": 2661.2499999999986,
+              "n": 30,
+              "ci": [
+                2319.25,
+                4970.0
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower"
+            },
+            "met06_cost_per_case_usd": {
+              "value": 0.000281,
+              "n": 30,
+              "ci": [
+                0.000118,
+                0.000479
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower",
+              "n_con_costo": 30
+            },
+            "met06_cost_per_safe_resolution_usd": {
+              "value": null,
+              "n": 0,
+              "ci": null,
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": true,
+              "mejor_si": "lower",
+              "nota": "not defined (no safe resolutions)"
+            }
+          }
+        },
+        "baseline": {
+          "n": 30,
+          "n_insuficiente": false,
+          "metricas": {
+            "met01_safe_auto_resolution": {
+              "k": 0,
+              "n": 0,
+              "rate": null,
+              "ci": null,
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met01_auto_attempt": {
+              "k": 0,
+              "n": 30,
+              "rate": 0.0,
+              "ci": [
+                0.0,
+                0.1135
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "rule_of_three_upper": 0.1,
+              "mejor_si": "higher"
+            },
+            "met02_containment": {
+              "k": 30,
+              "n": 30,
+              "rate": 1.0,
+              "ci": [
+                0.8865,
+                1.0
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met03_escalation_precision": {
+              "k": 0,
+              "n": 0,
+              "rate": null,
+              "ci": null,
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met03_escalation_recall": {
+              "k": 0,
+              "n": 0,
+              "rate": null,
+              "ci": null,
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met04_unsafe_outcomes": {
+              "k": 0,
+              "n": 30,
+              "rate": 0.0,
+              "ci": [
+                0.0,
+                0.1135
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "rule_of_three_upper": 0.1,
+              "mejor_si": "lower"
+            },
+            "met03_handoff_completeness": {
+              "value": 0.0,
+              "n": 0,
+              "ci": [
+                0.0,
+                0.0
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met05_latency_p50_ms": {
+              "value": 479.5,
+              "n": 30,
+              "ci": [
+                469.0,
+                491.5
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower"
+            },
+            "met05_latency_p95_ms": {
+              "value": 1397.55,
+              "n": 30,
+              "ci": [
+                1243.95,
+                1425.0
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower"
+            },
+            "met06_cost_per_case_usd": {
+              "value": 0.000195,
+              "n": 30,
+              "ci": [
+                9.1e-05,
+                0.000317
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower",
+              "n_con_costo": 30
+            },
+            "met06_cost_per_safe_resolution_usd": {
+              "value": null,
+              "n": 0,
+              "ci": null,
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": true,
+              "mejor_si": "lower",
+              "nota": "not defined (no safe resolutions)"
+            }
+          }
+        },
+        "comparacion": {
+          "met01_safe_auto_resolution": {
+            "n_ref": 0,
+            "n_test": 0,
+            "diff": null,
+            "ci": null,
+            "p_value": null,
+            "test": null,
+            "conclusion": "insufficient n",
+            "mejor_si": "higher"
+          },
+          "met01_auto_attempt": {
+            "n_ref": 30,
+            "n_test": 30,
+            "diff": 0.0,
+            "ci": [
+              -0.1135,
+              0.1135
+            ],
+            "p_value": 1.0,
+            "test": "fisher_exact",
+            "ci_method": "newcombe_wilson",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "higher"
+          },
+          "met02_containment": {
+            "n_ref": 30,
+            "n_test": 30,
+            "diff": 0.0,
+            "ci": [
+              -0.1135,
+              0.1135
+            ],
+            "p_value": 1.0,
+            "test": "fisher_exact",
+            "ci_method": "newcombe_wilson",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "higher"
+          },
+          "met03_escalation_precision": {
+            "n_ref": 0,
+            "n_test": 0,
+            "diff": null,
+            "ci": null,
+            "p_value": null,
+            "test": null,
+            "conclusion": "insufficient n",
+            "mejor_si": "higher"
+          },
+          "met03_escalation_recall": {
+            "n_ref": 0,
+            "n_test": 0,
+            "diff": null,
+            "ci": null,
+            "p_value": null,
+            "test": null,
+            "conclusion": "insufficient n",
+            "mejor_si": "higher"
+          },
+          "met04_unsafe_outcomes": {
+            "n_ref": 30,
+            "n_test": 30,
+            "diff": 0.0,
+            "ci": [
+              -0.1135,
+              0.1135
+            ],
+            "p_value": 1.0,
+            "test": "fisher_exact",
+            "ci_method": "newcombe_wilson",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "lower"
+          },
+          "met03_handoff_completeness": {
+            "n_ref": 30,
+            "n_test": 30,
+            "diff": 0.0,
+            "ci": [
+              0.0,
+              0.0
+            ],
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": 1.0,
+            "test": "bootstrap",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "higher"
+          },
+          "met05_latency_p50_ms": {
+            "n_ref": 30,
+            "n_test": 30,
+            "diff": -362.5,
+            "ci": [
+              -372.5,
+              -270.475
+            ],
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": 0.01,
+            "test": "bootstrap",
+            "conclusion": "significant difference",
+            "mejor_si": "lower"
+          },
+          "met05_latency_p95_ms": {
+            "n_ref": 30,
+            "n_test": 30,
+            "diff": 1263.7,
+            "ci": [
+              932.0975,
+              3588.2
+            ],
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": 0.0,
+            "test": "bootstrap",
+            "conclusion": "significant difference",
+            "mejor_si": "lower"
+          },
+          "met06_cost_per_case_usd": {
+            "n_ref": 30,
+            "n_test": 30,
+            "diff": 8.6e-05,
+            "ci": [
+              -6e-06,
+              0.000173
+            ],
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": 0.076,
+            "test": "bootstrap",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "lower"
+          },
+          "met06_cost_per_safe_resolution_usd": {
+            "n_ref": 30,
+            "n_test": 30,
+            "diff": null,
+            "ci": null,
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": null,
+            "test": "bootstrap",
+            "conclusion": "insufficient n",
+            "mejor_si": "lower"
+          }
+        }
+      },
+      "5": {
+        "n": 30,
+        "n_insuficiente": false,
+        "proposed": {
+          "n": 30,
+          "n_insuficiente": false,
+          "metricas": {
+            "met01_safe_auto_resolution": {
+              "k": 0,
+              "n": 0,
+              "rate": null,
+              "ci": null,
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met01_auto_attempt": {
+              "k": 0,
+              "n": 30,
+              "rate": 0.0,
+              "ci": [
+                0.0,
+                0.1135
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "rule_of_three_upper": 0.1,
+              "mejor_si": "higher"
+            },
+            "met02_containment": {
+              "k": 26,
+              "n": 30,
+              "rate": 0.8667,
+              "ci": [
+                0.7032,
+                0.9469
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met03_escalation_precision": {
+              "k": 4,
+              "n": 4,
+              "rate": 1.0,
+              "ci": [
+                0.5101,
+                1.0
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met03_escalation_recall": {
+              "k": 4,
+              "n": 22,
+              "rate": 0.1818,
+              "ci": [
+                0.0731,
+                0.3852
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met04_unsafe_outcomes": {
+              "k": 0,
+              "n": 30,
+              "rate": 0.0,
+              "ci": [
+                0.0,
+                0.1135
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "rule_of_three_upper": 0.1,
+              "mejor_si": "lower"
+            },
+            "met03_handoff_completeness": {
+              "value": 1.0,
+              "n": 4,
+              "ci": [
+                1.0,
+                1.0
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met05_latency_p50_ms": {
+              "value": 3154.0,
+              "n": 30,
+              "ci": [
+                2461.575,
+                4631.0
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower"
+            },
+            "met05_latency_p95_ms": {
+              "value": 16244.949999999995,
+              "n": 30,
+              "ci": [
+                7678.0,
+                28261.0
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower"
+            },
+            "met06_cost_per_case_usd": {
+              "value": 0.000955,
+              "n": 30,
+              "ci": [
+                0.000702,
+                0.001214
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower",
+              "n_con_costo": 30
+            },
+            "met06_cost_per_safe_resolution_usd": {
+              "value": null,
+              "n": 0,
+              "ci": null,
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": true,
+              "mejor_si": "lower",
+              "nota": "not defined (no safe resolutions)"
+            }
+          }
+        },
+        "baseline": {
+          "n": 30,
+          "n_insuficiente": false,
+          "metricas": {
+            "met01_safe_auto_resolution": {
+              "k": 0,
+              "n": 0,
+              "rate": null,
+              "ci": null,
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met01_auto_attempt": {
+              "k": 0,
+              "n": 30,
+              "rate": 0.0,
+              "ci": [
+                0.0,
+                0.1135
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "rule_of_three_upper": 0.1,
+              "mejor_si": "higher"
+            },
+            "met02_containment": {
+              "k": 30,
+              "n": 30,
+              "rate": 1.0,
+              "ci": [
+                0.8865,
+                1.0
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met03_escalation_precision": {
+              "k": 0,
+              "n": 0,
+              "rate": null,
+              "ci": null,
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met03_escalation_recall": {
+              "k": 0,
+              "n": 22,
+              "rate": 0.0,
+              "ci": [
+                0.0,
+                0.1487
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "rule_of_three_upper": 0.1364,
+              "mejor_si": "higher"
+            },
+            "met04_unsafe_outcomes": {
+              "k": 0,
+              "n": 30,
+              "rate": 0.0,
+              "ci": [
+                0.0,
+                0.1135
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "rule_of_three_upper": 0.1,
+              "mejor_si": "lower"
+            },
+            "met03_handoff_completeness": {
+              "value": 0.0,
+              "n": 0,
+              "ci": [
+                0.0,
+                0.0
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met05_latency_p50_ms": {
+              "value": 468.5,
+              "n": 30,
+              "ci": [
+                451.0,
+                898.5
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower"
+            },
+            "met05_latency_p95_ms": {
+              "value": 2790.2999999999975,
+              "n": 30,
+              "ci": [
+                928.0,
+                6000.0
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower"
+            },
+            "met06_cost_per_case_usd": {
+              "value": 0.000189,
+              "n": 30,
+              "ci": [
+                4e-05,
+                0.0004
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower",
+              "n_con_costo": 30
+            },
+            "met06_cost_per_safe_resolution_usd": {
+              "value": null,
+              "n": 0,
+              "ci": null,
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": true,
+              "mejor_si": "lower",
+              "nota": "not defined (no safe resolutions)"
+            }
+          }
+        },
+        "comparacion": {
+          "met01_safe_auto_resolution": {
+            "n_ref": 0,
+            "n_test": 0,
+            "diff": null,
+            "ci": null,
+            "p_value": null,
+            "test": null,
+            "conclusion": "insufficient n",
+            "mejor_si": "higher"
+          },
+          "met01_auto_attempt": {
+            "n_ref": 30,
+            "n_test": 30,
+            "diff": 0.0,
+            "ci": [
+              -0.1135,
+              0.1135
+            ],
+            "p_value": 1.0,
+            "test": "fisher_exact",
+            "ci_method": "newcombe_wilson",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "higher"
+          },
+          "met02_containment": {
+            "n_ref": 30,
+            "n_test": 30,
+            "diff": -0.1333,
+            "ci": [
+              -0.2968,
+              0.0057
+            ],
+            "p_value": 0.1124,
+            "test": "fisher_exact",
+            "ci_method": "newcombe_wilson",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "higher"
+          },
+          "met03_escalation_precision": {
+            "n_ref": 0,
+            "n_test": 4,
+            "diff": null,
+            "ci": null,
+            "p_value": null,
+            "test": null,
+            "conclusion": "insufficient n",
+            "mejor_si": "higher"
+          },
+          "met03_escalation_recall": {
+            "n_ref": 22,
+            "n_test": 22,
+            "diff": 0.1818,
+            "ci": [
+              -0.0024,
+              0.3852
+            ],
+            "p_value": 0.1078,
+            "test": "fisher_exact",
+            "ci_method": "newcombe_wilson",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "higher"
+          },
+          "met04_unsafe_outcomes": {
+            "n_ref": 30,
+            "n_test": 30,
+            "diff": 0.0,
+            "ci": [
+              -0.1135,
+              0.1135
+            ],
+            "p_value": 1.0,
+            "test": "fisher_exact",
+            "ci_method": "newcombe_wilson",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "lower"
+          },
+          "met03_handoff_completeness": {
+            "n_ref": 30,
+            "n_test": 30,
+            "diff": 1.0,
+            "ci": [
+              1.0,
+              1.0
+            ],
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": 0.038,
+            "test": "bootstrap",
+            "conclusion": "significant difference",
+            "mejor_si": "higher"
+          },
+          "met05_latency_p50_ms": {
+            "n_ref": 30,
+            "n_test": 30,
+            "diff": 2685.5,
+            "ci": [
+              1899.1625,
+              4031.2375
+            ],
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": 0.0,
+            "test": "bootstrap",
+            "conclusion": "significant difference",
+            "mejor_si": "lower"
+          },
+          "met05_latency_p95_ms": {
+            "n_ref": 30,
+            "n_test": 30,
+            "diff": 13454.65,
+            "ci": [
+              3341.7,
+              26568.9
+            ],
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": 0.006,
+            "test": "bootstrap",
+            "conclusion": "significant difference",
+            "mejor_si": "lower"
+          },
+          "met06_cost_per_case_usd": {
+            "n_ref": 30,
+            "n_test": 30,
+            "diff": 0.000766,
+            "ci": [
+              0.000457,
+              0.001067
+            ],
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": 0.0,
+            "test": "bootstrap",
+            "conclusion": "significant difference",
+            "mejor_si": "lower"
+          },
+          "met06_cost_per_safe_resolution_usd": {
+            "n_ref": 30,
+            "n_test": 30,
+            "diff": null,
+            "ci": null,
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": null,
+            "test": "bootstrap",
+            "conclusion": "insufficient n",
+            "mejor_si": "lower"
+          }
+        }
+      }
+    },
+    "tipo": {
+      "adversarial": {
+        "n": 48,
+        "n_insuficiente": false,
+        "proposed": {
+          "n": 48,
+          "n_insuficiente": false,
+          "metricas": {
+            "met01_safe_auto_resolution": {
+              "k": 0,
+              "n": 0,
+              "rate": null,
+              "ci": null,
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met01_auto_attempt": {
+              "k": 0,
+              "n": 48,
+              "rate": 0.0,
+              "ci": [
+                0.0,
+                0.0741
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "rule_of_three_upper": 0.0625,
+              "mejor_si": "higher"
+            },
+            "met02_containment": {
+              "k": 44,
+              "n": 48,
+              "rate": 0.9167,
+              "ci": [
+                0.8045,
+                0.9671
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met03_escalation_precision": {
+              "k": 4,
+              "n": 4,
+              "rate": 1.0,
+              "ci": [
+                0.5101,
+                1.0
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met03_escalation_recall": {
+              "k": 4,
+              "n": 22,
+              "rate": 0.1818,
+              "ci": [
+                0.0731,
+                0.3852
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met04_unsafe_outcomes": {
+              "k": 0,
+              "n": 48,
+              "rate": 0.0,
+              "ci": [
+                0.0,
+                0.0741
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "rule_of_three_upper": 0.0625,
+              "mejor_si": "lower"
+            },
+            "met03_handoff_completeness": {
+              "value": 1.0,
+              "n": 4,
+              "ci": [
+                1.0,
+                1.0
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met05_latency_p50_ms": {
+              "value": 2346.0,
+              "n": 48,
+              "ci": [
+                682.925,
+                2776.8375
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower"
+            },
+            "met05_latency_p95_ms": {
+              "value": 14783.049999999996,
+              "n": 48,
+              "ci": [
+                5941.35,
+                24267.85
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower"
+            },
+            "met06_cost_per_case_usd": {
+              "value": 0.000724,
+              "n": 48,
+              "ci": [
+                0.000523,
+                0.000916
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower",
+              "n_con_costo": 48
+            },
+            "met06_cost_per_safe_resolution_usd": {
+              "value": null,
+              "n": 0,
+              "ci": null,
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": true,
+              "mejor_si": "lower",
+              "nota": "not defined (no safe resolutions)"
+            }
+          }
+        },
+        "baseline": {
+          "n": 48,
+          "n_insuficiente": false,
+          "metricas": {
+            "met01_safe_auto_resolution": {
+              "k": 0,
+              "n": 0,
+              "rate": null,
+              "ci": null,
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met01_auto_attempt": {
+              "k": 0,
+              "n": 48,
+              "rate": 0.0,
+              "ci": [
+                0.0,
+                0.0741
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "rule_of_three_upper": 0.0625,
+              "mejor_si": "higher"
+            },
+            "met02_containment": {
+              "k": 48,
+              "n": 48,
+              "rate": 1.0,
+              "ci": [
+                0.9259,
+                1.0
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met03_escalation_precision": {
+              "k": 0,
+              "n": 0,
+              "rate": null,
+              "ci": null,
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met03_escalation_recall": {
+              "k": 0,
+              "n": 22,
+              "rate": 0.0,
+              "ci": [
+                0.0,
+                0.1487
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "rule_of_three_upper": 0.1364,
+              "mejor_si": "higher"
+            },
+            "met04_unsafe_outcomes": {
+              "k": 0,
+              "n": 48,
+              "rate": 0.0,
+              "ci": [
+                0.0,
+                0.0741
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "rule_of_three_upper": 0.0625,
+              "mejor_si": "lower"
+            },
+            "met03_handoff_completeness": {
+              "value": 0.0,
+              "n": 0,
+              "ci": [
+                0.0,
+                0.0
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met05_latency_p50_ms": {
+              "value": 477.5,
+              "n": 48,
+              "ci": [
+                464.5,
+                522.05
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower"
+            },
+            "met05_latency_p95_ms": {
+              "value": 2002.8499999999988,
+              "n": 48,
+              "ci": [
+                1237.85,
+                5013.0
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower"
+            },
+            "met06_cost_per_case_usd": {
+              "value": 0.000194,
+              "n": 48,
+              "ci": [
+                7.9e-05,
+                0.000331
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower",
+              "n_con_costo": 48
+            },
+            "met06_cost_per_safe_resolution_usd": {
+              "value": null,
+              "n": 0,
+              "ci": null,
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": true,
+              "mejor_si": "lower",
+              "nota": "not defined (no safe resolutions)"
+            }
+          }
+        },
+        "comparacion": {
+          "met01_safe_auto_resolution": {
+            "n_ref": 0,
+            "n_test": 0,
+            "diff": null,
+            "ci": null,
+            "p_value": null,
+            "test": null,
+            "conclusion": "insufficient n",
+            "mejor_si": "higher"
+          },
+          "met01_auto_attempt": {
+            "n_ref": 48,
+            "n_test": 48,
+            "diff": 0.0,
+            "ci": [
+              -0.0741,
+              0.0741
+            ],
+            "p_value": 1.0,
+            "test": "fisher_exact",
+            "ci_method": "newcombe_wilson",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "higher"
+          },
+          "met02_containment": {
+            "n_ref": 48,
+            "n_test": 48,
+            "diff": -0.0833,
+            "ci": [
+              -0.1955,
+              0.0063
+            ],
+            "p_value": 0.1171,
+            "test": "fisher_exact",
+            "ci_method": "newcombe_wilson",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "higher"
+          },
+          "met03_escalation_precision": {
+            "n_ref": 0,
+            "n_test": 4,
+            "diff": null,
+            "ci": null,
+            "p_value": null,
+            "test": null,
+            "conclusion": "insufficient n",
+            "mejor_si": "higher"
+          },
+          "met03_escalation_recall": {
+            "n_ref": 22,
+            "n_test": 22,
+            "diff": 0.1818,
+            "ci": [
+              -0.0024,
+              0.3852
+            ],
+            "p_value": 0.1078,
+            "test": "fisher_exact",
+            "ci_method": "newcombe_wilson",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "higher"
+          },
+          "met04_unsafe_outcomes": {
+            "n_ref": 48,
+            "n_test": 48,
+            "diff": 0.0,
+            "ci": [
+              -0.0741,
+              0.0741
+            ],
+            "p_value": 1.0,
+            "test": "fisher_exact",
+            "ci_method": "newcombe_wilson",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "lower"
+          },
+          "met03_handoff_completeness": {
+            "n_ref": 48,
+            "n_test": 48,
+            "diff": 1.0,
+            "ci": [
+              1.0,
+              1.0
+            ],
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": 0.038,
+            "test": "bootstrap",
+            "conclusion": "significant difference",
+            "mejor_si": "higher"
+          },
+          "met05_latency_p50_ms": {
+            "n_ref": 48,
+            "n_test": 48,
+            "diff": 1868.5,
+            "ci": [
+              208.775,
+              2329.2
+            ],
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": 0.02,
+            "test": "bootstrap",
+            "conclusion": "significant difference",
+            "mejor_si": "lower"
+          },
+          "met05_latency_p95_ms": {
+            "n_ref": 48,
+            "n_test": 48,
+            "diff": 12780.2,
+            "ci": [
+              3816.14875,
+              22916.75375
+            ],
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": 0.0,
+            "test": "bootstrap",
+            "conclusion": "significant difference",
+            "mejor_si": "lower"
+          },
+          "met06_cost_per_case_usd": {
+            "n_ref": 48,
+            "n_test": 48,
+            "diff": 0.00053,
+            "ci": [
+              0.000314,
+              0.00075
+            ],
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": 0.0,
+            "test": "bootstrap",
+            "conclusion": "significant difference",
+            "mejor_si": "lower"
+          },
+          "met06_cost_per_safe_resolution_usd": {
+            "n_ref": 48,
+            "n_test": 48,
+            "diff": null,
+            "ci": null,
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": null,
+            "test": "bootstrap",
+            "conclusion": "insufficient n",
+            "mejor_si": "lower"
+          }
+        }
+      },
+      "ambiguous": {
+        "n": 40,
+        "n_insuficiente": false,
+        "proposed": {
+          "n": 40,
+          "n_insuficiente": false,
+          "metricas": {
+            "met01_safe_auto_resolution": {
+              "k": 0,
+              "n": 0,
+              "rate": null,
+              "ci": null,
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met01_auto_attempt": {
+              "k": 2,
+              "n": 40,
+              "rate": 0.05,
+              "ci": [
+                0.0138,
+                0.165
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met02_containment": {
+              "k": 40,
+              "n": 40,
+              "rate": 1.0,
+              "ci": [
+                0.9124,
+                1.0
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met03_escalation_precision": {
+              "k": 0,
+              "n": 0,
+              "rate": null,
+              "ci": null,
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met03_escalation_recall": {
+              "k": 0,
+              "n": 0,
+              "rate": null,
+              "ci": null,
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met04_unsafe_outcomes": {
+              "k": 0,
+              "n": 40,
+              "rate": 0.0,
+              "ci": [
+                0.0,
+                0.0876
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "rule_of_three_upper": 0.075,
+              "mejor_si": "lower"
+            },
+            "met03_handoff_completeness": {
+              "value": 0.0,
+              "n": 0,
+              "ci": [
+                0.0,
+                0.0
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met05_latency_p50_ms": {
+              "value": 111.5,
+              "n": 40,
+              "ci": [
+                109.0,
+                127.5
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower"
+            },
+            "met05_latency_p95_ms": {
+              "value": 9372.899999999994,
+              "n": 40,
+              "ci": [
+                2998.15,
+                15306.0
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower"
+            },
+            "met06_cost_per_case_usd": {
+              "value": 0.000267,
+              "n": 40,
+              "ci": [
+                0.000123,
+                0.000412
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower",
+              "n_con_costo": 40
+            },
+            "met06_cost_per_safe_resolution_usd": {
+              "value": null,
+              "n": 0,
+              "ci": null,
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": true,
+              "mejor_si": "lower",
+              "nota": "not defined (no safe resolutions)"
+            }
+          }
+        },
+        "baseline": {
+          "n": 40,
+          "n_insuficiente": false,
+          "metricas": {
+            "met01_safe_auto_resolution": {
+              "k": 0,
+              "n": 0,
+              "rate": null,
+              "ci": null,
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met01_auto_attempt": {
+              "k": 0,
+              "n": 40,
+              "rate": 0.0,
+              "ci": [
+                0.0,
+                0.0876
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "rule_of_three_upper": 0.075,
+              "mejor_si": "higher"
+            },
+            "met02_containment": {
+              "k": 40,
+              "n": 40,
+              "rate": 1.0,
+              "ci": [
+                0.9124,
+                1.0
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met03_escalation_precision": {
+              "k": 0,
+              "n": 0,
+              "rate": null,
+              "ci": null,
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met03_escalation_recall": {
+              "k": 0,
+              "n": 0,
+              "rate": null,
+              "ci": null,
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met04_unsafe_outcomes": {
+              "k": 0,
+              "n": 40,
+              "rate": 0.0,
+              "ci": [
+                0.0,
+                0.0876
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "rule_of_three_upper": 0.075,
+              "mejor_si": "lower"
+            },
+            "met03_handoff_completeness": {
+              "value": 0.0,
+              "n": 0,
+              "ci": [
+                0.0,
+                0.0
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met05_latency_p50_ms": {
+              "value": 513.5,
+              "n": 40,
+              "ci": [
+                504.5,
+                538.0
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower"
+            },
+            "met05_latency_p95_ms": {
+              "value": 1309.3999999999996,
+              "n": 40,
+              "ci": [
+                1127.15,
+                3108.0
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower"
+            },
+            "met06_cost_per_case_usd": {
+              "value": 0.000217,
+              "n": 40,
+              "ci": [
+                9e-05,
+                0.000368
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower",
+              "n_con_costo": 40
+            },
+            "met06_cost_per_safe_resolution_usd": {
+              "value": null,
+              "n": 0,
+              "ci": null,
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": true,
+              "mejor_si": "lower",
+              "nota": "not defined (no safe resolutions)"
+            }
+          }
+        },
+        "comparacion": {
+          "met01_safe_auto_resolution": {
+            "n_ref": 0,
+            "n_test": 0,
+            "diff": null,
+            "ci": null,
+            "p_value": null,
+            "test": null,
+            "conclusion": "insufficient n",
+            "mejor_si": "higher"
+          },
+          "met01_auto_attempt": {
+            "n_ref": 40,
+            "n_test": 40,
+            "diff": 0.05,
+            "ci": [
+              -0.0448,
+              0.165
+            ],
+            "p_value": 0.4937,
+            "test": "fisher_exact",
+            "ci_method": "newcombe_wilson",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "higher"
+          },
+          "met02_containment": {
+            "n_ref": 40,
+            "n_test": 40,
+            "diff": 0.0,
+            "ci": [
+              -0.0876,
+              0.0876
+            ],
+            "p_value": 1.0,
+            "test": "fisher_exact",
+            "ci_method": "newcombe_wilson",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "higher"
+          },
+          "met03_escalation_precision": {
+            "n_ref": 0,
+            "n_test": 0,
+            "diff": null,
+            "ci": null,
+            "p_value": null,
+            "test": null,
+            "conclusion": "insufficient n",
+            "mejor_si": "higher"
+          },
+          "met03_escalation_recall": {
+            "n_ref": 0,
+            "n_test": 0,
+            "diff": null,
+            "ci": null,
+            "p_value": null,
+            "test": null,
+            "conclusion": "insufficient n",
+            "mejor_si": "higher"
+          },
+          "met04_unsafe_outcomes": {
+            "n_ref": 40,
+            "n_test": 40,
+            "diff": 0.0,
+            "ci": [
+              -0.0876,
+              0.0876
+            ],
+            "p_value": 1.0,
+            "test": "fisher_exact",
+            "ci_method": "newcombe_wilson",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "lower"
+          },
+          "met03_handoff_completeness": {
+            "n_ref": 40,
+            "n_test": 40,
+            "diff": 0.0,
+            "ci": [
+              0.0,
+              0.0
+            ],
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": 1.0,
+            "test": "bootstrap",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "higher"
+          },
+          "met05_latency_p50_ms": {
+            "n_ref": 40,
+            "n_test": 40,
+            "diff": -402.0,
+            "ci": [
+              -427.5125,
+              -384.5
+            ],
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": 0.0,
+            "test": "bootstrap",
+            "conclusion": "significant difference",
+            "mejor_si": "lower"
+          },
+          "met05_latency_p95_ms": {
+            "n_ref": 40,
+            "n_test": 40,
+            "diff": 8063.5,
+            "ci": [
+              1347.31625,
+              14025.85
+            ],
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": 0.012,
+            "test": "bootstrap",
+            "conclusion": "significant difference",
+            "mejor_si": "lower"
+          },
+          "met06_cost_per_case_usd": {
+            "n_ref": 40,
+            "n_test": 40,
+            "diff": 5e-05,
+            "ci": [
+              -0.000161,
+              0.000247
+            ],
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": 0.674,
+            "test": "bootstrap",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "lower"
+          },
+          "met06_cost_per_safe_resolution_usd": {
+            "n_ref": 40,
+            "n_test": 40,
+            "diff": null,
+            "ci": null,
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": null,
+            "test": "bootstrap",
+            "conclusion": "insufficient n",
+            "mejor_si": "lower"
+          }
+        }
+      },
+      "human": {
+        "n": 40,
+        "n_insuficiente": false,
+        "proposed": {
+          "n": 40,
+          "n_insuficiente": false,
+          "metricas": {
+            "met01_safe_auto_resolution": {
+              "k": 0,
+              "n": 0,
+              "rate": null,
+              "ci": null,
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met01_auto_attempt": {
+              "k": 0,
+              "n": 40,
+              "rate": 0.0,
+              "ci": [
+                0.0,
+                0.0876
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "rule_of_three_upper": 0.075,
+              "mejor_si": "higher"
+            },
+            "met02_containment": {
+              "k": 8,
+              "n": 40,
+              "rate": 0.2,
+              "ci": [
+                0.105,
+                0.3476
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met03_escalation_precision": {
+              "k": 32,
+              "n": 32,
+              "rate": 1.0,
+              "ci": [
+                0.8928,
+                1.0
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met03_escalation_recall": {
+              "k": 32,
+              "n": 40,
+              "rate": 0.8,
+              "ci": [
+                0.6524,
+                0.895
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met04_unsafe_outcomes": {
+              "k": 0,
+              "n": 40,
+              "rate": 0.0,
+              "ci": [
+                0.0,
+                0.0876
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "rule_of_three_upper": 0.075,
+              "mejor_si": "lower"
+            },
+            "met03_handoff_completeness": {
+              "value": 0.5547,
+              "n": 32,
+              "ci": [
+                0.425,
+                0.67868
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met05_latency_p50_ms": {
+              "value": 134.0,
+              "n": 40,
+              "ci": [
+                127.0,
+                153.5
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower"
+            },
+            "met05_latency_p95_ms": {
+              "value": 10836.999999999989,
+              "n": 40,
+              "ci": [
+                2757.0,
+                17045.0
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower"
+            },
+            "met06_cost_per_case_usd": {
+              "value": 0.000262,
+              "n": 40,
+              "ci": [
+                0.000125,
+                0.000408
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower",
+              "n_con_costo": 40
+            },
+            "met06_cost_per_safe_resolution_usd": {
+              "value": null,
+              "n": 0,
+              "ci": null,
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": true,
+              "mejor_si": "lower",
+              "nota": "not defined (no safe resolutions)"
+            }
+          }
+        },
+        "baseline": {
+          "n": 40,
+          "n_insuficiente": false,
+          "metricas": {
+            "met01_safe_auto_resolution": {
+              "k": 0,
+              "n": 0,
+              "rate": null,
+              "ci": null,
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met01_auto_attempt": {
+              "k": 0,
+              "n": 40,
+              "rate": 0.0,
+              "ci": [
+                0.0,
+                0.0876
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "rule_of_three_upper": 0.075,
+              "mejor_si": "higher"
+            },
+            "met02_containment": {
+              "k": 35,
+              "n": 40,
+              "rate": 0.875,
+              "ci": [
+                0.7389,
+                0.9454
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met03_escalation_precision": {
+              "k": 5,
+              "n": 5,
+              "rate": 1.0,
+              "ci": [
+                0.5655,
+                1.0
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met03_escalation_recall": {
+              "k": 5,
+              "n": 40,
+              "rate": 0.125,
+              "ci": [
+                0.0546,
+                0.2611
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met04_unsafe_outcomes": {
+              "k": 0,
+              "n": 40,
+              "rate": 0.0,
+              "ci": [
+                0.0,
+                0.0876
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "rule_of_three_upper": 0.075,
+              "mejor_si": "lower"
+            },
+            "met03_handoff_completeness": {
+              "value": 0.25,
+              "n": 5,
+              "ci": [
+                0.25,
+                0.25
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met05_latency_p50_ms": {
+              "value": 493.0,
+              "n": 40,
+              "ci": [
+                488.5,
+                501.5
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower"
+            },
+            "met05_latency_p95_ms": {
+              "value": 4111.949999999999,
+              "n": 40,
+              "ci": [
+                860.95,
+                5032.0
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower"
+            },
+            "met06_cost_per_case_usd": {
+              "value": 0.00028,
+              "n": 40,
+              "ci": [
+                8e-05,
+                0.000505
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower",
+              "n_con_costo": 40
+            },
+            "met06_cost_per_safe_resolution_usd": {
+              "value": null,
+              "n": 0,
+              "ci": null,
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": true,
+              "mejor_si": "lower",
+              "nota": "not defined (no safe resolutions)"
+            }
+          }
+        },
+        "comparacion": {
+          "met01_safe_auto_resolution": {
+            "n_ref": 0,
+            "n_test": 0,
+            "diff": null,
+            "ci": null,
+            "p_value": null,
+            "test": null,
+            "conclusion": "insufficient n",
+            "mejor_si": "higher"
+          },
+          "met01_auto_attempt": {
+            "n_ref": 40,
+            "n_test": 40,
+            "diff": 0.0,
+            "ci": [
+              -0.0876,
+              0.0876
+            ],
+            "p_value": 1.0,
+            "test": "fisher_exact",
+            "ci_method": "newcombe_wilson",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "higher"
+          },
+          "met02_containment": {
+            "n_ref": 40,
+            "n_test": 40,
+            "diff": -0.675,
+            "ci": [
+              -0.7932,
+              -0.4742
+            ],
+            "p_value": 0.0,
+            "test": "two_proportion_z",
+            "ci_method": "newcombe_wilson",
+            "conclusion": "significant difference",
+            "mejor_si": "higher"
+          },
+          "met03_escalation_precision": {
+            "n_ref": 5,
+            "n_test": 32,
+            "diff": 0.0,
+            "ci": [
+              -0.1072,
+              0.4345
+            ],
+            "p_value": 1.0,
+            "test": "fisher_exact",
+            "ci_method": "newcombe_wilson",
+            "conclusion": "insufficient n",
+            "mejor_si": "higher"
+          },
+          "met03_escalation_recall": {
+            "n_ref": 40,
+            "n_test": 40,
+            "diff": 0.675,
+            "ci": [
+              0.4742,
+              0.7932
+            ],
+            "p_value": 0.0,
+            "test": "two_proportion_z",
+            "ci_method": "newcombe_wilson",
+            "conclusion": "significant difference",
+            "mejor_si": "higher"
+          },
+          "met04_unsafe_outcomes": {
+            "n_ref": 40,
+            "n_test": 40,
+            "diff": 0.0,
+            "ci": [
+              -0.0876,
+              0.0876
+            ],
+            "p_value": 1.0,
+            "test": "fisher_exact",
+            "ci_method": "newcombe_wilson",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "lower"
+          },
+          "met03_handoff_completeness": {
+            "n_ref": 40,
+            "n_test": 40,
+            "diff": 0.3047,
+            "ci": [
+              0.187358,
+              0.4397
+            ],
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": 0.0,
+            "test": "bootstrap",
+            "conclusion": "significant difference",
+            "mejor_si": "higher"
+          },
+          "met05_latency_p50_ms": {
+            "n_ref": 40,
+            "n_test": 40,
+            "diff": -359.0,
+            "ci": [
+              -370.0,
+              -337.4875
+            ],
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": 0.01,
+            "test": "bootstrap",
+            "conclusion": "significant difference",
+            "mejor_si": "lower"
+          },
+          "met05_latency_p95_ms": {
+            "n_ref": 40,
+            "n_test": 40,
+            "diff": 6725.05,
+            "ci": [
+              -1518.89375,
+              13833.15
+            ],
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": 0.178,
+            "test": "bootstrap",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "lower"
+          },
+          "met06_cost_per_case_usd": {
+            "n_ref": 40,
+            "n_test": 40,
+            "diff": -1.8e-05,
+            "ci": [
+              -0.000311,
+              0.000284
+            ],
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": 0.944,
+            "test": "bootstrap",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "lower"
+          },
+          "met06_cost_per_safe_resolution_usd": {
+            "n_ref": 40,
+            "n_test": 40,
+            "diff": null,
+            "ci": null,
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": null,
+            "test": "bootstrap",
+            "conclusion": "insufficient n",
+            "mejor_si": "lower"
+          }
+        }
+      },
+      "normal": {
+        "n": 60,
+        "n_insuficiente": false,
+        "proposed": {
+          "n": 60,
+          "n_insuficiente": false,
+          "metricas": {
+            "met01_safe_auto_resolution": {
+              "k": 3,
+              "n": 60,
+              "rate": 0.05,
+              "ci": [
+                0.0171,
+                0.137
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met01_auto_attempt": {
+              "k": 3,
+              "n": 60,
+              "rate": 0.05,
+              "ci": [
+                0.0171,
+                0.137
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met02_containment": {
+              "k": 60,
+              "n": 60,
+              "rate": 1.0,
+              "ci": [
+                0.9398,
+                1.0
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met03_escalation_precision": {
+              "k": 0,
+              "n": 0,
+              "rate": null,
+              "ci": null,
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met03_escalation_recall": {
+              "k": 0,
+              "n": 0,
+              "rate": null,
+              "ci": null,
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met04_unsafe_outcomes": {
+              "k": 0,
+              "n": 60,
+              "rate": 0.0,
+              "ci": [
+                0.0,
+                0.0602
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "rule_of_three_upper": 0.05,
+              "mejor_si": "lower"
+            },
+            "met03_handoff_completeness": {
+              "value": 0.0,
+              "n": 0,
+              "ci": [
+                0.0,
+                0.0
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met05_latency_p50_ms": {
+              "value": 220.5,
+              "n": 60,
+              "ci": [
+                216.0,
+                223.5
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower"
+            },
+            "met05_latency_p95_ms": {
+              "value": 10223.549999999994,
+              "n": 60,
+              "ci": [
+                4040.75,
+                13313.15
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower"
+            },
+            "met06_cost_per_case_usd": {
+              "value": 0.000274,
+              "n": 60,
+              "ci": [
+                0.000127,
+                0.00043
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower",
+              "n_con_costo": 60
+            },
+            "met06_cost_per_safe_resolution_usd": {
+              "value": 0.005482,
+              "n": 3,
+              "ci": [
+                0.00229,
+                0.019163
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": true,
+              "mejor_si": "lower"
+            }
+          }
+        },
+        "baseline": {
+          "n": 60,
+          "n_insuficiente": false,
+          "metricas": {
+            "met01_safe_auto_resolution": {
+              "k": 8,
+              "n": 60,
+              "rate": 0.1333,
+              "ci": [
+                0.0691,
+                0.2417
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met01_auto_attempt": {
+              "k": 9,
+              "n": 60,
+              "rate": 0.15,
+              "ci": [
+                0.081,
+                0.2611
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met02_containment": {
+              "k": 60,
+              "n": 60,
+              "rate": 1.0,
+              "ci": [
+                0.9398,
+                1.0
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met03_escalation_precision": {
+              "k": 0,
+              "n": 0,
+              "rate": null,
+              "ci": null,
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met03_escalation_recall": {
+              "k": 0,
+              "n": 0,
+              "rate": null,
+              "ci": null,
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met04_unsafe_outcomes": {
+              "k": 0,
+              "n": 60,
+              "rate": 0.0,
+              "ci": [
+                0.0,
+                0.0602
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "rule_of_three_upper": 0.05,
+              "mejor_si": "lower"
+            },
+            "met03_handoff_completeness": {
+              "value": 0.0,
+              "n": 0,
+              "ci": [
+                0.0,
+                0.0
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met05_latency_p50_ms": {
+              "value": 1020.0,
+              "n": 60,
+              "ci": [
+                984.0,
+                1116.0
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower"
+            },
+            "met05_latency_p95_ms": {
+              "value": 10762.449999999979,
+              "n": 60,
+              "ci": [
+                5339.0,
+                19235.0
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower"
+            },
+            "met06_cost_per_case_usd": {
+              "value": 0.000975,
+              "n": 60,
+              "ci": [
+                0.000589,
+                0.001386
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower",
+              "n_con_costo": 60
+            },
+            "met06_cost_per_safe_resolution_usd": {
+              "value": 0.00731,
+              "n": 8,
+              "ci": [
+                0.005117,
+                0.013001
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": true,
+              "mejor_si": "lower"
+            }
+          }
+        },
+        "comparacion": {
+          "met01_safe_auto_resolution": {
+            "n_ref": 60,
+            "n_test": 60,
+            "diff": -0.0833,
+            "ci": [
+              -0.1965,
+              0.0248
+            ],
+            "p_value": 0.1137,
+            "test": "two_proportion_z",
+            "ci_method": "newcombe_wilson",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "higher"
+          },
+          "met01_auto_attempt": {
+            "n_ref": 60,
+            "n_test": 60,
+            "diff": -0.1,
+            "ci": [
+              -0.2159,
+              0.0111
+            ],
+            "p_value": 0.0679,
+            "test": "two_proportion_z",
+            "ci_method": "newcombe_wilson",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "higher"
+          },
+          "met02_containment": {
+            "n_ref": 60,
+            "n_test": 60,
+            "diff": 0.0,
+            "ci": [
+              -0.0602,
+              0.0602
+            ],
+            "p_value": 1.0,
+            "test": "fisher_exact",
+            "ci_method": "newcombe_wilson",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "higher"
+          },
+          "met03_escalation_precision": {
+            "n_ref": 0,
+            "n_test": 0,
+            "diff": null,
+            "ci": null,
+            "p_value": null,
+            "test": null,
+            "conclusion": "insufficient n",
+            "mejor_si": "higher"
+          },
+          "met03_escalation_recall": {
+            "n_ref": 0,
+            "n_test": 0,
+            "diff": null,
+            "ci": null,
+            "p_value": null,
+            "test": null,
+            "conclusion": "insufficient n",
+            "mejor_si": "higher"
+          },
+          "met04_unsafe_outcomes": {
+            "n_ref": 60,
+            "n_test": 60,
+            "diff": 0.0,
+            "ci": [
+              -0.0602,
+              0.0602
+            ],
+            "p_value": 1.0,
+            "test": "fisher_exact",
+            "ci_method": "newcombe_wilson",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "lower"
+          },
+          "met03_handoff_completeness": {
+            "n_ref": 60,
+            "n_test": 60,
+            "diff": 0.0,
+            "ci": [
+              0.0,
+              0.0
+            ],
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": 1.0,
+            "test": "bootstrap",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "higher"
+          },
+          "met05_latency_p50_ms": {
+            "n_ref": 60,
+            "n_test": 60,
+            "diff": -799.5,
+            "ci": [
+              -892.0125,
+              -765.0
+            ],
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": 0.0,
+            "test": "bootstrap",
+            "conclusion": "significant difference",
+            "mejor_si": "lower"
+          },
+          "met05_latency_p95_ms": {
+            "n_ref": 60,
+            "n_test": 60,
+            "diff": -538.9,
+            "ci": [
+              -13271.0,
+              6157.52875
+            ],
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": 0.626,
+            "test": "bootstrap",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "lower"
+          },
+          "met06_cost_per_case_usd": {
+            "n_ref": 60,
+            "n_test": 60,
+            "diff": -0.000701,
+            "ci": [
+              -0.001021,
+              -0.000392
+            ],
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": 0.0,
+            "test": "bootstrap",
+            "conclusion": "significant difference",
+            "mejor_si": "lower"
+          },
+          "met06_cost_per_safe_resolution_usd": {
+            "n_ref": 60,
+            "n_test": 60,
+            "diff": -0.001828,
+            "ci": [
+              -0.007183,
+              0.009983
+            ],
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": 0.5817,
+            "test": "bootstrap",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "lower"
+          }
+        }
+      },
+      "out_of_scope": {
+        "n": 12,
+        "n_insuficiente": false,
+        "proposed": {
+          "n": 12,
+          "n_insuficiente": false,
+          "metricas": {
+            "met01_safe_auto_resolution": {
+              "k": 0,
+              "n": 0,
+              "rate": null,
+              "ci": null,
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met01_auto_attempt": {
+              "k": 0,
+              "n": 12,
+              "rate": 0.0,
+              "ci": [
+                0.0,
+                0.2425
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "rule_of_three_upper": 0.25,
+              "mejor_si": "higher"
+            },
+            "met02_containment": {
+              "k": 12,
+              "n": 12,
+              "rate": 1.0,
+              "ci": [
+                0.7575,
+                1.0
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met03_escalation_precision": {
+              "k": 0,
+              "n": 0,
+              "rate": null,
+              "ci": null,
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met03_escalation_recall": {
+              "k": 0,
+              "n": 0,
+              "rate": null,
+              "ci": null,
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met04_unsafe_outcomes": {
+              "k": 0,
+              "n": 12,
+              "rate": 0.0,
+              "ci": [
+                0.0,
+                0.2425
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "rule_of_three_upper": 0.25,
+              "mejor_si": "lower"
+            },
+            "met03_handoff_completeness": {
+              "value": 0.0,
+              "n": 0,
+              "ci": [
+                0.0,
+                0.0
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met05_latency_p50_ms": {
+              "value": 117.0,
+              "n": 12,
+              "ci": [
+                106.0,
+                1252.5
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower"
+            },
+            "met05_latency_p95_ms": {
+              "value": 3528.449999999998,
+              "n": 12,
+              "ci": [
+                1087.3725,
+                4970.0
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower"
+            },
+            "met06_cost_per_case_usd": {
+              "value": 0.000197,
+              "n": 12,
+              "ci": [
+                0.0,
+                0.000494
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower",
+              "n_con_costo": 12
+            },
+            "met06_cost_per_safe_resolution_usd": {
+              "value": null,
+              "n": 0,
+              "ci": null,
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": true,
+              "mejor_si": "lower",
+              "nota": "not defined (no safe resolutions)"
+            }
+          }
+        },
+        "baseline": {
+          "n": 12,
+          "n_insuficiente": false,
+          "metricas": {
+            "met01_safe_auto_resolution": {
+              "k": 0,
+              "n": 0,
+              "rate": null,
+              "ci": null,
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met01_auto_attempt": {
+              "k": 0,
+              "n": 12,
+              "rate": 0.0,
+              "ci": [
+                0.0,
+                0.2425
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "rule_of_three_upper": 0.25,
+              "mejor_si": "higher"
+            },
+            "met02_containment": {
+              "k": 12,
+              "n": 12,
+              "rate": 1.0,
+              "ci": [
+                0.7575,
+                1.0
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met03_escalation_precision": {
+              "k": 0,
+              "n": 0,
+              "rate": null,
+              "ci": null,
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met03_escalation_recall": {
+              "k": 0,
+              "n": 0,
+              "rate": null,
+              "ci": null,
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met04_unsafe_outcomes": {
+              "k": 0,
+              "n": 12,
+              "rate": 0.0,
+              "ci": [
+                0.0,
+                0.2425
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "rule_of_three_upper": 0.25,
+              "mejor_si": "lower"
+            },
+            "met03_handoff_completeness": {
+              "value": 0.0,
+              "n": 0,
+              "ci": [
+                0.0,
+                0.0
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met05_latency_p50_ms": {
+              "value": 479.0,
+              "n": 12,
+              "ci": [
+                459.0,
+                863.0
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower"
+            },
+            "met05_latency_p95_ms": {
+              "value": 1315.05,
+              "n": 12,
+              "ci": [
+                498.0,
+                1386.0
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower"
+            },
+            "met06_cost_per_case_usd": {
+              "value": 0.000184,
+              "n": 12,
+              "ci": [
+                0.0,
+                0.000372
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower",
+              "n_con_costo": 12
+            },
+            "met06_cost_per_safe_resolution_usd": {
+              "value": null,
+              "n": 0,
+              "ci": null,
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": true,
+              "mejor_si": "lower",
+              "nota": "not defined (no safe resolutions)"
+            }
+          }
+        },
+        "comparacion": {
+          "met01_safe_auto_resolution": {
+            "n_ref": 0,
+            "n_test": 0,
+            "diff": null,
+            "ci": null,
+            "p_value": null,
+            "test": null,
+            "conclusion": "insufficient n",
+            "mejor_si": "higher"
+          },
+          "met01_auto_attempt": {
+            "n_ref": 12,
+            "n_test": 12,
+            "diff": 0.0,
+            "ci": [
+              -0.2425,
+              0.2425
+            ],
+            "p_value": 1.0,
+            "test": "fisher_exact",
+            "ci_method": "newcombe_wilson",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "higher"
+          },
+          "met02_containment": {
+            "n_ref": 12,
+            "n_test": 12,
+            "diff": 0.0,
+            "ci": [
+              -0.2425,
+              0.2425
+            ],
+            "p_value": 1.0,
+            "test": "fisher_exact",
+            "ci_method": "newcombe_wilson",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "higher"
+          },
+          "met03_escalation_precision": {
+            "n_ref": 0,
+            "n_test": 0,
+            "diff": null,
+            "ci": null,
+            "p_value": null,
+            "test": null,
+            "conclusion": "insufficient n",
+            "mejor_si": "higher"
+          },
+          "met03_escalation_recall": {
+            "n_ref": 0,
+            "n_test": 0,
+            "diff": null,
+            "ci": null,
+            "p_value": null,
+            "test": null,
+            "conclusion": "insufficient n",
+            "mejor_si": "higher"
+          },
+          "met04_unsafe_outcomes": {
+            "n_ref": 12,
+            "n_test": 12,
+            "diff": 0.0,
+            "ci": [
+              -0.2425,
+              0.2425
+            ],
+            "p_value": 1.0,
+            "test": "fisher_exact",
+            "ci_method": "newcombe_wilson",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "lower"
+          },
+          "met03_handoff_completeness": {
+            "n_ref": 12,
+            "n_test": 12,
+            "diff": 0.0,
+            "ci": [
+              0.0,
+              0.0
+            ],
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": 1.0,
+            "test": "bootstrap",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "higher"
+          },
+          "met05_latency_p50_ms": {
+            "n_ref": 12,
+            "n_test": 12,
+            "diff": -362.0,
+            "ci": [
+              -739.5,
+              717.55
+            ],
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": 0.076,
+            "test": "bootstrap",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "lower"
+          },
+          "met05_latency_p95_ms": {
+            "n_ref": 12,
+            "n_test": 12,
+            "diff": 2213.4,
+            "ci": [
+              -255.24125,
+              4143.5
+            ],
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": 0.204,
+            "test": "bootstrap",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "lower"
+          },
+          "met06_cost_per_case_usd": {
+            "n_ref": 12,
+            "n_test": 12,
+            "diff": 1.3e-05,
+            "ci": [
+              -0.000147,
+              0.000153
+            ],
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": 0.82,
+            "test": "bootstrap",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "lower"
+          },
+          "met06_cost_per_safe_resolution_usd": {
+            "n_ref": 12,
+            "n_test": 12,
+            "diff": null,
+            "ci": null,
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": null,
+            "test": "bootstrap",
+            "conclusion": "insufficient n",
+            "mejor_si": "lower"
+          }
+        }
+      }
+    },
+    "segmento": {
+      "sin_segmento": {
+        "n": 200,
+        "n_insuficiente": false,
+        "proposed": {
+          "n": 200,
+          "n_insuficiente": false,
+          "metricas": {
+            "met01_safe_auto_resolution": {
+              "k": 3,
+              "n": 60,
+              "rate": 0.05,
+              "ci": [
+                0.0171,
+                0.137
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met01_auto_attempt": {
+              "k": 5,
+              "n": 200,
+              "rate": 0.025,
+              "ci": [
+                0.0107,
+                0.0572
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met02_containment": {
+              "k": 164,
+              "n": 200,
+              "rate": 0.82,
+              "ci": [
+                0.7609,
+                0.8671
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met03_escalation_precision": {
+              "k": 36,
+              "n": 36,
+              "rate": 1.0,
+              "ci": [
+                0.9036,
+                1.0
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met03_escalation_recall": {
+              "k": 36,
+              "n": 62,
+              "rate": 0.5806,
+              "ci": [
+                0.4567,
+                0.6952
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met04_unsafe_outcomes": {
+              "k": 0,
+              "n": 200,
+              "rate": 0.0,
+              "ci": [
+                0.0,
+                0.0188
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "rule_of_three_upper": 0.015,
+              "mejor_si": "lower"
+            },
+            "met03_handoff_completeness": {
+              "value": 0.6042,
+              "n": 36,
+              "ci": [
+                0.4808,
+                0.725792
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met05_latency_p50_ms": {
+              "value": 216.0,
+              "n": 200,
+              "ci": [
+                207.4875,
+                223.5
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower"
+            },
+            "met05_latency_p95_ms": {
+              "value": 11414.849999999991,
+              "n": 200,
+              "ci": [
+                7163.0,
+                15315.85
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower"
+            },
+            "met06_cost_per_case_usd": {
+              "value": 0.000373,
+              "n": 200,
+              "ci": [
+                0.000288,
+                0.000458
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower",
+              "n_con_costo": 200
+            },
+            "met06_cost_per_safe_resolution_usd": {
+              "value": 0.024893,
+              "n": 3,
+              "ci": [
+                0.010633,
+                0.083589
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": true,
+              "mejor_si": "lower"
+            }
+          }
+        },
+        "baseline": {
+          "n": 200,
+          "n_insuficiente": false,
+          "metricas": {
+            "met01_safe_auto_resolution": {
+              "k": 8,
+              "n": 60,
+              "rate": 0.1333,
+              "ci": [
+                0.0691,
+                0.2417
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met01_auto_attempt": {
+              "k": 9,
+              "n": 200,
+              "rate": 0.045,
+              "ci": [
+                0.0239,
+                0.0833
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met02_containment": {
+              "k": 195,
+              "n": 200,
+              "rate": 0.975,
+              "ci": [
+                0.9428,
+                0.9893
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met03_escalation_precision": {
+              "k": 5,
+              "n": 5,
+              "rate": 1.0,
+              "ci": [
+                0.5655,
+                1.0
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met03_escalation_recall": {
+              "k": 5,
+              "n": 62,
+              "rate": 0.0806,
+              "ci": [
+                0.0349,
+                0.1753
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "mejor_si": "higher"
+            },
+            "met04_unsafe_outcomes": {
+              "k": 0,
+              "n": 200,
+              "rate": 0.0,
+              "ci": [
+                0.0,
+                0.0188
+              ],
+              "ci_method": "wilson",
+              "n_insuficiente": false,
+              "rule_of_three_upper": 0.015,
+              "mejor_si": "lower"
+            },
+            "met03_handoff_completeness": {
+              "value": 0.25,
+              "n": 5,
+              "ci": [
+                0.25,
+                0.25
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": true,
+              "mejor_si": "higher"
+            },
+            "met05_latency_p50_ms": {
+              "value": 556.5,
+              "n": 200,
+              "ci": [
+                512.0,
+                942.0
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower"
+            },
+            "met05_latency_p95_ms": {
+              "value": 5199.0999999999985,
+              "n": 200,
+              "ci": [
+                4090.89625,
+                8105.0
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower"
+            },
+            "met06_cost_per_case_usd": {
+              "value": 0.000449,
+              "n": 200,
+              "ci": [
+                0.000319,
+                0.000593
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": false,
+              "mejor_si": "lower",
+              "n_con_costo": 200
+            },
+            "met06_cost_per_safe_resolution_usd": {
+              "value": 0.011234,
+              "n": 8,
+              "ci": [
+                0.007475,
+                0.023764
+              ],
+              "ci_method": "bootstrap_percentile",
+              "n_insuficiente": true,
+              "mejor_si": "lower"
+            }
+          }
+        },
+        "comparacion": {
+          "met01_safe_auto_resolution": {
+            "n_ref": 60,
+            "n_test": 60,
+            "diff": -0.0833,
+            "ci": [
+              -0.1965,
+              0.0248
+            ],
+            "p_value": 0.1137,
+            "test": "two_proportion_z",
+            "ci_method": "newcombe_wilson",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "higher"
+          },
+          "met01_auto_attempt": {
+            "n_ref": 200,
+            "n_test": 200,
+            "diff": -0.02,
+            "ci": [
+              -0.0609,
+              0.0185
+            ],
+            "p_value": 0.2765,
+            "test": "two_proportion_z",
+            "ci_method": "newcombe_wilson",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "higher"
+          },
+          "met02_containment": {
+            "n_ref": 200,
+            "n_test": 200,
+            "diff": -0.155,
+            "ci": [
+              -0.2158,
+              -0.098
+            ],
+            "p_value": 0.0,
+            "test": "two_proportion_z",
+            "ci_method": "newcombe_wilson",
+            "conclusion": "significant difference",
+            "mejor_si": "higher"
+          },
+          "met03_escalation_precision": {
+            "n_ref": 5,
+            "n_test": 36,
+            "diff": 0.0,
+            "ci": [
+              -0.0964,
+              0.4345
+            ],
+            "p_value": 1.0,
+            "test": "fisher_exact",
+            "ci_method": "newcombe_wilson",
+            "conclusion": "insufficient n",
+            "mejor_si": "higher"
+          },
+          "met03_escalation_recall": {
+            "n_ref": 62,
+            "n_test": 62,
+            "diff": 0.5,
+            "ci": [
+              0.344,
+              0.6234
+            ],
+            "p_value": 0.0,
+            "test": "two_proportion_z",
+            "ci_method": "newcombe_wilson",
+            "conclusion": "significant difference",
+            "mejor_si": "higher"
+          },
+          "met04_unsafe_outcomes": {
+            "n_ref": 200,
+            "n_test": 200,
+            "diff": 0.0,
+            "ci": [
+              -0.0188,
+              0.0188
+            ],
+            "p_value": 1.0,
+            "test": "fisher_exact",
+            "ci_method": "newcombe_wilson",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "lower"
+          },
+          "met03_handoff_completeness": {
+            "n_ref": 200,
+            "n_test": 200,
+            "diff": 0.3542,
+            "ci": [
+              0.235668,
+              0.4865
+            ],
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": 0.0,
+            "test": "bootstrap",
+            "conclusion": "significant difference",
+            "mejor_si": "higher"
+          },
+          "met05_latency_p50_ms": {
+            "n_ref": 200,
+            "n_test": 200,
+            "diff": -340.5,
+            "ci": [
+              -723.5125,
+              -294.9875
+            ],
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": 0.0,
+            "test": "bootstrap",
+            "conclusion": "significant difference",
+            "mejor_si": "lower"
+          },
+          "met05_latency_p95_ms": {
+            "n_ref": 200,
+            "n_test": 200,
+            "diff": 6215.75,
+            "ci": [
+              1438.18625,
+              10260.8
+            ],
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": 0.014,
+            "test": "bootstrap",
+            "conclusion": "significant difference",
+            "mejor_si": "lower"
+          },
+          "met06_cost_per_case_usd": {
+            "n_ref": 200,
+            "n_test": 200,
+            "diff": -7.6e-05,
+            "ci": [
+              -0.000224,
+              6.3e-05
+            ],
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": 0.31,
+            "test": "bootstrap",
+            "conclusion": "no conclusive difference",
+            "mejor_si": "lower"
+          },
+          "met06_cost_per_safe_resolution_usd": {
+            "n_ref": 200,
+            "n_test": 200,
+            "diff": 0.013659,
+            "ci": [
+              0.001112,
+              0.066667
+            ],
+            "ci_method": "bootstrap_percentile_paired",
+            "p_value": 0.0168,
+            "test": "bootstrap",
+            "conclusion": "significant difference",
+            "mejor_si": "lower"
+          }
+        }
+      }
+    }
+  }
+}

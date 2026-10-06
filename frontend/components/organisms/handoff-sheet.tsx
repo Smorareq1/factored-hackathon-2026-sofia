@@ -8,7 +8,7 @@ import { Card, Eyebrow, Mono } from "@/components/atoms/primitives";
 import { RingGauge } from "@/components/molecules/charts/ring-gauge";
 import { ActionRow, FactRow } from "@/components/molecules/evidence";
 import { FeedbackForm } from "@/components/organisms/feedback-form";
-import { LANGFUSE_TRACE_BASE } from "@/components/organisms/glass-box";
+import { LANGFUSE_TRACE_BASE } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import { ageMinutes, completeness, reasonIcon, reasonTone, sinceLabel } from "@/lib/handoff-meta";
 import { CLAIM_LABEL, FLAG_LABEL, REASON_LABEL } from "@/lib/i18n";

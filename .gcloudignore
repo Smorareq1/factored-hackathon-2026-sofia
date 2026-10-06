@@ -1,0 +1,41 @@
+# Lo que `gcloud builds submit` NO sube a Cloud Build (reemplaza .gitignore para despliegues deterministas).
+.git/
+.env
+.env.*
+!.env.example
+
+# Lakehouse local (CON-03: ni secretos ni registros de clientes en la imagen)
+data/raw/
+data/bronze/
+data/silver/
+data/gold/
+data/cache/
+data/_state/
+data/fixture/
+*.duckdb
+*.duckdb.wal
+*.duckdb.tmp
+data/**/*.parquet
+data/**/*.csv
+data/**/*.tsv
+
+# Python y entornos virtuales
+**/__pycache__/
+**/.pytest_cache/
+**/.ruff_cache/
+**/.venv/
+venv/
+.venv/
+
+# Frontend builds locales
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+
+# Artefactos locales de ML y runs de eval
+ml/artifacts/
+ml/models/
+ml/outputs/
+ml/cache/
+eval/runs/
+eval/cache/

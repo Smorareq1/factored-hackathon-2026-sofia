@@ -1,0 +1,51 @@
+{
+  "generated_at": "2026-10-03T23:11:16+00:00",
+  "transcript_templates": [
+    {
+      "filas": 171321,
+      "plantillas": 42
+    }
+  ],
+  "detected_intents": [
+    {
+      "detected_intents": "consulta_general",
+      "n": 162864
+    },
+    {
+      "detected_intents": null,
+      "n": 8457
+    }
+  ],
+  "by_category": [
+    {
+      "reason_category": "Transaccional",
+      "plantillas": 42,
+      "n": 59786
+    },
+    {
+      "reason_category": "Producto",
+      "plantillas": 42,
+      "n": 37658
+    },
+    {
+      "reason_category": "Queja",
+      "plantillas": 42,
+      "n": 29198
+    },
+    {
+      "reason_category": "Técnico",
+      "plantillas": 42,
+      "n": 25691
+    },
+    {
+      "reason_category": "Comercial",
+      "plantillas": 42,
+      "n": 13808
+    },
+    {
+      "reason_category": "Retención",
+      "plantillas": 42,
+      "n": 5180
+    }
+  ]
+}

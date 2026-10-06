@@ -4,7 +4,7 @@
 ENV_FILE := $(if $(wildcard .env),--env-file .env,)
 COMPOSE  := docker compose -f containers/local/compose.yaml $(ENV_FILE)
 
-.PHONY: setup up run dev down logs ps langfuse data eval eval-gate translate-cases notebook test lint lock clean
+.PHONY: setup up run dev down logs ps langfuse data data-fixture eval eval-gate translate-cases notebook test lint lock clean
 
 setup: ## Construye todas las imágenes
 	$(COMPOSE) --profile langfuse --profile data --profile eval --profile analysis build
@@ -29,8 +29,11 @@ ps:
 langfuse: ## Stack base + Langfuse self-hosted (UI en http://localhost:3100)
 	$(COMPOSE) --profile langfuse up -d --build
 
-data: ## Pipeline S3 → bronze → silver → gold (OPS)
-	$(COMPOSE) --profile data run --rm data
+data: ## Pipeline S3 → bronze → silver → gold (OPS). Sin credenciales de S3 usa lo que haya en data/raw
+	$(COMPOSE) --profile data run --rm --build data
+
+data-fixture: ## Mismo pipeline sobre datos sintéticos (team_generated) en data/fixture/, sin S3
+	$(COMPOSE) --profile data run --rm --build data python -m sofia_data.pipeline --source fixture
 
 eval: ## Harness baseline vs propuesto (SIM + DS)
 	$(COMPOSE) --profile eval run --rm eval
@@ -48,6 +51,7 @@ test: ## Tests de Python dentro de los contenedores
 	$(COMPOSE) run --rm --no-deps bank-api pytest services/tests
 	$(COMPOSE) run --rm --no-deps router pytest ml/tests
 	$(COMPOSE) run --rm --no-deps agent pytest agent/tests
+	$(COMPOSE) --profile data run --rm --no-deps --build data pytest data/tests
 
 lint:
 	$(COMPOSE) run --rm --no-deps agent ruff check .

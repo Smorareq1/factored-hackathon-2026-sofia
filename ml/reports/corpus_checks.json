@@ -1,0 +1,99 @@
+{
+  "rows": 264,
+  "approved": 256,
+  "needs_adjudication": 8,
+  "human_review_required": 264,
+  "labels_approved": {
+    "dispute_new": 65,
+    "dispute_status": 50,
+    "transaction_inquiry": 57,
+    "out_of_scope": 50,
+    "needs_human": 34
+  },
+  "by_language": {
+    "es": 132,
+    "pt": 132
+  },
+  "by_variation": {
+    "original": 200,
+    "contrastive": 32,
+    "typo": 2,
+    "no_accents": 2,
+    "short": 8,
+    "colloquial": 6,
+    "code_switch": 2,
+    "prompt_injection": 4,
+    "surrounding_text": 2,
+    "vague": 6
+  },
+  "groups": 109,
+  "flags": {
+    "model": 91,
+    "rules": 14,
+    "adjudicate": 8
+  },
+  "model_confusions_cv": {
+    "transaction_inquiry->dispute_new": 14,
+    "out_of_scope->transaction_inquiry": 13,
+    "dispute_new->transaction_inquiry": 12,
+    "out_of_scope->dispute_status": 7,
+    "dispute_new->dispute_status": 6,
+    "dispute_status->dispute_new": 6,
+    "out_of_scope->needs_human": 6,
+    "out_of_scope->dispute_new": 5,
+    "transaction_inquiry->out_of_scope": 4,
+    "dispute_new->needs_human": 4,
+    "transaction_inquiry->dispute_status": 3,
+    "needs_human->out_of_scope": 3,
+    "dispute_status->out_of_scope": 2,
+    "transaction_inquiry->needs_human": 2,
+    "dispute_status->transaction_inquiry": 1,
+    "dispute_new->out_of_scope": 1,
+    "needs_human->dispute_status": 1,
+    "needs_human->dispute_new": 1
+  },
+  "model_cv_accuracy": 0.645,
+  "shortcut_words": {
+    "yo": [
+      "dispute_new",
+      5
+    ],
+    "nunca": [
+      "dispute_new",
+      6
+    ],
+    "fui": [
+      "dispute_new",
+      5
+    ],
+    "algo": [
+      "dispute_new",
+      5
+    ],
+    "reclamo": [
+      "dispute_status",
+      6
+    ],
+    "reclamacao": [
+      "dispute_status",
+      9
+    ],
+    "abri": [
+      "dispute_status",
+      6
+    ],
+    "ver": [
+      "transaction_inquiry",
+      11
+    ],
+    "movimientos": [
+      "transaction_inquiry",
+      5
+    ],
+    "mis": [
+      "transaction_inquiry",
+      5
+    ]
+  },
+  "undecided_language": 44
+}
